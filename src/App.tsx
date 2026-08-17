@@ -8,11 +8,11 @@ import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
 import { Palette } from './components/Palette';
-import { Stage } from './components/Stage';
+import { RunPanel } from './components/RunPanel';
 import type { BlockCallbacks } from './components/StatementBlock';
 import { I18nProvider, useTranslation } from './i18n/context';
 import { DEFAULT_LANGUAGE, isLanguage, languageNames, LANGUAGES } from './i18n';
-import type { Language } from './i18n';
+import type { Dictionary, Language } from './i18n';
 import { createAlgorithmStore, createPreferenceStore } from './state/storage';
 import type { Preferences } from './state/storage';
 import { useAlgorithm } from './state/useAlgorithm';
@@ -22,9 +22,25 @@ import './App.css';
 
 type Theme = Preferences['theme'];
 
+/**
+ * The right rail shows exactly one view at a time. The three language views
+ * and the flowchart sit in a single flat tab row — nesting a "Code" tab inside
+ * a "Code" tab made the same word appear twice at two different levels.
+ */
+type SideView = 'natural' | 'pseudocode' | 'code' | 'flowchart';
+
+const SIDE_TABS: SideView[] = ['natural', 'pseudocode', 'code', 'flowchart'];
+
+/** Short labels keep all four tabs on one row in the rail. */
+function sideTabLabel(d: Dictionary, id: SideView): string {
+  if (id === 'natural') return d.tabs.naturalShort;
+  if (id === 'pseudocode') return d.tabs.pseudocodeShort;
+  if (id === 'code') return d.tabs.code;
+  return d.tabs.flowchart;
+}
+
 const preferenceStore = createPreferenceStore();
 
-/** Reads persisted preferences once, before the first paint. */
 function initialPreferences(): Preferences {
   const stored = preferenceStore.read();
   return {
@@ -42,7 +58,6 @@ export default function App() {
     preferenceStore.write(preferences);
   }, [preferences]);
 
-  // `system` leaves the attribute off so the media query in tokens.css wins.
   useEffect(() => {
     const root = document.documentElement;
     if (preferences.theme === 'system') root.removeAttribute('data-theme');
@@ -72,30 +87,28 @@ interface WorkbenchProps {
   onLanguageChange: (language: Language) => void;
 }
 
+/**
+ * Layout principle: the algorithm canvas dominates, everything else is context
+ * that appears when needed.
+ *
+ * An earlier version gave six regions a permanent slice each, which left the
+ * editor showing only half the algorithm. Here the canvas is the grid's `1fr`,
+ * the side rail shows one view at a time, and execution floats over the canvas
+ * only while it runs.
+ */
 function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const { d, language } = useTranslation();
 
-  /**
-   * The welcome example gives a new student something to run immediately.
-   * Deliberately built once from the language at mount: regenerating it on a
-   * language switch would discard whatever the student has since written.
-   */
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const initial = useMemo(() => welcomeAlgorithm(language), []);
   const controller = useAlgorithm(initial);
   const { algorithm, load } = controller;
 
-  /**
-   * Restore the last algorithm the student worked on. This runs once, after
-   * mount, because the store is async — the welcome example is what they see
-   * in the meantime, and it is replaced only if saved work actually exists.
-   */
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       const saved = await createAlgorithmStore().list();
       if (cancelled || saved.length === 0) return;
-      // `list` is newest-first, so the head is the most recently edited.
       load(saved[0]);
     })();
     return () => {
@@ -108,13 +121,14 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(true);
+  const [sideView, setSideView] = useState<SideView>('natural');
+  const [sideOpen, setSideOpen] = useState(true);
+  const [runOpen, setRunOpen] = useState(false);
 
-  // Keyboard shortcuts for undo/redo, matching every other editor.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z') return;
       const target = event.target as HTMLElement | null;
-      // Let text fields handle their own undo.
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
 
       event.preventDefault();
@@ -131,8 +145,8 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
 
   /**
    * Clicking a code line, a flowchart node or a console entry reveals the
-   * matching block in the editor. This is the link that makes the views feel
-   * like one artefact rather than separate renderings.
+   * matching block on the canvas — the link that makes the views feel like one
+   * artefact rather than separate renderings.
    */
   useEffect(() => {
     if (!selectedNode) return;
@@ -158,36 +172,81 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
 
   const appendStatement = useCallback(
     (statement: Statement) => {
-      controller.add(statement, {
-        parentId: null,
-        slot: null,
-        index: algorithm.body.length,
-      });
+      controller.add(statement, { parentId: null, slot: null, index: algorithm.body.length });
     },
     [controller, algorithm.body.length],
   );
+
+  /** Opening the run panel and starting the program are one action. */
+  const startRun = useCallback(() => {
+    setRunOpen(true);
+    execution.play();
+  }, [execution]);
+
+  const closeRun = useCallback(() => {
+    execution.stop();
+    setRunOpen(false);
+  }, [execution]);
 
   const activeNodeId = execution.state.currentNodeId;
   const erroredNodeId = execution.state.error?.nodeId ?? null;
 
   return (
-    <div className="app" data-palette={paletteOpen ? 'open' : 'closed'}>
+    <div
+      className="app"
+      data-palette={paletteOpen ? 'open' : 'closed'}
+      data-side={sideOpen ? 'open' : 'closed'}
+    >
       <header className="app__header">
         <div className="app__brand">
           <BrandMark />
-          <div className="app__brand-text">
-            <span className="app__name">{d.app.name}</span>
-            <span className="app__tagline">{d.app.tagline}</span>
-          </div>
+          <span className="app__name">{d.app.name}</span>
         </div>
 
+        {/* The document title lives in the header, not in a second toolbar. */}
+        <input
+          className="app__doc-title"
+          value={algorithm.name}
+          onChange={(event) => controller.setName(event.target.value)}
+          aria-label={d.actions.rename}
+          placeholder={d.app.untitled}
+        />
+
         <div className="app__header-actions">
+          <div className="app__history">
+            <button
+              type="button"
+              className="app__icon-button"
+              onClick={controller.undo}
+              disabled={!controller.canUndo}
+              title="⌘Z"
+              aria-label="Undo"
+            >
+              ↶
+            </button>
+            <button
+              type="button"
+              className="app__icon-button"
+              onClick={controller.redo}
+              disabled={!controller.canRedo}
+              title="⇧⌘Z"
+              aria-label="Redo"
+            >
+              ↷
+            </button>
+          </div>
+
+          <span className="app__divider" aria-hidden="true" />
+
           <button
             type="button"
             className="app__ghost-button"
             onClick={() => setOpenConcept('variables')}
           >
             {d.concepts.title}
+          </button>
+          <button type="button" className="app__ghost-button" onClick={() => setShowExport(true)}>
+            {d.actions.export}
           </button>
 
           <span className="app__divider" aria-hidden="true" />
@@ -216,8 +275,8 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
             <option value="dark">{d.settings.themeDark}</option>
           </select>
 
-          <button type="button" className="app__export" onClick={() => setShowExport(true)}>
-            {d.actions.export}
+          <button type="button" className="app__run" onClick={startRun}>
+            <span aria-hidden="true">▶</span> {d.actions.run}
           </button>
         </div>
       </header>
@@ -231,46 +290,74 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
           />
         </aside>
 
-        <div className="app__center">
-          <div className="app__editor">
-            <Editor
-              algorithm={algorithm}
-              callbacks={callbacks}
-              activeNodeId={activeNodeId}
-              erroredNodeId={erroredNodeId}
-              onRename={controller.setName}
-              canUndo={controller.canUndo}
-              canRedo={controller.canRedo}
-              onUndo={controller.undo}
-              onRedo={controller.redo}
-            />
-          </div>
+        {/* The canvas. The run panel floats over it, so execution never
+            permanently shrinks the workspace. */}
+        <div className="app__canvas">
+          <Editor
+            algorithm={algorithm}
+            callbacks={callbacks}
+            activeNodeId={activeNodeId}
+            erroredNodeId={erroredNodeId}
+          />
 
-          {/* The diagram now owns the whole lower half instead of sharing
-              it with a concepts pane that never had room to breathe. */}
-          <div className="app__diagram">
-            <Flowchart
-              program={algorithm.body}
-              activeNodeId={activeNodeId}
-              erroredNodeId={erroredNodeId}
-              onSelectNode={setSelectedNode}
-            />
-          </div>
+          {runOpen && (
+            <RunPanel execution={execution} onSelectNode={setSelectedNode} onClose={closeRun} />
+          )}
         </div>
 
-        <aside className="app__right">
-          <div className="app__code">
-            <CodePanel
-              algorithm={algorithm}
-              activeNodeId={activeNodeId}
-              erroredNodeId={erroredNodeId}
-              onSelectNode={setSelectedNode}
-              onExport={() => setShowExport(true)}
-            />
+        <aside className="app__side">
+          <div className="app__side-tabs" role="tablist">
+            {SIDE_TABS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                className="app__side-tab"
+                data-selected={sideOpen && sideView === id ? true : undefined}
+                aria-selected={sideOpen && sideView === id}
+                onClick={() => {
+                  setSideView(id);
+                  setSideOpen(true);
+                }}
+              >
+                {sideTabLabel(d, id)}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="app__icon-button app__side-collapse"
+              onClick={() => setSideOpen((open) => !open)}
+              title={sideOpen ? d.palette.collapse : d.palette.expand}
+              aria-label={sideOpen ? d.palette.collapse : d.palette.expand}
+            >
+              {sideOpen ? '»' : '«'}
+            </button>
           </div>
-          <div className="app__stage">
-            <Stage execution={execution} onSelectNode={setSelectedNode} />
-          </div>
+
+          {sideOpen && (
+            <div className="app__side-body">
+              {/* Both panes stay mounted: the flowchart's SVG must exist in the
+                  DOM for export, and re-emitting on each switch is wasteful. */}
+              <div className="app__side-pane" data-hidden={sideView === 'flowchart' || undefined}>
+                <CodePanel
+                  algorithm={algorithm}
+                  view={sideView === 'flowchart' ? 'natural' : sideView}
+                  activeNodeId={activeNodeId}
+                  erroredNodeId={erroredNodeId}
+                  onSelectNode={setSelectedNode}
+                  onExport={() => setShowExport(true)}
+                />
+              </div>
+              <div className="app__side-pane" data-hidden={sideView !== 'flowchart' || undefined}>
+                <Flowchart
+                  program={algorithm.body}
+                  activeNodeId={activeNodeId}
+                  erroredNodeId={erroredNodeId}
+                  onSelectNode={setSelectedNode}
+                />
+              </div>
+            </div>
+          )}
         </aside>
       </main>
 
@@ -280,14 +367,11 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
         onNavigate={setOpenConcept}
       />
 
-      {showExport && (
-        <ExportDialog algorithm={algorithm} onClose={() => setShowExport(false)} />
-      )}
+      {showExport && <ExportDialog algorithm={algorithm} onClose={() => setShowExport(false)} />}
     </div>
   );
 }
 
-/** Small robot glyph used as the product mark. */
 function BrandMark() {
   return (
     <svg className="app__mark" viewBox="0 0 32 32" aria-hidden="true">

@@ -11,6 +11,8 @@ export type PanelTab = 'natural' | 'pseudocode' | 'code';
 
 interface CodePanelProps {
   algorithm: Algorithm;
+  /** Which language view to render; the tab row lives in the app shell. */
+  view: PanelTab;
   /** Statement the interpreter is on, highlighted in every tab. */
   activeNodeId: NodeId | null;
   erroredNodeId: NodeId | null;
@@ -28,17 +30,17 @@ interface CodePanelProps {
  */
 export const CodePanel = memo(function CodePanel({
   algorithm,
+  view,
   activeNodeId,
   erroredNodeId,
   onSelectNode,
   onExport,
 }: CodePanelProps) {
   const { d, language } = useTranslation();
-  const [tab, setTab] = useState<PanelTab>('natural');
   const [codeTarget, setCodeTarget] = useState<TargetId>('javascript');
   const [copied, setCopied] = useState(false);
 
-  const target: TargetId = tab === 'code' ? codeTarget : tab;
+  const target: TargetId = view === 'code' ? codeTarget : view;
   const emitter = emitters[target];
 
   const lines = useMemo(
@@ -60,32 +62,10 @@ export const CodePanel = memo(function CodePanel({
     }
   };
 
-  const tabs: Array<{ id: PanelTab; label: string }> = [
-    { id: 'natural', label: d.tabs.natural },
-    { id: 'pseudocode', label: d.tabs.pseudocode },
-    { id: 'code', label: d.tabs.code },
-  ];
-
   return (
     <section className="code-panel" aria-label={d.a11y.codePanel}>
-      <div className="code-panel__tabs" role="tablist">
-        {tabs.map((entry) => (
-          <button
-            key={entry.id}
-            role="tab"
-            type="button"
-            className="code-panel__tab"
-            data-selected={tab === entry.id || undefined}
-            aria-selected={tab === entry.id}
-            onClick={() => setTab(entry.id)}
-          >
-            {entry.label}
-          </button>
-        ))}
-      </div>
-
       <div className="code-panel__toolbar">
-        {tab === 'code' ? (
+        {view === 'code' ? (
           <select
             className="code-panel__lang"
             value={codeTarget}

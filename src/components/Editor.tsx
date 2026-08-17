@@ -12,68 +12,26 @@ interface EditorProps {
   callbacks: BlockCallbacks;
   activeNodeId: NodeId | null;
   erroredNodeId: NodeId | null;
-  onRename: (name: string) => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  onUndo: () => void;
-  onRedo: () => void;
 }
 
+/**
+ * The algorithm canvas. It is intentionally chrome-free — the document title,
+ * undo and run controls live in the app header — so the whole surface belongs
+ * to the statements themselves.
+ */
 export const Editor = memo(function Editor({
   algorithm,
   callbacks,
   activeNodeId,
   erroredNodeId,
-  onRename,
-  canUndo,
-  canRedo,
-  onUndo,
-  onRedo,
 }: EditorProps) {
-  const { d, fill } = useTranslation();
+  const { d } = useTranslation();
   // Every declared name is offered wherever an expression can reference one.
   const variables = collectVariables(algorithm.body);
   const count = algorithm.body.length;
 
   return (
     <section className="editor" aria-label={d.a11y.algorithmEditor}>
-      <header className="editor__header">
-        <div className="editor__title-row">
-          <input
-            className="editor__title"
-            value={algorithm.name}
-            onChange={(event) => onRename(event.target.value)}
-            aria-label={d.actions.rename}
-            placeholder={d.app.untitled}
-          />
-          <div className="editor__history">
-            <button
-              type="button"
-              className="editor__history-button"
-              onClick={onUndo}
-              disabled={!canUndo}
-              title="⌘Z"
-              aria-label="Undo"
-            >
-              ↶
-            </button>
-            <button
-              type="button"
-              className="editor__history-button"
-              onClick={onRedo}
-              disabled={!canRedo}
-              title="⇧⌘Z"
-              aria-label="Redo"
-            >
-              ↷
-            </button>
-          </div>
-        </div>
-        <p className="editor__count">
-          {count === 1 ? d.editor.statementCountOne : fill(d.editor.statementCount, { count })}
-        </p>
-      </header>
-
       <div className="editor__canvas">
         {count === 0 && (
           <div className="editor__empty">

@@ -1,19 +1,37 @@
+/**
+ * Layout: one dominant canvas, everything else on demand.
+ *
+ * The canvas takes whatever the two side rails do not need, so collapsing
+ * either one hands its width straight to the algorithm. Execution floats over
+ * the canvas rather than claiming a column of its own.
+ */
+
 .app {
+  --palette-width: 244px;
+  --side-width: 400px;
+
   display: flex;
   flex-direction: column;
   height: 100%;
   background: var(--bg-app);
 }
 
-/* ---- Header ---- */
+.app[data-palette='closed'] {
+  --palette-width: 56px;
+}
+
+.app[data-side='closed'] {
+  --side-width: 46px;
+}
+
+/* ---- Header: title, actions and run all in one bar ---- */
 
 .app__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
   height: var(--header-height);
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-3);
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
@@ -22,14 +40,13 @@
 .app__brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  min-width: 0;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .app__mark {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: var(--accent);
   stroke-width: 2;
@@ -42,34 +59,74 @@
   stroke: none;
 }
 
-.app__brand-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
 .app__name {
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  line-height: 1.2;
 }
 
-.app__tagline {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Document title reads as a heading until hovered. */
+.app__doc-title {
+  flex: 0 1 300px;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.app__doc-title:hover {
+  background: var(--bg-inset);
+}
+
+.app__doc-title:focus {
+  outline: none;
+  background: var(--bg-inset);
+  border-color: var(--accent);
 }
 
 .app__header-actions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  margin-left: auto;
   flex-shrink: 0;
+}
+
+.app__history {
+  display: flex;
+  gap: 2px;
+}
+
+.app__icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.app__icon-button:hover:not(:disabled) {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.app__icon-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .app__divider {
@@ -84,6 +141,7 @@
   font-weight: 600;
   color: var(--text-secondary);
   border-radius: var(--radius-md);
+  white-space: nowrap;
   transition:
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
@@ -109,39 +167,40 @@
   border-color: var(--border-strong);
 }
 
-.app__export {
+.app__run {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 650;
   color: var(--text-inverse);
   background: var(--accent);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  transition: background var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
-.app__export:hover {
+.app__run:hover {
   background: var(--accent-strong);
 }
 
-/* ---- Three-column workbench ---- */
+.app__run:active {
+  transform: scale(0.97);
+}
+
+/* ---- Body ---- */
 
 .app__main {
   flex: 1;
   min-height: 0;
   display: grid;
-  /* Palette · editor+diagram · code+robot */
-  grid-template-columns: var(--palette-width) minmax(340px, 1fr) minmax(370px, 470px);
+  /* The canvas is the `1fr`: every pixel the rails release goes to it. */
+  grid-template-columns: var(--palette-width) 1fr var(--side-width);
   transition: grid-template-columns var(--duration-base) var(--ease-out);
-}
-
-.app {
-  --palette-width: 268px;
-}
-
-/* Collapsing the palette hands its width to the editor. */
-.app[data-palette='closed'] {
-  --palette-width: 60px;
 }
 
 .app__palette {
@@ -150,96 +209,131 @@
   overflow: hidden;
 }
 
-.app__center {
-  display: flex;
-  flex-direction: column;
+/* Positioning context for the floating run panel. */
+.app__canvas {
+  position: relative;
   min-width: 0;
   min-height: 0;
   border-right: 1px solid var(--border-subtle);
 }
 
-.app__editor {
-  flex: 1 1 55%;
-  min-height: 0;
-}
+/* ---- Side rail: one view at a time ---- */
 
-.app__diagram {
-  display: flex;
-  flex-direction: column;
-  /* The diagram owns the full lower half now that concepts moved out. */
-  flex: 1 1 46%;
-  min-height: 260px;
-  border-top: 1px solid var(--border-default);
-}
-
-.app__right {
+.app__side {
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  /* On short screens the stage cannot compress far enough for the console to
-     stay visible, so the column scrolls instead of clipping it away. */
-  overflow-y: auto;
+  background: var(--bg-surface);
 }
 
-.app__code {
-  flex: 1 1 46%;
-  /* Code scrolls internally, so it yields height to the stage, which cannot. */
-  min-height: min(176px, 22vh);
-  border-left: 1px solid var(--border-subtle);
-}
-
-.app__stage {
-  /* The stage stacks robot, controls, variables and console; this floor is
-     what those four regions need before the console starts getting squeezed. */
-  flex: 1 1 54%;
+.app__side-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
-  /* Tracks viewport height: a 768px laptop gets a shorter stage rather than a
-     console pushed below the fold. */
-  min-height: min(412px, 52vh);
-  border-top: 1px solid var(--border-default);
+}
+
+.app__side-tab {
+  position: relative;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  color: var(--text-muted);
+  white-space: nowrap;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.app__side-tab:hover {
+  color: var(--text-secondary);
+}
+
+.app__side-tab[data-selected] {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+.app__side-tab[data-selected]::after {
+  content: '';
+  position: absolute;
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+}
+
+.app__side-collapse {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Collapsed, the rail keeps only its toggle. */
+.app[data-side='closed'] .app__side-tab {
+  display: none;
+}
+
+.app[data-side='closed'] .app__side-tabs {
+  justify-content: center;
+  padding: var(--space-2) 0 0;
+}
+
+.app__side-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.app__side-pane {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+.app__side-pane[data-hidden] {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* ---- Responsive ---- */
 
-/* Narrower screens shrink the palette but must not override the collapsed
-   state, so this adjusts the open width only — the `[data-palette='closed']`
-   rule below re-asserts the rail width at every breakpoint. */
 @media (max-width: 1400px) {
   .app[data-palette='open'] {
-    --palette-width: 234px;
+    --palette-width: 224px;
   }
 
-  .app__main {
-    grid-template-columns: var(--palette-width) minmax(280px, 1fr) minmax(330px, 400px);
+  .app[data-side='open'] {
+    --side-width: 356px;
   }
 }
 
-/* Below this the three columns stop fitting; stack them instead. */
-@media (max-width: 1080px) {
-  .app__main {
-    grid-template-columns: 1fr;
-    grid-auto-rows: min-content;
-    overflow-y: auto;
+@media (max-width: 1180px) {
+  .app[data-side='open'] {
+    --side-width: 320px;
   }
 
-  .app__palette,
-  .app__center,
-  .app__right {
-    min-height: 460px;
-    border-right: none;
+  .app__doc-title {
+    flex-basis: 180px;
+  }
+}
+
+/* Below this the three columns stop fitting: both rails drop to icon width,
+   leaving the canvas whole. */
+@media (max-width: 1000px) {
+  .app {
+    --palette-width: 56px;
+    --side-width: 46px;
   }
 
-  .app__palette {
-    min-height: 300px;
-    border-bottom: 1px solid var(--border-default);
-  }
-
-  .app__right {
-    border-top: 1px solid var(--border-default);
-  }
-
-  .app__tagline {
+  .app__doc-title {
     display: none;
+  }
+
+  .app__ghost-button {
+    padding: var(--space-2);
   }
 }
