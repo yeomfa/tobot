@@ -55,10 +55,6 @@
   font-weight: inherit;
 }
 
-.app__library-button {
-  flex-shrink: 0;
-}
-
 .app__name {
   font-size: var(--text-base);
   font-weight: 700;

@@ -7,8 +7,8 @@ import { CodePanel } from './components/CodePanel';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
-import { LibraryDrawer } from './components/LibraryDrawer';
-import { Palette } from './components/Palette';
+import { Sidebar } from './components/Sidebar';
+import type { SidebarView } from './components/Sidebar';
 import { ResizeHandle } from './components/ResizeHandle';
 import { RunPanel } from './components/RunPanel';
 import type { BlockCallbacks } from './components/StatementBlock';
@@ -21,6 +21,7 @@ import { useAlgorithm } from './state/useAlgorithm';
 import { useExecution } from './state/useExecution';
 import { useResizable } from './state/useResizable';
 import { welcomeAlgorithm } from './content/examples';
+import { createEmptyAlgorithm } from './state/useAlgorithm';
 import './App.css';
 
 type Theme = Preferences['theme'];
@@ -116,11 +117,19 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
     };
   }, [load]);
 
+  // The store writes on a debounce, so the list refreshes just after it.
+  useEffect(() => {
+    const timer = setTimeout(() => setLibraryRevision((n) => n + 1), 700);
+    return () => clearTimeout(timer);
+  }, [algorithm]);
+
   const execution = useExecution(algorithm.body);
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
-  const [showLibrary, setShowLibrary] = useState(false);
+  const [sidebarView, setSidebarView] = useState<SidebarView>('statements');
+  /** Bumped on save so the library list picks up name and size changes. */
+  const [libraryRevision, setLibraryRevision] = useState(0);
 
   const [paletteOpen, setPaletteOpen] = useState(true);
   const [robotOpen, setRobotOpen] = useState(true);
@@ -203,6 +212,11 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
     [controller, algorithm.body.length],
   );
 
+  /** Starts a blank algorithm and leaves the library open behind it. */
+  const createNew = useCallback(() => {
+    load(createEmptyAlgorithm(d.app.untitled));
+  }, [load, d.app.untitled]);
+
   /** The header's Run reveals the robot if it was hidden, then starts. */
   const startRun = useCallback(() => {
     setRobotOpen(true);
@@ -231,14 +245,6 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
           <BrandMark />
           <span className="app__name">{d.app.name}</span>
         </h1>
-
-        <button
-          type="button"
-          className="app__ghost-button app__library-button"
-          onClick={() => setShowLibrary(true)}
-        >
-          {d.library.title}
-        </button>
 
         <input
           className="app__doc-title"
@@ -359,7 +365,15 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
       <main className="app__main">
         {paletteOpen && (
           <aside className="app__palette">
-            <Palette onAdd={appendStatement} />
+            <Sidebar
+              view={sidebarView}
+              onViewChange={setSidebarView}
+              onAdd={appendStatement}
+              revision={libraryRevision}
+              currentId={algorithm.id}
+              onOpen={load}
+              onCreate={createNew}
+            />
             <ResizeHandle resizable={paletteSize} edge="right" label={d.panels.resize} />
           </aside>
         )}
@@ -451,13 +465,6 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
           </aside>
         )}
       </main>
-
-      <LibraryDrawer
-        open={showLibrary}
-        currentId={algorithm.id}
-        onClose={() => setShowLibrary(false)}
-        onOpen={load}
-      />
 
       <ConceptDrawer
         conceptId={openConcept}
