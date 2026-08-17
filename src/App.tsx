@@ -76,7 +76,12 @@ interface WorkbenchProps {
 function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const { d, language } = useTranslation();
 
-  // The welcome example gives a new student something to run immediately.
+  /**
+   * The welcome example gives a new student something to run immediately.
+   * Deliberately built once from the language at mount: regenerating it on a
+   * language switch would discard whatever the student has since written.
+   */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const initial = useMemo(() => welcomeAlgorithm(language), []);
   const controller = useAlgorithm(initial);
   const { algorithm, load } = controller;

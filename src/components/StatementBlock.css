@@ -314,6 +314,19 @@
   transition: height var(--duration-fast) var(--ease-out);
 }
 
+/**
+ * An 8px gap is a hard target to hit mid-drag. While a drag is in progress the
+ * body carries `data-dragging`, which grows every zone into a comfortable
+ * target; at rest they stay thin so the algorithm reads as a tight list.
+ */
+body[data-dragging] .drop-zone {
+  height: 26px;
+}
+
+body[data-dragging] .drop-zone .drop-zone__hint {
+  opacity: 0.55;
+}
+
 /* An empty branch shows a persistent target so it never looks broken. */
 .drop-zone[data-empty] {
   height: 32px;

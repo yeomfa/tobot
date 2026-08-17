@@ -84,7 +84,10 @@ export const StatementBlock = memo(function StatementBlock({
         event.dataTransfer.setData('text/tobot-move', statement.id);
         event.dataTransfer.effectAllowed = 'move';
         event.stopPropagation();
+        // Widens every drop zone for the duration of the drag.
+        document.body.setAttribute('data-dragging', 'true');
       }}
+      onDragEnd={() => document.body.removeAttribute('data-dragging')}
     >
       <div className="statement-block__row">
         <span className="statement-block__handle" aria-label={d.a11y.dragHandle}>
@@ -541,6 +544,7 @@ export function DropZone({ location, callbacks, empty }: DropZoneProps) {
         event.preventDefault();
         event.stopPropagation();
         event.currentTarget.removeAttribute('data-over');
+        document.body.removeAttribute('data-dragging');
 
         const moveId = event.dataTransfer.getData('text/tobot-move');
         if (moveId) {

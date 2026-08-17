@@ -81,7 +81,9 @@ function PaletteItem({ kind, onAdd }: { kind: StatementKind; onAdd: (s: Statemen
           // A distinct type lets drop zones tell "new" from "reorder".
           event.dataTransfer.setData('text/tobot-new', kind);
           event.dataTransfer.effectAllowed = 'copy';
+          document.body.setAttribute('data-dragging', 'true');
         }}
+        onDragEnd={() => document.body.removeAttribute('data-dragging')}
         onClick={() => onAdd(createStatement(kind))}
         title={copy.hint}
       >
