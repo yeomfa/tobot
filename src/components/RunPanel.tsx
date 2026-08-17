@@ -11,7 +11,6 @@ import './RunPanel.css';
 interface RunPanelProps {
   execution: ExecutionController;
   onSelectNode: (id: NodeId) => void;
-  onClose: () => void;
 }
 
 /** Maps interpreter status onto the robot's expression. */
@@ -27,21 +26,14 @@ function moodFor(state: ExecutionState, isPlaying: boolean): RobotMood {
 }
 
 /**
- * The robot floats over the canvas instead of owning a docked column.
- *
- * Execution is a temporary activity, so it borrows screen space only while it
- * is happening — the algorithm stays visible behind it with the active step
- * highlighted, which is the pairing that actually teaches.
+ * The robot's home in the right rail. It is always present, so a student can
+ * run at any moment without first summoning a panel, and the console keeps its
+ * history between runs.
  */
-export const RunPanel = memo(function RunPanel({
-  execution,
-  onSelectNode,
-  onClose,
-}: RunPanelProps) {
+export const RunPanel = memo(function RunPanel({ execution, onSelectNode }: RunPanelProps) {
   const { d, t, fill } = useTranslation();
   const { state, isPlaying } = execution;
   const [draft, setDraft] = useState('');
-  const [expanded, setExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLOListElement>(null);
 
@@ -54,11 +46,6 @@ export const RunPanel = memo(function RunPanel({
   useEffect(() => {
     const log = logRef.current;
     if (log) log.scrollTop = log.scrollHeight;
-  }, [state.output.length]);
-
-  // Output beyond the first couple of lines is worth showing automatically.
-  useEffect(() => {
-    if (state.output.length > 2) setExpanded(true);
   }, [state.output.length]);
 
   const lastSpoken = [...state.output].reverse().find((entry) => entry.kind === 'say');
@@ -88,7 +75,7 @@ export const RunPanel = memo(function RunPanel({
   };
 
   return (
-    <section className="run-panel" data-expanded={expanded || undefined} aria-label={d.a11y.robotStage}>
+    <section className="run-panel" aria-label={d.a11y.robotStage}>
       <header className="run-panel__bar">
         <span className="run-panel__status" data-status={state.status}>
           {statusText}
@@ -98,23 +85,6 @@ export const RunPanel = memo(function RunPanel({
             {fill(d.runtime.stepCount, { count: state.stepCount })}
           </span>
         )}
-        <button
-          type="button"
-          className="run-panel__icon-button"
-          onClick={() => setExpanded((open) => !open)}
-          aria-label={expanded ? d.palette.collapse : d.palette.expand}
-          aria-expanded={expanded}
-        >
-          {expanded ? '▾' : '▴'}
-        </button>
-        <button
-          type="button"
-          className="run-panel__icon-button"
-          onClick={onClose}
-          aria-label={d.actions.close}
-        >
-          ×
-        </button>
       </header>
 
       <div className="run-panel__robot">
@@ -188,9 +158,7 @@ export const RunPanel = memo(function RunPanel({
         </select>
       </div>
 
-      {/* Output and variables only take space once there is something to show. */}
-      {expanded && (
-        <div className="run-panel__details">
+      <div className="run-panel__details">
           {state.variables.length > 0 && (
             <ul className="run-panel__vars">
               {state.variables.map((variable) => (
@@ -226,8 +194,11 @@ export const RunPanel = memo(function RunPanel({
               ))}
             </ol>
           )}
-        </div>
-      )}
+
+        {state.output.length === 0 && (
+          <p className="run-panel__empty">{d.console.empty}</p>
+        )}
+      </div>
     </section>
   );
 });

@@ -1,35 +1,16 @@
 /**
- * Floating run panel. It docks to the bottom-right of the canvas and sizes
- * itself to its content, so an idle app spends no vertical budget on it and a
- * running one still shows the algorithm underneath.
+ * The robot's panel, filling the right rail. It is always mounted, so the
+ * console keeps its history and a student can run without summoning anything.
+ * The console takes the leftover height and scrolls, which is what keeps the
+ * layout stable as output accumulates.
  */
 
 .run-panel {
-  position: absolute;
-  right: var(--space-4);
-  bottom: var(--space-4);
-  z-index: 30;
   display: flex;
   flex-direction: column;
-  width: 300px;
-  max-height: calc(100% - var(--space-6));
-  background: var(--bg-raised);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
-  animation: run-panel-in var(--duration-base) var(--ease-spring);
-}
-
-@keyframes run-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 /* ---- Title bar ---- */
@@ -116,10 +97,11 @@
     );
 }
 
-/* Compact robot: the panel is a companion, not the main event. */
+/* Scales with the rail: a wider panel gets a bigger robot, but it always
+   yields height to the console below. */
 .run-panel__robot .robot__body {
-  width: min(100%, 116px);
-  max-height: 132px;
+  width: min(58%, 150px);
+  max-height: min(150px, 18vh);
 }
 
 .run-panel__robot .robot__bubble-slot {
@@ -252,6 +234,7 @@
 .run-panel__details {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
   border-top: 1px solid var(--border-subtle);
 }
@@ -304,9 +287,18 @@
   flex-direction: column;
   gap: 1px;
   padding: var(--space-2) var(--space-3) var(--space-3);
+  /* Grows into the leftover space rather than capping at a fixed height. */
+  flex: 1;
   min-height: 0;
-  max-height: 150px;
   overflow-y: auto;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.run-panel__empty {
+  padding: var(--space-4) var(--space-3);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-muted);
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -367,11 +359,3 @@
   color: var(--text-secondary);
 }
 
-/* On narrow screens the panel spans the canvas rather than floating. */
-@media (max-width: 900px) {
-  .run-panel {
-    left: var(--space-3);
-    right: var(--space-3);
-    width: auto;
-  }
-}

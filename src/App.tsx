@@ -8,6 +8,7 @@ import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
 import { Palette } from './components/Palette';
+import { ResizeHandle } from './components/ResizeHandle';
 import { RunPanel } from './components/RunPanel';
 import type { BlockCallbacks } from './components/StatementBlock';
 import { I18nProvider, useTranslation } from './i18n/context';
@@ -17,24 +18,20 @@ import { createAlgorithmStore, createPreferenceStore } from './state/storage';
 import type { Preferences } from './state/storage';
 import { useAlgorithm } from './state/useAlgorithm';
 import { useExecution } from './state/useExecution';
+import { useResizable } from './state/useResizable';
 import { welcomeAlgorithm } from './content/examples';
 import './App.css';
 
 type Theme = Preferences['theme'];
 
-/**
- * The right rail shows exactly one view at a time. The three language views
- * and the flowchart sit in a single flat tab row — nesting a "Code" tab inside
- * a "Code" tab made the same word appear twice at two different levels.
- */
-type SideView = 'natural' | 'pseudocode' | 'code' | 'flowchart';
+/** Views available in the bottom drawer. */
+type DrawerView = 'natural' | 'pseudocode' | 'code' | 'flowchart';
 
-const SIDE_TABS: SideView[] = ['natural', 'pseudocode', 'code', 'flowchart'];
+const DRAWER_TABS: DrawerView[] = ['natural', 'pseudocode', 'code', 'flowchart'];
 
-/** Short labels keep all four tabs on one row in the rail. */
-function sideTabLabel(d: Dictionary, id: SideView): string {
-  if (id === 'natural') return d.tabs.naturalShort;
-  if (id === 'pseudocode') return d.tabs.pseudocodeShort;
+function drawerTabLabel(d: Dictionary, id: DrawerView): string {
+  if (id === 'natural') return d.tabs.natural;
+  if (id === 'pseudocode') return d.tabs.pseudocode;
   if (id === 'code') return d.tabs.code;
   return d.tabs.flowchart;
 }
@@ -88,13 +85,15 @@ interface WorkbenchProps {
 }
 
 /**
- * Layout principle: the algorithm canvas dominates, everything else is context
- * that appears when needed.
+ * Layout: the canvas is the constant, and the three surrounding panels are
+ * each independently hideable and drag-resizable.
  *
- * An earlier version gave six regions a permanent slice each, which left the
- * editor showing only half the algorithm. Here the canvas is the grid's `1fr`,
- * the side rail shows one view at a time, and execution floats over the canvas
- * only while it runs.
+ * - left rail: the statement palette
+ * - right rail: the robot, always present so a student can run at any moment
+ * - bottom drawer: the language views and the flowchart
+ *
+ * Sizes persist per panel, so the workspace a student arranges is the one they
+ * come back to.
  */
 function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const { d, language } = useTranslation();
@@ -120,10 +119,36 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
+
   const [paletteOpen, setPaletteOpen] = useState(true);
-  const [sideView, setSideView] = useState<SideView>('natural');
-  const [sideOpen, setSideOpen] = useState(true);
-  const [runOpen, setRunOpen] = useState(false);
+  const [robotOpen, setRobotOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [drawerView, setDrawerView] = useState<DrawerView>('natural');
+
+  const paletteSize = useResizable({
+    initial: 244,
+    min: 180,
+    max: 420,
+    axis: 'x',
+    from: 'start',
+    storageKey: 'tobot.size.palette',
+  });
+  const robotSize = useResizable({
+    initial: 330,
+    min: 260,
+    max: 520,
+    axis: 'x',
+    from: 'end',
+    storageKey: 'tobot.size.robot',
+  });
+  const drawerSize = useResizable({
+    initial: 300,
+    min: 140,
+    max: 640,
+    axis: 'y',
+    from: 'end',
+    storageKey: 'tobot.size.drawer',
+  });
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -145,8 +170,7 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
 
   /**
    * Clicking a code line, a flowchart node or a console entry reveals the
-   * matching block on the canvas — the link that makes the views feel like one
-   * artefact rather than separate renderings.
+   * matching block on the canvas.
    */
   useEffect(() => {
     if (!selectedNode) return;
@@ -177,25 +201,28 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
     [controller, algorithm.body.length],
   );
 
-  /** Opening the run panel and starting the program are one action. */
+  /** The header's Run reveals the robot if it was hidden, then starts. */
   const startRun = useCallback(() => {
-    setRunOpen(true);
+    setRobotOpen(true);
     execution.play();
-  }, [execution]);
-
-  const closeRun = useCallback(() => {
-    execution.stop();
-    setRunOpen(false);
   }, [execution]);
 
   const activeNodeId = execution.state.currentNodeId;
   const erroredNodeId = execution.state.error?.nodeId ?? null;
 
+  const gridStyle = {
+    '--palette-size': `${paletteSize.size}px`,
+    '--robot-size': `${robotSize.size}px`,
+    '--drawer-size': `${drawerSize.size}px`,
+  } as React.CSSProperties;
+
   return (
     <div
       className="app"
+      style={gridStyle}
       data-palette={paletteOpen ? 'open' : 'closed'}
-      data-side={sideOpen ? 'open' : 'closed'}
+      data-robot={robotOpen ? 'open' : 'closed'}
+      data-drawer={drawerOpen ? 'open' : 'closed'}
     >
       <header className="app__header">
         <div className="app__brand">
@@ -203,7 +230,6 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
           <span className="app__name">{d.app.name}</span>
         </div>
 
-        {/* The document title lives in the header, not in a second toolbar. */}
         <input
           className="app__doc-title"
           value={algorithm.name}
@@ -233,6 +259,45 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
               aria-label="Redo"
             >
               ↷
+            </button>
+          </div>
+
+          <span className="app__divider" aria-hidden="true" />
+
+          {/* Panel toggles, grouped so their state reads at a glance. */}
+          <div className="app__toggles">
+            <button
+              type="button"
+              className="app__toggle"
+              data-active={paletteOpen || undefined}
+              onClick={() => setPaletteOpen((open) => !open)}
+              title={d.panels.palette}
+              aria-label={d.panels.palette}
+              aria-pressed={paletteOpen}
+            >
+              ◧
+            </button>
+            <button
+              type="button"
+              className="app__toggle"
+              data-active={drawerOpen || undefined}
+              onClick={() => setDrawerOpen((open) => !open)}
+              title={d.panels.drawer}
+              aria-label={d.panels.drawer}
+              aria-pressed={drawerOpen}
+            >
+              ◒
+            </button>
+            <button
+              type="button"
+              className="app__toggle"
+              data-active={robotOpen || undefined}
+              onClick={() => setRobotOpen((open) => !open)}
+              title={d.panels.robot}
+              aria-label={d.panels.robot}
+              aria-pressed={robotOpen}
+            >
+              ◨
             </button>
           </div>
 
@@ -282,83 +347,99 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
       </header>
 
       <main className="app__main">
-        <aside className="app__palette">
-          <Palette
-            onAdd={appendStatement}
-            collapsed={!paletteOpen}
-            onToggle={() => setPaletteOpen((open) => !open)}
-          />
-        </aside>
+        {paletteOpen && (
+          <aside className="app__palette">
+            <Palette onAdd={appendStatement} />
+            <ResizeHandle resizable={paletteSize} edge="right" label={d.panels.resize} />
+          </aside>
+        )}
 
-        {/* The canvas. The run panel floats over it, so execution never
-            permanently shrinks the workspace. */}
-        <div className="app__canvas">
-          <Editor
-            algorithm={algorithm}
-            callbacks={callbacks}
-            activeNodeId={activeNodeId}
-            erroredNodeId={erroredNodeId}
-          />
-
-          {runOpen && (
-            <RunPanel execution={execution} onSelectNode={setSelectedNode} onClose={closeRun} />
-          )}
-        </div>
-
-        <aside className="app__side">
-          <div className="app__side-tabs" role="tablist">
-            {SIDE_TABS.map((id) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                className="app__side-tab"
-                data-selected={sideOpen && sideView === id ? true : undefined}
-                aria-selected={sideOpen && sideView === id}
-                onClick={() => {
-                  setSideView(id);
-                  setSideOpen(true);
-                }}
-              >
-                {sideTabLabel(d, id)}
-              </button>
-            ))}
-            <button
-              type="button"
-              className="app__icon-button app__side-collapse"
-              onClick={() => setSideOpen((open) => !open)}
-              title={sideOpen ? d.palette.collapse : d.palette.expand}
-              aria-label={sideOpen ? d.palette.collapse : d.palette.expand}
-            >
-              {sideOpen ? '»' : '«'}
-            </button>
+        <div className="app__center">
+          <div className="app__canvas">
+            <Editor
+              algorithm={algorithm}
+              callbacks={callbacks}
+              activeNodeId={activeNodeId}
+              erroredNodeId={erroredNodeId}
+            />
           </div>
 
-          {sideOpen && (
-            <div className="app__side-body">
-              {/* Both panes stay mounted: the flowchart's SVG must exist in the
-                  DOM for export, and re-emitting on each switch is wasteful. */}
-              <div className="app__side-pane" data-hidden={sideView === 'flowchart' || undefined}>
-                <CodePanel
-                  algorithm={algorithm}
-                  view={sideView === 'flowchart' ? 'natural' : sideView}
-                  activeNodeId={activeNodeId}
-                  erroredNodeId={erroredNodeId}
-                  onSelectNode={setSelectedNode}
-                  onExport={() => setShowExport(true)}
-                />
-              </div>
-              <div className="app__side-pane" data-hidden={sideView !== 'flowchart' || undefined}>
-                <Flowchart
-                  program={algorithm.body}
-                  activeNodeId={activeNodeId}
-                  erroredNodeId={erroredNodeId}
-                  onSelectNode={setSelectedNode}
-                />
-              </div>
+          {/* Bottom drawer: the code and diagram views. */}
+          <section className="app__drawer" aria-label={d.panels.drawer}>
+            {drawerOpen && (
+              <ResizeHandle resizable={drawerSize} edge="top" label={d.panels.resize} />
+            )}
+
+            <div className="app__drawer-tabs" role="tablist">
+              {DRAWER_TABS.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  className="app__drawer-tab"
+                  data-selected={drawerOpen && drawerView === id ? true : undefined}
+                  aria-selected={drawerOpen && drawerView === id}
+                  onClick={() => {
+                    // Clicking the open tab again collapses the drawer.
+                    if (drawerOpen && drawerView === id) setDrawerOpen(false);
+                    else {
+                      setDrawerView(id);
+                      setDrawerOpen(true);
+                    }
+                  }}
+                >
+                  {drawerTabLabel(d, id)}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="app__icon-button app__drawer-collapse"
+                onClick={() => setDrawerOpen((open) => !open)}
+                title={drawerOpen ? d.palette.collapse : d.palette.expand}
+                aria-label={drawerOpen ? d.palette.collapse : d.palette.expand}
+              >
+                {drawerOpen ? '▾' : '▴'}
+              </button>
             </div>
-          )}
-        </aside>
+
+            {drawerOpen && (
+              <div className="app__drawer-body">
+                {/* Both stay mounted: the flowchart's SVG must exist for export. */}
+                <div
+                  className="app__drawer-pane"
+                  data-hidden={drawerView === 'flowchart' || undefined}
+                >
+                  <CodePanel
+                    algorithm={algorithm}
+                    view={drawerView === 'flowchart' ? 'natural' : drawerView}
+                    activeNodeId={activeNodeId}
+                    erroredNodeId={erroredNodeId}
+                    onSelectNode={setSelectedNode}
+                    onExport={() => setShowExport(true)}
+                  />
+                </div>
+                <div
+                  className="app__drawer-pane"
+                  data-hidden={drawerView !== 'flowchart' || undefined}
+                >
+                  <Flowchart
+                    program={algorithm.body}
+                    activeNodeId={activeNodeId}
+                    erroredNodeId={erroredNodeId}
+                    onSelectNode={setSelectedNode}
+                  />
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+
+        {robotOpen && (
+          <aside className="app__robot">
+            <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
+            <RunPanel execution={execution} onSelectNode={setSelectedNode} />
+          </aside>
+        )}
       </main>
 
       <ConceptDrawer

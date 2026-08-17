@@ -1,0 +1,81 @@
+/**
+ * The handle is a thin seam that only becomes visible on hover or while
+ * dragging — panels should look joined, not gridded, until you reach for the
+ * divider.
+ */
+
+.resize-handle {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background var(--duration-fast) var(--ease-out);
+  touch-action: none;
+}
+
+/* Vertical seams (left/right edges of a column). */
+.resize-handle[data-edge='left'],
+.resize-handle[data-edge='right'] {
+  top: 0;
+  bottom: 0;
+  /* Wider than it looks so the target is comfortable to hit. */
+  width: 11px;
+  cursor: col-resize;
+}
+
+.resize-handle[data-edge='left'] {
+  left: -5px;
+}
+
+.resize-handle[data-edge='right'] {
+  right: -5px;
+}
+
+/* Horizontal seam (top edge of a bottom drawer). */
+.resize-handle[data-edge='top'] {
+  left: 0;
+  right: 0;
+  top: -5px;
+  height: 11px;
+  cursor: row-resize;
+}
+
+.resize-handle__grip {
+  background: transparent;
+  border-radius: var(--radius-full);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.resize-handle[data-edge='left'] .resize-handle__grip,
+.resize-handle[data-edge='right'] .resize-handle__grip {
+  width: 3px;
+  height: 36px;
+}
+
+.resize-handle[data-edge='top'] .resize-handle__grip {
+  width: 36px;
+  height: 3px;
+}
+
+.resize-handle:hover .resize-handle__grip,
+.resize-handle:focus-visible .resize-handle__grip,
+.resize-handle[data-dragging] .resize-handle__grip {
+  background: var(--accent);
+}
+
+.resize-handle[data-dragging] .resize-handle__grip {
+  transform: scaleY(1.4);
+}
+
+.resize-handle[data-edge='top'][data-dragging] .resize-handle__grip {
+  transform: scaleX(1.4);
+}
+
+.resize-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

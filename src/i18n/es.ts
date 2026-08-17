@@ -63,6 +63,13 @@ export const es = {
   },
   /** Short inline wording used inside blocks, where the palette's longer
    * labels ("Crear variable") would read awkwardly mid-sentence. */
+  /** Names for the resizable/hideable regions, used by toggles and handles. */
+  panels: {
+    palette: 'Panel de instrucciones',
+    drawer: 'Panel de código y diagrama',
+    robot: 'Panel del robot',
+    resize: 'Arrastra para redimensionar',
+  },
   verbs: {
     declare: 'variable',
     assign: 'cambiar',

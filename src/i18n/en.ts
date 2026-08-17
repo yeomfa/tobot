@@ -62,6 +62,12 @@ export const en: Dictionary = {
     repeat: { label: 'Repeat N times', hint: 'Repeat a fixed number of times' },
     forEach: { label: 'From… to', hint: 'Count from one number up to another' },
   },
+  panels: {
+    palette: 'Statements panel',
+    drawer: 'Code and diagram panel',
+    robot: 'Robot panel',
+    resize: 'Drag to resize',
+  },
   verbs: {
     declare: 'variable',
     assign: 'change',

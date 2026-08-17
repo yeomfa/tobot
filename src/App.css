@@ -1,30 +1,20 @@
 /**
- * Layout: one dominant canvas, everything else on demand.
+ * Layout: a constant canvas with three hideable, drag-resizable panels around
+ * it — palette (left), robot (right) and the code/diagram drawer (bottom).
  *
- * The canvas takes whatever the two side rails do not need, so collapsing
- * either one hands its width straight to the algorithm. Execution floats over
- * the canvas rather than claiming a column of its own.
+ * Panel sizes come from inline custom properties set by `useResizable`, so a
+ * drag changes one variable and the grid reflows without React re-laying out
+ * anything itself.
  */
 
 .app {
-  --palette-width: 244px;
-  --side-width: 400px;
-
   display: flex;
   flex-direction: column;
   height: 100%;
   background: var(--bg-app);
 }
 
-.app[data-palette='closed'] {
-  --palette-width: 56px;
-}
-
-.app[data-side='closed'] {
-  --side-width: 46px;
-}
-
-/* ---- Header: title, actions and run all in one bar ---- */
+/* ---- Header ---- */
 
 .app__header {
   display: flex;
@@ -66,9 +56,8 @@
   color: var(--text-primary);
 }
 
-/* Document title reads as a heading until hovered. */
 .app__doc-title {
-  flex: 0 1 300px;
+  flex: 0 1 260px;
   min-width: 0;
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-base);
@@ -100,7 +89,8 @@
   flex-shrink: 0;
 }
 
-.app__history {
+.app__history,
+.app__toggles {
   display: flex;
   gap: 2px;
 }
@@ -127,6 +117,31 @@
 .app__icon-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* Panel toggles read as pressed when their panel is showing. */
+.app__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.app__toggle:hover {
+  background: var(--bg-sunken);
+  color: var(--text-secondary);
+}
+
+.app__toggle[data-active] {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
 }
 
 .app__divider {
@@ -192,51 +207,101 @@
   transform: scale(0.97);
 }
 
-/* ---- Body ---- */
+/* ---- Grid ---- */
 
 .app__main {
   flex: 1;
   min-height: 0;
   display: grid;
-  /* The canvas is the `1fr`: every pixel the rails release goes to it. */
-  grid-template-columns: var(--palette-width) 1fr var(--side-width);
-  transition: grid-template-columns var(--duration-base) var(--ease-out);
+  /* Columns are assigned explicitly rather than by source order: when a rail
+     is unmounted, auto-placement would slide the canvas into the rail's track
+     and size it as `auto` instead of `1fr`. */
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .app__palette {
-  min-width: 0;
+  grid-column: 1;
+}
+
+.app__center {
+  grid-column: 2;
+}
+
+.app__robot {
+  grid-column: 3;
+}
+
+.app__palette,
+.app__robot {
+  position: relative;
   min-height: 0;
   overflow: hidden;
 }
 
-/* Positioning context for the floating run panel. */
-.app__canvas {
-  position: relative;
-  min-width: 0;
-  min-height: 0;
+.app__palette {
+  width: var(--palette-size, 244px);
   border-right: 1px solid var(--border-subtle);
 }
 
-/* ---- Side rail: one view at a time ---- */
+.app__robot {
+  width: var(--robot-size, 330px);
+  border-left: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
 
-.app__side {
+.app__center {
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--bg-surface);
 }
 
-.app__side-tabs {
+.app__canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---- Bottom drawer ---- */
+
+.app__drawer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-default);
+}
+
+.app[data-drawer='open'] .app__drawer {
+  height: var(--drawer-size, 300px);
+}
+
+/* Collapsed, only the tab strip remains — a persistent handle back in. */
+.app[data-drawer='closed'] .app__drawer {
+  height: auto;
+}
+
+.app__drawer-tabs {
   display: flex;
   align-items: center;
   gap: 2px;
   padding: var(--space-2) var(--space-2) 0;
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.app__side-tab {
+.app__drawer-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.app[data-drawer='closed'] .app__drawer-tabs {
+  padding-bottom: var(--space-2);
+  border-bottom: none;
+}
+
+.app__drawer-tab {
   position: relative;
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
@@ -247,16 +312,16 @@
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-.app__side-tab:hover {
+.app__drawer-tab:hover {
   color: var(--text-secondary);
 }
 
-.app__side-tab[data-selected] {
+.app__drawer-tab[data-selected] {
   color: var(--text-primary);
   font-weight: 650;
 }
 
-.app__side-tab[data-selected]::after {
+.app__drawer-tab[data-selected]::after {
   content: '';
   position: absolute;
   left: var(--space-2);
@@ -267,73 +332,49 @@
   background: var(--accent);
 }
 
-.app__side-collapse {
+.app__drawer-collapse {
   margin-left: auto;
   flex-shrink: 0;
 }
 
-/* Collapsed, the rail keeps only its toggle. */
-.app[data-side='closed'] .app__side-tab {
-  display: none;
-}
-
-.app[data-side='closed'] .app__side-tabs {
-  justify-content: center;
-  padding: var(--space-2) 0 0;
-}
-
-.app__side-body {
+.app__drawer-body {
   position: relative;
   flex: 1;
   min-height: 0;
 }
 
-.app__side-pane {
+.app__drawer-pane {
   position: absolute;
   inset: 0;
   min-height: 0;
 }
 
-.app__side-pane[data-hidden] {
+.app__drawer-pane[data-hidden] {
   visibility: hidden;
   pointer-events: none;
 }
 
 /* ---- Responsive ---- */
 
-@media (max-width: 1400px) {
-  .app[data-palette='open'] {
-    --palette-width: 224px;
-  }
-
-  .app[data-side='open'] {
-    --side-width: 356px;
-  }
-}
-
 @media (max-width: 1180px) {
-  .app[data-side='open'] {
-    --side-width: 320px;
-  }
-
   .app__doc-title {
     flex-basis: 180px;
   }
 }
 
-/* Below this the three columns stop fitting: both rails drop to icon width,
-   leaving the canvas whole. */
-@media (max-width: 1000px) {
-  .app {
-    --palette-width: 56px;
-    --side-width: 46px;
+/* Too narrow for three columns: the rails hide and their toggles bring them
+   back one at a time. */
+@media (max-width: 960px) {
+  .app__main {
+    grid-template-columns: 1fr;
+  }
+
+  .app__palette,
+  .app__robot {
+    display: none;
   }
 
   .app__doc-title {
     display: none;
-  }
-
-  .app__ghost-button {
-    padding: var(--space-2);
   }
 }
