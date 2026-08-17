@@ -77,6 +77,16 @@
   box-shadow: 0 0 0 2px var(--danger-soft);
 }
 
+/* A statement with an unresolved problem gets a dotted underline on its left
+   rail, echoing a proofreading mark rather than shouting an alert. */
+.statement-block[data-problem='error'] {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--block-border));
+}
+
+.statement-block[data-problem='warning'] {
+  border-color: color-mix(in srgb, var(--hue-conditional) 40%, var(--block-border));
+}
+
 /* Brief flash when another view points at this block. */
 .statement-block[data-selected] {
   animation: block-reveal 1.4s var(--ease-out);
@@ -189,19 +199,84 @@
   background: color-mix(in srgb, var(--block-hue) 14%, transparent);
 }
 
+/* Problem badge: a quiet marker, with the explanation in its tooltip. */
+.statement-block__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  cursor: help;
+}
+
+.statement-block__badge[data-severity='error'] {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.statement-block__badge[data-severity='warning'] {
+  color: var(--hue-conditional);
+  background: var(--hue-conditional-soft);
+}
+
+/* The badge stays visible even at rest — a problem should not need a hover
+   to be noticed — while the edit actions keep hiding. */
 .statement-block__actions {
   display: flex;
+  align-items: center;
   gap: 2px;
   flex-shrink: 0;
+}
+
+/* Only the edit buttons hide at rest; the badge must always be visible. */
+.statement-block__action {
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.statement-block:hover > .statement-block__row > .statement-block__actions,
-.statement-block:focus-within > .statement-block__row > .statement-block__actions {
+.statement-block:hover > .statement-block__row .statement-block__action,
+.statement-block:focus-within > .statement-block__row .statement-block__action {
   opacity: 1;
 }
 
+.statement-block:hover > .statement-block__row > .statement-block__actions,
+.statement-block:focus-within > .statement-block__row > /* Problem badge: a quiet marker, with the explanation in its tooltip. */
+.statement-block__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  cursor: help;
+}
+
+.statement-block__badge[data-severity='error'] {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.statement-block__badge[data-severity='warning'] {
+  color: var(--hue-conditional);
+  background: var(--hue-conditional-soft);
+}
+
+/* The badge stays visible even at rest — a problem should not need a hover
+   to be noticed — while the edit actions keep hiding. */
+.statement-block__actions {
+  opacity: 1;
+}
+
+/* Edit buttons stay hidden until the block is hovered or focused, so a
+   finished algorithm reads as prose. The problem badge is deliberately not
+   part of this group — a problem must be visible without hunting for it. */
 .statement-block__action {
   display: flex;
   align-items: center;
@@ -212,6 +287,14 @@
   line-height: 1;
   color: var(--text-muted);
   border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.statement-block:hover > .statement-block__row .statement-block__action,
+.statement-block:focus-within > .statement-block__row .statement-block__action,
+.statement-block__action:focus-visible {
+  opacity: 1;
 }
 
 .statement-block__action:hover {

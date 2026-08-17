@@ -49,6 +49,10 @@ Consequences worth knowing:
   uses an explicit frame stack so it can suspend mid-program while waiting for
   student input, and advance exactly one statement at a time to drive the
   flowchart highlight.
+- **Static checks run as you type.** `core/ast/validate.ts` catches what the
+  interpreter would only find at run time — or never: a duplicated name, a loop
+  whose condition nothing updates, a range that runs backwards. Each problem
+  carries the id of one statement, so the editor marks exactly one block.
 
 ### Where things live
 
@@ -57,10 +61,22 @@ Consequences worth knowing:
 | `src/core/ast` | Node types, construction, immutable tree operations |
 | `src/core/emitters` | One file per output language |
 | `src/core/runtime` | Step-based interpreter |
+| `src/core/ast/validate.ts` | Static checks surfaced on the block itself |
 | `src/core/flowchart` | Two-pass layout producing absolute geometry |
 | `src/state` | Editor state with undo, persistence, execution driver |
 | `src/i18n` | Spanish (source of truth) and English dictionaries |
-| `src/content` | Concept explanations, references, starter example |
+| `src/content` | Concept explanations, references, worked examples |
+
+## Layout
+
+A constant canvas with three panels around it — palette, robot, and the
+code/diagram drawer. Each hides independently from the header and resizes by
+dragging its edge; sizes persist per panel.
+
+The canvas is the grid's `1fr`, so hiding a rail hands its width straight to
+the algorithm. The columns are assigned explicitly rather than by source order:
+with auto-placement, unmounting a rail let the canvas slide into the rail's
+`auto` track and shrink instead of growing.
 
 ## Interface languages
 

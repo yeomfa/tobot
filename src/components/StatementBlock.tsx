@@ -3,6 +3,7 @@ import { memo } from 'react';
 import { createStatement } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
 import type { LiteralKind, NodeId, Statement } from '../core/ast/types';
+import type { Problem } from '../core/ast/validate';
 import { conceptForStatement } from '../content/concepts';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
@@ -20,6 +21,8 @@ export interface BlockCallbacks {
 interface StatementBlockProps {
   statement: Statement;
   variables: string[];
+  /** Static-check results, keyed by statement id. */
+  problems: Map<NodeId, Problem[]>;
   callbacks: BlockCallbacks;
   /** Highlighted while the interpreter is on this statement. */
   isActive: boolean;
@@ -39,6 +42,7 @@ function sanitizeName(raw: string, fallback: string): string {
 export const StatementBlock = memo(function StatementBlock({
   statement,
   variables,
+  problems,
   callbacks,
   isActive,
   isErrored,
@@ -46,9 +50,17 @@ export const StatementBlock = memo(function StatementBlock({
   erroredNodeId,
   depth,
 }: StatementBlockProps) {
-  const { d } = useTranslation();
+  const { d, t } = useTranslation();
   const category = statementCategory[statement.kind];
   const concept = conceptForStatement.get(statement.kind);
+
+  const ownProblems = problems.get(statement.id) ?? [];
+  // One badge per block: an error outranks a warning.
+  const worst = ownProblems.some((problem) => problem.severity === 'error')
+    ? 'error'
+    : ownProblems.length > 0
+      ? 'warning'
+      : null;
 
   const setName = (name: string): void => {
     callbacks.update(statement.id, (current) =>
@@ -79,6 +91,7 @@ export const StatementBlock = memo(function StatementBlock({
       data-category={category}
       data-active={isActive || undefined}
       data-errored={isErrored || undefined}
+      data-problem={worst ?? undefined}
       draggable
       onDragStart={(event) => {
         event.dataTransfer.setData('text/tobot-move', statement.id);
@@ -107,6 +120,20 @@ export const StatementBlock = memo(function StatementBlock({
         </div>
 
         <div className="statement-block__actions">
+          {worst && (
+            <span
+              className="statement-block__badge"
+              data-severity={worst}
+              /* The full explanation lives in the tooltip so the block stays
+                 readable; the badge only signals that something needs a look. */
+              title={ownProblems
+                .map((problem) => t(`problems.${problem.messageKey}`, problem.vars))
+                .join('\n')}
+              role="status"
+            >
+              {worst === 'error' ? '!' : '?'}
+            </span>
+          )}
           {concept && (
             <button
               type="button"
@@ -139,6 +166,7 @@ export const StatementBlock = memo(function StatementBlock({
             parentId={statement.id}
             slot="then"
             variables={variables}
+            problems={problems}
             callbacks={callbacks}
             activeNodeId={activeNodeId}
             erroredNodeId={erroredNodeId}
@@ -151,6 +179,7 @@ export const StatementBlock = memo(function StatementBlock({
               parentId={statement.id}
               slot="otherwise"
               variables={variables}
+              problems={problems}
               callbacks={callbacks}
               activeNodeId={activeNodeId}
               erroredNodeId={erroredNodeId}
@@ -187,6 +216,7 @@ export const StatementBlock = memo(function StatementBlock({
             parentId={statement.id}
             slot="body"
             variables={variables}
+            problems={problems}
             callbacks={callbacks}
             activeNodeId={activeNodeId}
             erroredNodeId={erroredNodeId}
@@ -449,6 +479,7 @@ interface BranchProps {
   parentId: NodeId;
   slot: 'then' | 'otherwise' | 'body';
   variables: string[];
+  problems: Map<NodeId, Problem[]>;
   callbacks: BlockCallbacks;
   activeNodeId: NodeId | null;
   erroredNodeId: NodeId | null;
@@ -463,6 +494,7 @@ function Branch({
   parentId,
   slot,
   variables,
+  problems,
   callbacks,
   activeNodeId,
   erroredNodeId,
@@ -498,6 +530,7 @@ function Branch({
             <StatementBlock
               statement={child}
               variables={variables}
+              problems={problems}
               callbacks={callbacks}
               isActive={child.id === activeNodeId}
               isErrored={child.id === erroredNodeId}

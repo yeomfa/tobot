@@ -1,6 +1,7 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
 import { collectVariables } from '../core/ast/operations';
+import { problemsByNode, validate } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { DropZone, StatementBlock } from './StatementBlock';
@@ -30,6 +31,10 @@ export const Editor = memo(function Editor({
   const variables = collectVariables(algorithm.body);
   const count = algorithm.body.length;
 
+  // Static checks re-run on every edit; the tree is small enough that this is
+  // cheaper than tracking which statement changed.
+  const problems = useMemo(() => problemsByNode(validate(algorithm.body)), [algorithm.body]);
+
   return (
     <section className="editor" aria-label={d.a11y.algorithmEditor}>
       <div className="editor__canvas">
@@ -51,6 +56,7 @@ export const Editor = memo(function Editor({
               <StatementBlock
                 statement={statement}
                 variables={variables}
+                problems={problems}
                 callbacks={callbacks}
                 isActive={statement.id === activeNodeId}
                 isErrored={statement.id === erroredNodeId}

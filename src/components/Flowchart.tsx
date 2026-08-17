@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { NodeId, Statement } from '../core/ast/types';
 import { createFlowLabels } from '../core/flowchart/labels';
@@ -45,12 +45,51 @@ export const Flowchart = memo(function Flowchart({
 }: FlowchartProps) {
   const { d, language } = useTranslation();
   const svgRef = useRef<SVGSVGElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
+  /** `true` while the zoom is being kept in sync with the canvas size. */
+  const [autoFit, setAutoFit] = useState(true);
 
   const layout = useMemo(
     () => layoutFlowchart(program, createFlowLabels(d, language)),
     [program, d, language],
   );
+
+  /**
+   * A 40-statement program lays out over 7000px tall, of which a docked panel
+   * shows about 3%. Fitting to the canvas by default makes the diagram usable
+   * at any size; an explicit zoom click opts out until the next Fit.
+   */
+  const fitToCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || layout.width === 0 || layout.height === 0) return;
+    const padding = 32;
+    const scale = Math.min(
+      (canvas.clientWidth - padding) / layout.width,
+      (canvas.clientHeight - padding) / layout.height,
+    );
+    // Never magnify past 1: a two-node diagram should not fill the panel.
+    setZoom(Math.max(0.12, Math.min(1, scale)));
+  }, [layout.width, layout.height]);
+
+  useEffect(() => {
+    if (!autoFit) return;
+    fitToCanvas();
+  }, [autoFit, fitToCanvas]);
+
+  // Re-fit when the panel itself is resized.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !autoFit) return;
+    const observer = new ResizeObserver(() => fitToCanvas());
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [autoFit, fitToCanvas]);
+
+  const zoomBy = (delta: number): void => {
+    setAutoFit(false);
+    setZoom((current) => Math.max(0.12, Math.min(2, current + delta)));
+  };
 
   if (program.length === 0) {
     return (
@@ -70,27 +109,25 @@ export const Flowchart = memo(function Flowchart({
           <LegendItem shape="io" label={d.flowchart.legendIo} />
         </div>
         <div className="flowchart__zoom">
-          <button
-            type="button"
-            onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))}
-            aria-label={d.flowchart.zoomOut}
-          >
+          <button type="button" onClick={() => zoomBy(-0.15)} aria-label={d.flowchart.zoomOut}>
             −
           </button>
-          <button type="button" onClick={() => setZoom(1)} aria-label={d.flowchart.fit}>
-            {Math.round(zoom * 100)}%
-          </button>
           <button
             type="button"
-            onClick={() => setZoom((z) => Math.min(2, z + 0.15))}
-            aria-label={d.flowchart.zoomIn}
+            data-active={autoFit || undefined}
+            onClick={() => setAutoFit(true)}
+            aria-label={d.flowchart.fit}
+            title={d.flowchart.fit}
           >
+            {autoFit ? d.flowchart.fit : `${Math.round(zoom * 100)}%`}
+          </button>
+          <button type="button" onClick={() => zoomBy(0.15)} aria-label={d.flowchart.zoomIn}>
             +
           </button>
         </div>
       </div>
 
-      <div className="flowchart__canvas">
+      <div className="flowchart__canvas" ref={canvasRef}>
         <svg
           ref={svgRef}
           className="flowchart__svg"

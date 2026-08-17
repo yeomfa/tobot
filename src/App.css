@@ -49,6 +49,16 @@
   stroke: none;
 }
 
+/* The brand is the page's h1; it must not inherit heading sizing. */
+.app__brand {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.app__library-button {
+  flex-shrink: 0;
+}
+
 .app__name {
   font-size: var(--text-base);
   font-weight: 700;

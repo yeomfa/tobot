@@ -7,6 +7,7 @@ import { CodePanel } from './components/CodePanel';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
+import { LibraryDrawer } from './components/LibraryDrawer';
 import { Palette } from './components/Palette';
 import { ResizeHandle } from './components/ResizeHandle';
 import { RunPanel } from './components/RunPanel';
@@ -119,6 +120,7 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
 
   const [paletteOpen, setPaletteOpen] = useState(true);
   const [robotOpen, setRobotOpen] = useState(true);
@@ -225,10 +227,18 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
       data-drawer={drawerOpen ? 'open' : 'closed'}
     >
       <header className="app__header">
-        <div className="app__brand">
+        <h1 className="app__brand">
           <BrandMark />
           <span className="app__name">{d.app.name}</span>
-        </div>
+        </h1>
+
+        <button
+          type="button"
+          className="app__ghost-button app__library-button"
+          onClick={() => setShowLibrary(true)}
+        >
+          {d.library.title}
+        </button>
 
         <input
           className="app__doc-title"
@@ -441,6 +451,13 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
           </aside>
         )}
       </main>
+
+      <LibraryDrawer
+        open={showLibrary}
+        currentId={algorithm.id}
+        onClose={() => setShowLibrary(false)}
+        onOpen={load}
+      />
 
       <ConceptDrawer
         conceptId={openConcept}
