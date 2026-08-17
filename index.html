@@ -1,10 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tobot</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Tobot — Aprende a programar</title>
+    <meta
+      name="description"
+      content="Escribe algoritmos con instrucciones básicas y compáralos en lenguaje natural, pseudocódigo y código."
+    />
+    <!-- Applies the saved theme before first paint to avoid a flash. -->
+    <script>
+      (function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem('tobot.preferences.v1') || '{}');
+          if (stored.theme === 'dark' || stored.theme === 'light') {
+            document.documentElement.setAttribute('data-theme', stored.theme);
+          }
+          if (stored.language) document.documentElement.lang = stored.language;
+        } catch (error) {
+          /* Storage may be unavailable; the default theme is fine. */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

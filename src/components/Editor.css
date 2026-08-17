@@ -1,0 +1,127 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-inset);
+}
+
+.editor__header {
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.editor__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.editor__title {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  margin-left: calc(var(--space-2) * -1);
+  font-size: var(--text-lg);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+/* The title reads as a heading until you interact with it. */
+.editor__title:hover {
+  background: var(--bg-inset);
+}
+
+.editor__title:focus {
+  outline: none;
+  background: var(--bg-inset);
+  border-color: var(--accent);
+}
+
+.editor__history {
+  display: flex;
+  gap: 2px;
+}
+
+.editor__history-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.editor__history-button:hover:not(:disabled) {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.editor__history-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.editor__count {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.editor__canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+.editor__empty {
+  position: absolute;
+  inset: var(--space-6) var(--space-4) auto;
+  text-align: center;
+  pointer-events: none;
+}
+
+.editor__empty-title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.editor__empty-hint {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.editor__list {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* Room for the empty-state message above the first drop zone. */
+  padding-top: 0;
+}
+
+.editor__canvas:has(.editor__empty) .editor__list {
+  padding-top: 88px;
+}
+
+.editor__item {
+  display: flex;
+  flex-direction: column;
+}

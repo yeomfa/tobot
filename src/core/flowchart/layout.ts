@@ -47,6 +47,18 @@ const NODE_WIDTH = 190;
 const NODE_HEIGHT = 52;
 const DECISION_WIDTH = 210;
 const DECISION_HEIGHT = 84;
+
+/**
+ * Labels are drawn in the monospace UI font at 12.5px, where each glyph is
+ * almost exactly 0.6em wide. Estimating from the character count keeps layout
+ * a pure function — no DOM measurement — while still guaranteeing the text
+ * fits inside its shape.
+ */
+const CHAR_WIDTH = 7.6;
+
+function widthForLabel(text: string, minimum: number, padding: number): number {
+  return Math.max(minimum, Math.ceil(text.length * CHAR_WIDTH) + padding);
+}
 const TERMINAL_WIDTH = 120;
 const TERMINAL_HEIGHT = 44;
 const VERTICAL_GAP = 42;
@@ -100,7 +112,8 @@ function measureStatement(statement: Statement, labels: FlowLabels): Measured {
 
 function measureSimple(statement: Statement, labels: FlowLabels): Measured {
   const { text, shape } = labels.describe(statement);
-  const width = NODE_WIDTH;
+  // Parallelograms lose horizontal room to their slant, so they pad more.
+  const width = widthForLabel(text, NODE_WIDTH, shape === 'io' ? 56 : 32);
   const height = NODE_HEIGHT;
 
   return {
@@ -181,13 +194,15 @@ function measureIf(
   labels: FlowLabels,
 ): Measured {
   const { text } = labels.describe(statement);
+  // A diamond's usable interior is about half its box, so text needs ~2x padding.
+  const diamondWidth = widthForLabel(text, DECISION_WIDTH, 120);
   const thenPart = measureSequence(statement.then, labels);
   const elsePart = measureSequence(statement.otherwise ?? [], labels);
 
   // Branches sit side by side beneath the diamond.
   const leftWidth = Math.max(thenPart.width, NODE_WIDTH / 2);
   const rightWidth = Math.max(elsePart.width, NODE_WIDTH / 2);
-  const width = Math.max(leftWidth + HORIZONTAL_GAP + rightWidth, DECISION_WIDTH);
+  const width = Math.max(leftWidth + HORIZONTAL_GAP + rightWidth, diamondWidth);
   const spine = width / 2;
   const branchHeight = Math.max(thenPart.height, elsePart.height);
   const height = DECISION_HEIGHT + VERTICAL_GAP + branchHeight + VERTICAL_GAP;
@@ -203,9 +218,9 @@ function measureIf(
         nodeId: statement.id,
         shape: 'decision',
         text,
-        x: originX + spine - DECISION_WIDTH / 2,
+        x: originX + spine - diamondWidth / 2,
         y: originY,
-        width: DECISION_WIDTH,
+        width: diamondWidth,
         height: DECISION_HEIGHT,
       });
 
@@ -268,10 +283,11 @@ function measureLoop(
   labels: FlowLabels,
 ): Measured {
   const { text } = labels.describe(statement);
+  const diamondWidth = widthForLabel(text, DECISION_WIDTH, 120);
   const bodyPart = measureSequence(statement.body, labels);
 
-  const width = Math.max(bodyPart.width, DECISION_WIDTH) + LOOP_MARGIN;
-  const spine = Math.max(bodyPart.spine, DECISION_WIDTH / 2);
+  const width = Math.max(bodyPart.width, diamondWidth) + LOOP_MARGIN;
+  const spine = Math.max(bodyPart.spine, diamondWidth / 2);
   const height = DECISION_HEIGHT + VERTICAL_GAP + bodyPart.height + VERTICAL_GAP;
 
   return {
@@ -285,9 +301,9 @@ function measureLoop(
         nodeId: statement.id,
         shape: 'decision',
         text,
-        x: originX + spine - DECISION_WIDTH / 2,
+        x: originX + spine - diamondWidth / 2,
         y: originY,
-        width: DECISION_WIDTH,
+        width: diamondWidth,
         height: DECISION_HEIGHT,
       });
 

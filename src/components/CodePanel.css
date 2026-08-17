@@ -1,0 +1,235 @@
+.code-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-surface);
+}
+
+/* ---- Tabs ---- */
+
+.code-panel__tabs {
+  display: flex;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.code-panel__tab {
+  position: relative;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+}
+
+.code-panel__tab:hover {
+  color: var(--text-secondary);
+}
+
+.code-panel__tab[data-selected] {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+/* Underline indicator sits on the panel border. */
+.code-panel__tab[data-selected]::after {
+  content: '';
+  position: absolute;
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+}
+
+/* ---- Toolbar ---- */
+
+.code-panel__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.code-panel__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.code-panel__lang {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.code-panel__toolbar-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.code-panel__button {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.code-panel__button:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+/* ---- Code body ---- */
+
+.code-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-3) 0;
+  background: var(--code-bg);
+}
+
+/* Natural language reads as prose, so it keeps the light surface. */
+.code-panel__body[data-syntax='natural'] {
+  background: var(--bg-surface);
+  padding: var(--space-4);
+}
+
+.code-panel__empty {
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.code-panel__body:not([data-syntax='natural']) .code-panel__empty {
+  color: var(--code-muted);
+}
+
+.code-panel__lines {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+
+.code-panel__body[data-syntax='natural'] .code-panel__lines {
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: 1.75;
+}
+
+.code-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+  border-left: 2px solid transparent;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.code-line[data-clickable] {
+  cursor: pointer;
+}
+
+.code-line[data-clickable]:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.code-panel__body[data-syntax='natural'] .code-line[data-clickable]:hover {
+  background: var(--bg-sunken);
+}
+
+/* Statement currently executing. */
+.code-line[data-active] {
+  background: var(--code-active);
+  border-left-color: var(--accent);
+}
+
+.code-panel__body[data-syntax='natural'] .code-line[data-active] {
+  background: var(--accent-soft);
+}
+
+.code-line[data-errored] {
+  background: rgb(220 38 38 / 0.16);
+  border-left-color: var(--danger);
+}
+
+.code-line__number {
+  min-width: 2ch;
+  text-align: right;
+  font-size: var(--text-xs);
+  color: var(--code-comment);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.code-line__text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Tokens ---- */
+
+.code-panel__body:not([data-syntax='natural']) .code-line__text {
+  color: var(--code-text);
+}
+
+.tok--keyword {
+  color: var(--code-keyword);
+  font-weight: 600;
+}
+
+.tok--string {
+  color: var(--code-string);
+}
+
+.tok--number {
+  color: var(--code-number);
+}
+
+.tok--name {
+  color: var(--code-name);
+}
+
+.tok--operator {
+  color: var(--code-text);
+  opacity: 0.75;
+}
+
+.tok--comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+/* In the prose view the tokens inherit normal text colours. */
+.code-panel__body[data-syntax='natural'] .tok--string {
+  color: var(--hue-io);
+  font-weight: 500;
+}
+
+.code-panel__body[data-syntax='natural'] .tok--number {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.code-panel__body[data-syntax='natural'] .tok--plain {
+  color: var(--text-primary);
+}

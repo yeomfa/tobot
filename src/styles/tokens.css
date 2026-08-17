@@ -1,0 +1,233 @@
+/**
+ * Design tokens.
+ *
+ * The palette is built around a deep indigo "workbench" ground with a warm
+ * amber accent — deliberately not the blue/white SaaS default. Statement
+ * categories each own a hue so a student learns to recognise a loop or a
+ * conditional by colour before they can read the syntax; those same hues drive
+ * the block editor, the code highlighting and the flowchart shapes, which is
+ * what makes the four views feel like one system.
+ */
+
+:root {
+  /* Neutral ramp — slightly cool, so the amber accent reads as warm. */
+  --slate-0: #ffffff;
+  --slate-25: #fbfbfd;
+  --slate-50: #f4f5f9;
+  --slate-100: #e8eaf2;
+  --slate-200: #d4d8e6;
+  --slate-300: #b3bad0;
+  --slate-400: #8a93af;
+  --slate-500: #656e8c;
+  --slate-600: #4b5470;
+  --slate-700: #363e57;
+  --slate-800: #232a3f;
+  --slate-900: #171d2e;
+  --slate-950: #0e1320;
+
+  /* Category hues. Each has a solid, a soft fill and a border tint. */
+  --hue-variable: #6366f1;
+  --hue-variable-soft: #eef0ff;
+  --hue-variable-border: #c7cbff;
+
+  --hue-io: #0891b2;
+  --hue-io-soft: #e0f6fb;
+  --hue-io-border: #a5e3ef;
+
+  --hue-conditional: #d97706;
+  --hue-conditional-soft: #fdf0dc;
+  --hue-conditional-border: #f6d6a3;
+
+  --hue-loop: #7c3aed;
+  --hue-loop-soft: #f2ebfe;
+  --hue-loop-border: #d9c6fb;
+
+  --accent: #e8873a;
+  --accent-strong: #d4722a;
+  --accent-soft: #fdefe2;
+
+  --success: #059669;
+  --success-soft: #d9f5ea;
+  --danger: #dc2626;
+  --danger-soft: #fdeaea;
+
+  /* Semantic surfaces. */
+  --bg-app: var(--slate-50);
+  --bg-surface: var(--slate-0);
+  --bg-raised: var(--slate-0);
+  --bg-sunken: var(--slate-100);
+  --bg-inset: var(--slate-25);
+
+  --text-primary: var(--slate-900);
+  --text-secondary: var(--slate-600);
+  --text-muted: var(--slate-400);
+  --text-inverse: var(--slate-0);
+
+  --border-subtle: var(--slate-100);
+  --border-default: var(--slate-200);
+  --border-strong: var(--slate-300);
+
+  /* The code panel keeps a dark ground in both themes: code reads better on
+     dark, and it visually separates "what you wrote" from "what it becomes". */
+  --code-bg: var(--slate-950);
+  --code-surface: #161d2f;
+  --code-text: #d8def0;
+  --code-muted: #6f79a0;
+  --code-keyword: #c4a3ff;
+  --code-string: #8fd4a8;
+  --code-number: #ffb86b;
+  --code-name: #7dd3fc;
+  --code-comment: #5a6484;
+  --code-active: rgba(232, 135, 58, 0.16);
+
+  --shadow-xs: 0 1px 2px rgb(15 20 35 / 0.06);
+  --shadow-sm: 0 1px 3px rgb(15 20 35 / 0.08), 0 1px 2px rgb(15 20 35 / 0.04);
+  --shadow-md: 0 4px 12px rgb(15 20 35 / 0.08), 0 2px 4px rgb(15 20 35 / 0.04);
+  --shadow-lg: 0 12px 32px rgb(15 20 35 / 0.12), 0 4px 8px rgb(15 20 35 / 0.06);
+  --shadow-focus: 0 0 0 3px rgb(232 135 58 / 0.32);
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Inter for UI, JetBrains Mono for code; both degrade to good system stacks
+     since the app ships without web fonts to stay fast on campus networks. */
+  --font-ui:
+    'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    sans-serif;
+  --font-mono:
+    'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 340ms;
+
+  --header-height: 56px;
+  --panel-min-width: 320px;
+}
+
+:root[data-theme='dark'] {
+  --bg-app: var(--slate-950);
+  --bg-surface: var(--slate-900);
+  --bg-raised: var(--slate-800);
+  --bg-sunken: #0a0f1a;
+  --bg-inset: var(--slate-900);
+
+  --text-primary: var(--slate-50);
+  --text-secondary: var(--slate-300);
+  --text-muted: var(--slate-400);
+  --text-inverse: var(--slate-950);
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  /* Category hues brighten and their fills become translucent so they sit on
+     the dark ground without turning muddy. */
+  --hue-variable: #a5b0ff;
+  --hue-variable-soft: rgba(99, 102, 241, 0.16);
+  --hue-variable-border: rgba(129, 140, 248, 0.34);
+
+  --hue-io: #5fd4ec;
+  --hue-io-soft: rgba(8, 145, 178, 0.18);
+  --hue-io-border: rgba(34, 211, 238, 0.32);
+
+  --hue-conditional: #fbbf5a;
+  --hue-conditional-soft: rgba(217, 119, 6, 0.18);
+  --hue-conditional-border: rgba(251, 191, 36, 0.32);
+
+  --hue-loop: #c4a3ff;
+  --hue-loop-soft: rgba(124, 58, 237, 0.2);
+  --hue-loop-border: rgba(167, 139, 250, 0.34);
+
+  --accent: #f59e4c;
+  --accent-strong: #e8873a;
+  --accent-soft: rgba(232, 135, 58, 0.16);
+
+  --success: #34d399;
+  --success-soft: rgba(5, 150, 105, 0.18);
+  --danger: #f87171;
+  --danger-soft: rgba(220, 38, 38, 0.18);
+
+  --code-bg: #0a0f1a;
+  --code-surface: #121a2a;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.24);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.24);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5), 0 4px 8px rgb(0 0 0 / 0.3);
+}
+
+/* System preference, only when the user has not chosen explicitly. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg-app: var(--slate-950);
+    --bg-surface: var(--slate-900);
+    --bg-raised: var(--slate-800);
+    --bg-sunken: #0a0f1a;
+    --bg-inset: var(--slate-900);
+
+    --text-primary: var(--slate-50);
+    --text-secondary: var(--slate-300);
+    --text-muted: var(--slate-400);
+    --text-inverse: var(--slate-950);
+
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-default: rgba(255, 255, 255, 0.11);
+    --border-strong: rgba(255, 255, 255, 0.18);
+
+    --hue-variable: #a5b0ff;
+    --hue-variable-soft: rgba(99, 102, 241, 0.16);
+    --hue-variable-border: rgba(129, 140, 248, 0.34);
+
+    --hue-io: #5fd4ec;
+    --hue-io-soft: rgba(8, 145, 178, 0.18);
+    --hue-io-border: rgba(34, 211, 238, 0.32);
+
+    --hue-conditional: #fbbf5a;
+    --hue-conditional-soft: rgba(217, 119, 6, 0.18);
+    --hue-conditional-border: rgba(251, 191, 36, 0.32);
+
+    --hue-loop: #c4a3ff;
+    --hue-loop-soft: rgba(124, 58, 237, 0.2);
+    --hue-loop-border: rgba(167, 139, 250, 0.34);
+
+    --accent: #f59e4c;
+    --accent-strong: #e8873a;
+    --accent-soft: rgba(232, 135, 58, 0.16);
+
+    --success: #34d399;
+    --success-soft: rgba(5, 150, 105, 0.18);
+    --danger: #f87171;
+    --danger-soft: rgba(220, 38, 38, 0.18);
+
+    --code-bg: #0a0f1a;
+    --code-surface: #121a2a;
+
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.24);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.24);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5), 0 4px 8px rgb(0 0 0 / 0.3);
+  }
+}

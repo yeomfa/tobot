@@ -1,0 +1,206 @@
+.flowchart {
+  --fc-surface: var(--bg-surface);
+  --fc-terminal: var(--bg-sunken);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-inset);
+  /* Faint grid, so the diagram reads as a drawing surface. */
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--border-subtle) 1px, transparent 0);
+  background-size: 18px 18px;
+}
+
+.flowchart--empty {
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.flowchart__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.flowchart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.flowchart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.flowchart__legend-item svg {
+  width: 22px;
+  height: 13px;
+  fill: none;
+  stroke-width: 1.6;
+}
+
+.flowchart__legend-item[data-shape='terminal'] svg {
+  stroke: var(--slate-500);
+}
+
+.flowchart__legend-item[data-shape='process'] svg {
+  stroke: var(--hue-variable);
+}
+
+.flowchart__legend-item[data-shape='decision'] svg {
+  stroke: var(--hue-conditional);
+}
+
+.flowchart__legend-item[data-shape='io'] svg {
+  stroke: var(--hue-io);
+}
+
+.flowchart__zoom {
+  display: flex;
+  gap: 2px;
+}
+
+.flowchart__zoom button {
+  min-width: 30px;
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.flowchart__zoom button:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.flowchart__canvas {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.flowchart__svg {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* ---- Nodes ---- */
+
+.fc-shape rect,
+.fc-shape path {
+  fill: var(--fc-surface);
+  stroke-width: 2;
+  transition:
+    stroke var(--duration-fast) var(--ease-out),
+    fill var(--duration-fast) var(--ease-out);
+}
+
+.fc-shape--terminal rect {
+  fill: var(--fc-terminal);
+  stroke: var(--slate-500);
+}
+
+.fc-shape--process rect {
+  stroke: var(--hue-variable);
+}
+
+.fc-shape--decision path {
+  stroke: var(--hue-conditional);
+}
+
+.fc-shape--io path {
+  stroke: var(--hue-io);
+}
+
+.fc-label {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  fill: var(--text-primary);
+  pointer-events: none;
+  user-select: none;
+}
+
+.fc-node[data-clickable] {
+  cursor: pointer;
+}
+
+.fc-node[data-clickable]:hover .fc-shape rect,
+.fc-node[data-clickable]:hover .fc-shape path {
+  fill: var(--bg-sunken);
+}
+
+/* Current step: filled accent with a pulsing halo. */
+.fc-node[data-active] .fc-shape rect,
+.fc-node[data-active] .fc-shape path {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 3;
+  animation: fc-pulse 1.4s var(--ease-out) infinite;
+}
+
+@keyframes fc-pulse {
+  0%,
+  100% {
+    stroke-width: 2.5;
+  }
+  50% {
+    stroke-width: 4;
+  }
+}
+
+.fc-node[data-errored] .fc-shape rect,
+.fc-node[data-errored] .fc-shape path {
+  fill: var(--danger-soft);
+  stroke: var(--danger);
+  stroke-width: 3;
+}
+
+/* ---- Edges ---- */
+
+.fc-edge {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.fc-arrow-head {
+  fill: var(--border-strong);
+}
+
+.fc-edge-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text-muted);
+  paint-order: stroke;
+  stroke: var(--bg-inset);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-node[data-active] .fc-shape rect,
+  .fc-node[data-active] .fc-shape path {
+    animation: none;
+  }
+}

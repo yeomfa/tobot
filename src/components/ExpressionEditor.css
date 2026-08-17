@@ -1,0 +1,194 @@
+/**
+ * Expressions render as inline "chips" that sit inside a statement sentence.
+ * They stay visually light so the statement still reads as a phrase rather
+ * than a form.
+ */
+
+.expr {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+/* Nested operations get a faint bracket so grouping is visible. */
+.expr[data-kind='binary'] {
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--block-hue, var(--slate-400)) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--block-hue, var(--slate-400)) 14%, transparent);
+}
+
+.expr__literal,
+.expr__var {
+  min-width: 2.5ch;
+  /* Wide enough for a full sentence prompt; blocks wrap rather than clip. */
+  max-width: 46ch;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.expr__literal:hover,
+.expr__var:hover {
+  border-color: var(--border-strong);
+}
+
+.expr__literal:focus,
+.expr__var:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Text literals show their quotes, reinforcing that they are strings. */
+.expr__literal--text::before {
+  content: '"';
+}
+
+.expr__literal--number {
+  text-align: right;
+  /* Spinners crowd the inline layout. */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.expr__literal--number::-webkit-outer-spin-button,
+.expr__literal--number::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.expr__var {
+  color: var(--hue-variable);
+  font-weight: 600;
+  background: var(--hue-variable-soft);
+  border-color: var(--hue-variable-border);
+  appearance: none;
+  padding-right: 6px;
+}
+
+.expr__literal--bool {
+  color: var(--hue-conditional);
+  background: var(--hue-conditional-soft);
+  border-color: var(--hue-conditional-border);
+  font-weight: 600;
+  appearance: none;
+}
+
+.expr__op {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0 1px;
+}
+
+.expr__op--select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  padding: 2px 4px;
+  text-align: center;
+}
+
+.expr__op--select:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+/* ---- Change-type menu ---- */
+
+.expr__menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.expr__menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-muted);
+  border-radius: var(--radius-xs);
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+/* Revealed on hover/focus so the sentence stays clean at rest. */
+.statement-block:hover .expr__menu-trigger,
+.expr__menu-trigger:focus-visible,
+.expr__menu-trigger[aria-expanded='true'] {
+  opacity: 1;
+}
+
+.expr__menu-trigger:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.expr__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.expr__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  min-width: 130px;
+  padding: var(--space-1);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  animation: expr-menu-in var(--duration-fast) var(--ease-out);
+}
+
+@keyframes expr-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.expr__menu button {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.expr__menu button:hover:not(:disabled) {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.expr__menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

@@ -1,0 +1,354 @@
+/**
+ * Blocks read as sentences, not form rows: the category colour lives in a left
+ * rail and a tinted ground, and controls stay hidden until hover so a finished
+ * algorithm looks like something you could read aloud.
+ */
+
+.statement-block {
+  --block-hue: var(--slate-400);
+  --block-soft: var(--bg-surface);
+  --block-border: var(--border-default);
+
+  position: relative;
+  border-radius: var(--radius-md);
+  background: var(--block-soft);
+  border: 1px solid var(--block-border);
+  box-shadow: var(--shadow-xs);
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.statement-block[data-category='variables'] {
+  --block-hue: var(--hue-variable);
+  --block-soft: var(--hue-variable-soft);
+  --block-border: var(--hue-variable-border);
+}
+
+.statement-block[data-category='io'] {
+  --block-hue: var(--hue-io);
+  --block-soft: var(--hue-io-soft);
+  --block-border: var(--hue-io-border);
+}
+
+.statement-block[data-category='conditionals'] {
+  --block-hue: var(--hue-conditional);
+  --block-soft: var(--hue-conditional-soft);
+  --block-border: var(--hue-conditional-border);
+}
+
+.statement-block[data-category='loops'] {
+  --block-hue: var(--hue-loop);
+  --block-soft: var(--hue-loop-soft);
+  --block-border: var(--hue-loop-border);
+}
+
+.statement-block:hover {
+  border-color: var(--block-hue);
+  box-shadow: var(--shadow-sm);
+}
+
+/* The interpreter's current statement. */
+.statement-block[data-active] {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px var(--accent-soft),
+    var(--shadow-md);
+  animation: block-pulse 1.4s var(--ease-out) infinite;
+}
+
+@keyframes block-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--accent-soft),
+      var(--shadow-md);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px var(--accent-soft),
+      var(--shadow-md);
+  }
+}
+
+.statement-block[data-errored] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger-soft);
+}
+
+/* Brief flash when another view points at this block. */
+.statement-block[data-selected] {
+  animation: block-reveal 1.4s var(--ease-out);
+}
+
+@keyframes block-reveal {
+  0%,
+  70% {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: var(--accent);
+  }
+  100% {
+    box-shadow: var(--shadow-xs);
+  }
+}
+
+.statement-block__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) 0;
+}
+
+/* Colour rail doubles as the drag handle. */
+.statement-block__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-height: 30px;
+  width: 26px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  background: color-mix(in srgb, var(--block-hue) 14%, transparent);
+  cursor: grab;
+}
+
+.statement-block__handle:active {
+  cursor: grabbing;
+}
+
+.statement-block__icon {
+  font-size: 13px;
+  line-height: 1;
+  color: var(--block-hue);
+}
+
+.statement-block__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.statement-block__keyword {
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--block-hue);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.statement-block__keyword[data-muted] {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.statement-block__name {
+  min-width: 3ch;
+  max-width: 18ch;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--hue-variable);
+  background: var(--bg-surface);
+  border: 1px solid var(--hue-variable-border);
+  border-radius: var(--radius-sm);
+}
+
+.statement-block__name:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Reads as a type annotation on the value, not an empty input field. */
+.statement-block__type {
+  padding: 1px 5px;
+  font-size: var(--text-xs);
+  font-style: italic;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--block-hue) 6%, transparent);
+  border: none;
+  border-radius: var(--radius-full);
+  appearance: none;
+  cursor: pointer;
+  /* Sized to its own text so it never looks like a blank box. */
+  width: auto;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.statement-block__type:hover {
+  color: var(--block-hue);
+  background: color-mix(in srgb, var(--block-hue) 14%, transparent);
+}
+
+.statement-block__actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.statement-block:hover > .statement-block__row > .statement-block__actions,
+.statement-block:focus-within > .statement-block__row > .statement-block__actions {
+  opacity: 1;
+}
+
+.statement-block__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+}
+
+.statement-block__action:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.statement-block__action--danger:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ---- Nested branches ---- */
+
+.statement-block__branches {
+  padding: 0 var(--space-2) var(--space-2) var(--space-5);
+}
+
+.branch {
+  position: relative;
+  padding-left: var(--space-3);
+}
+
+/* Vertical guide connecting a block to its children. */
+.branch::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--block-hue) 26%, transparent);
+}
+
+.branch__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  color: var(--block-hue);
+}
+
+.branch__remove {
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-muted);
+  opacity: 0;
+  padding: 0 3px;
+  border-radius: var(--radius-xs);
+}
+
+.branch:hover .branch__remove {
+  opacity: 1;
+}
+
+.branch__remove:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.branch__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.branch__item {
+  display: flex;
+  flex-direction: column;
+}
+
+.statement-block__add-else {
+  margin-left: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.statement-block__add-else:hover {
+  color: var(--hue-conditional);
+  border-color: var(--hue-conditional-border);
+  background: var(--hue-conditional-soft);
+}
+
+/* ---- Drop zones ---- */
+
+.drop-zone {
+  position: relative;
+  height: 8px;
+  transition: height var(--duration-fast) var(--ease-out);
+}
+
+/* An empty branch shows a persistent target so it never looks broken. */
+.drop-zone[data-empty] {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding-left: var(--space-2);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  margin: var(--space-1) 0;
+}
+
+.drop-zone__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.drop-zone[data-empty] .drop-zone__hint {
+  opacity: 1;
+}
+
+.drop-zone[data-over] {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  padding-left: var(--space-2);
+  background: var(--accent-soft);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-sm);
+  margin: var(--space-1) 0;
+}
+
+.drop-zone[data-over] .drop-zone__hint {
+  opacity: 1;
+  color: var(--accent-strong);
+  font-weight: 600;
+}

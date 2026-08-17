@@ -59,6 +59,18 @@ export const es = {
     repeat: { label: 'Repetir N veces', hint: 'Repite una cantidad fija de veces' },
     forEach: { label: 'Desde… hasta', hint: 'Cuenta desde un número hasta otro' },
   },
+  /** Short inline wording used inside blocks, where the palette's longer
+   * labels ("Crear variable") would read awkwardly mid-sentence. */
+  verbs: {
+    declare: 'variable',
+    assign: 'cambiar',
+    say: 'decir',
+    ask: 'preguntar',
+    if: 'si',
+    while: 'mientras',
+    repeat: 'repetir',
+    forEach: 'desde',
+  },
   editor: {
     title: 'Mi algoritmo',
     empty: 'Tu algoritmo está vacío',
@@ -147,6 +159,7 @@ export const es = {
     paused: 'En pausa',
     finished: 'Finalizado',
     stepOf: 'Paso {current} de {total}',
+    stepCount: 'Paso {count}',
     waitingInput: 'Esperando respuesta',
     speed: 'Velocidad',
     speedSlow: 'Lenta',
