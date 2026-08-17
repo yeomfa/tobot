@@ -34,6 +34,13 @@ const COPY: Record<Language, Record<string, string>> = {
  * conditional and a loop — so the three language tabs and the flowchart all
  * have something meaningful to show before anything is typed.
  */
+/**
+ * Fixed id for the starter algorithm. Using a stable id means reloading the
+ * app updates the same record instead of accumulating a new copy of the
+ * example in storage on every visit.
+ */
+export const WELCOME_ID = 'alg_welcome';
+
 export function welcomeAlgorithm(language: Language): Algorithm {
   const copy = COPY[language];
   const now = new Date().toISOString();
@@ -82,11 +89,5 @@ export function welcomeAlgorithm(language: Language): Algorithm {
     },
   ];
 
-  return {
-    id: `alg_${createId().slice(2)}`,
-    name: copy.title,
-    body,
-    createdAt: now,
-    updatedAt: now,
-  };
+  return { id: WELCOME_ID, name: copy.title, body, createdAt: now, updatedAt: now };
 }

@@ -13,7 +13,7 @@ import type { BlockCallbacks } from './components/StatementBlock';
 import { I18nProvider, useTranslation } from './i18n/context';
 import { DEFAULT_LANGUAGE, isLanguage, languageNames, LANGUAGES } from './i18n';
 import type { Language } from './i18n';
-import { createPreferenceStore } from './state/storage';
+import { createAlgorithmStore, createPreferenceStore } from './state/storage';
 import type { Preferences } from './state/storage';
 import { useAlgorithm } from './state/useAlgorithm';
 import { useExecution } from './state/useExecution';
@@ -79,7 +79,25 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   // The welcome example gives a new student something to run immediately.
   const initial = useMemo(() => welcomeAlgorithm(language), []);
   const controller = useAlgorithm(initial);
-  const { algorithm } = controller;
+  const { algorithm, load } = controller;
+
+  /**
+   * Restore the last algorithm the student worked on. This runs once, after
+   * mount, because the store is async — the welcome example is what they see
+   * in the meantime, and it is replaced only if saved work actually exists.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const saved = await createAlgorithmStore().list();
+      if (cancelled || saved.length === 0) return;
+      // `list` is newest-first, so the head is the most recently edited.
+      load(saved[0]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [load]);
 
   const execution = useExecution(algorithm.body);
   const [lowerTab, setLowerTab] = useState<LowerTab>('flowchart');
