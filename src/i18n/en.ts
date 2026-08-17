@@ -43,6 +43,8 @@ export const en: Dictionary = {
     subtitle: 'Pick a statement to add it to your algorithm',
     search: 'Search statements…',
     empty: 'No matching statements',
+    collapse: 'Collapse panel',
+    expand: 'Expand panel',
     groups: {
       variables: 'Variables',
       io: 'Input and output',

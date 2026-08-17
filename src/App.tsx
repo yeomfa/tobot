@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { NodeId, Statement } from './core/ast/types';
 import type { ConceptId } from './content/concepts';
-import { Concepts } from './components/Concepts';
+import { ConceptDrawer } from './components/ConceptDrawer';
 import { CodePanel } from './components/CodePanel';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
@@ -21,7 +21,6 @@ import { welcomeAlgorithm } from './content/examples';
 import './App.css';
 
 type Theme = Preferences['theme'];
-type LowerTab = 'flowchart' | 'concepts';
 
 const preferenceStore = createPreferenceStore();
 
@@ -105,10 +104,10 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   }, [load]);
 
   const execution = useExecution(algorithm.body);
-  const [lowerTab, setLowerTab] = useState<LowerTab>('flowchart');
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(true);
 
   // Keyboard shortcuts for undo/redo, matching every other editor.
   useEffect(() => {
@@ -128,13 +127,12 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
 
   const showConcept = useCallback((conceptId: string) => {
     setOpenConcept(conceptId as ConceptId);
-    setLowerTab('concepts');
   }, []);
 
   /**
    * Clicking a code line, a flowchart node or a console entry reveals the
-   * matching block in the editor. This is the link that makes the four views
-   * feel like one artefact rather than four separate renderings.
+   * matching block in the editor. This is the link that makes the views feel
+   * like one artefact rather than separate renderings.
    */
   useEffect(() => {
     if (!selectedNode) return;
@@ -173,7 +171,7 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const erroredNodeId = execution.state.error?.nodeId ?? null;
 
   return (
-    <div className="app">
+    <div className="app" data-palette={paletteOpen ? 'open' : 'closed'}>
       <header className="app__header">
         <div className="app__brand">
           <BrandMark />
@@ -184,6 +182,16 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
         </div>
 
         <div className="app__header-actions">
+          <button
+            type="button"
+            className="app__ghost-button"
+            onClick={() => setOpenConcept('variables')}
+          >
+            {d.concepts.title}
+          </button>
+
+          <span className="app__divider" aria-hidden="true" />
+
           <select
             className="app__select"
             value={language}
@@ -208,11 +216,7 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
             <option value="dark">{d.settings.themeDark}</option>
           </select>
 
-          <button
-            type="button"
-            className="app__export"
-            onClick={() => setShowExport(true)}
-          >
+          <button type="button" className="app__export" onClick={() => setShowExport(true)}>
             {d.actions.export}
           </button>
         </div>
@@ -220,7 +224,11 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
 
       <main className="app__main">
         <aside className="app__palette">
-          <Palette onAdd={appendStatement} />
+          <Palette
+            onAdd={appendStatement}
+            collapsed={!paletteOpen}
+            onToggle={() => setPaletteOpen((open) => !open)}
+          />
         </aside>
 
         <div className="app__center">
@@ -238,44 +246,15 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
             />
           </div>
 
-          <div className="app__lower">
-            <div className="app__lower-tabs" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                className="app__lower-tab"
-                data-selected={lowerTab === 'flowchart' || undefined}
-                aria-selected={lowerTab === 'flowchart'}
-                onClick={() => setLowerTab('flowchart')}
-              >
-                {d.tabs.flowchart}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                className="app__lower-tab"
-                data-selected={lowerTab === 'concepts' || undefined}
-                aria-selected={lowerTab === 'concepts'}
-                onClick={() => setLowerTab('concepts')}
-              >
-                {d.tabs.concepts}
-              </button>
-            </div>
-
-            <div className="app__lower-body">
-              {/* The flowchart stays mounted so its SVG is always exportable. */}
-              <div className="app__lower-pane" data-hidden={lowerTab !== 'flowchart' || undefined}>
-                <Flowchart
-                  program={algorithm.body}
-                  activeNodeId={activeNodeId}
-                  erroredNodeId={erroredNodeId}
-                  onSelectNode={setSelectedNode}
-                />
-              </div>
-              <div className="app__lower-pane" data-hidden={lowerTab !== 'concepts' || undefined}>
-                <Concepts selected={openConcept} onSelect={setOpenConcept} />
-              </div>
-            </div>
+          {/* The diagram now owns the whole lower half instead of sharing
+              it with a concepts pane that never had room to breathe. */}
+          <div className="app__diagram">
+            <Flowchart
+              program={algorithm.body}
+              activeNodeId={activeNodeId}
+              erroredNodeId={erroredNodeId}
+              onSelectNode={setSelectedNode}
+            />
           </div>
         </div>
 
@@ -294,6 +273,12 @@ function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
           </div>
         </aside>
       </main>
+
+      <ConceptDrawer
+        conceptId={openConcept}
+        onClose={() => setOpenConcept(null)}
+        onNavigate={setOpenConcept}
+      />
 
       {showExport && (
         <ExportDialog algorithm={algorithm} onClose={() => setShowExport(false)} />

@@ -126,20 +126,26 @@
 .code-panel__lines {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
+  line-height: 1.75;
+}
+
+/* Prose reads at a larger size and looser measure than code. */
+.code-panel__body[data-syntax='natural'] .code-panel__lines {
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
   line-height: 1.7;
 }
 
-.code-panel__body[data-syntax='natural'] .code-panel__lines {
-  font-family: var(--font-ui);
-  font-size: var(--text-base);
-  line-height: 1.75;
+.code-panel__body[data-syntax='natural'] .code-line {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
 }
 
 .code-line {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
-  padding: 0 var(--space-3);
+  padding: 1px var(--space-4);
   border-left: 2px solid transparent;
   transition: background var(--duration-fast) var(--ease-out);
 }

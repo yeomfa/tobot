@@ -94,7 +94,9 @@ export const Stage = memo(function Stage({ execution, onSelectNode }: StageProps
       <Controls execution={execution} />
 
       <div className="stage__panels">
-        <div className="stage__panel">
+        {/* Variables sit beside the robot rather than below it: stacking every
+            region vertically pushed the console off-screen entirely. */}
+        <div className="stage__panel stage__panel--vars">
           <h3 className="stage__panel-title">{d.console.variablesTitle}</h3>
           {state.variables.length === 0 ? (
             <p className="stage__panel-empty">{d.console.variablesEmpty}</p>

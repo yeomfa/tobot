@@ -96,8 +96,8 @@
 .statement-block__row {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-2) var(--space-2) 0;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) 0;
 }
 
 /* Colour rail doubles as the drag handle. */
@@ -106,8 +106,8 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  min-height: 30px;
-  width: 26px;
+  min-height: 34px;
+  width: 30px;
   flex-shrink: 0;
   border-radius: var(--radius-md) 0 0 var(--radius-md);
   background: color-mix(in srgb, var(--block-hue) 14%, transparent);
@@ -128,7 +128,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   flex: 1;
   min-width: 0;
   padding-top: 2px;
@@ -310,7 +310,7 @@
 
 .drop-zone {
   position: relative;
-  height: 8px;
+  height: 10px;
   transition: height var(--duration-fast) var(--ease-out);
 }
 

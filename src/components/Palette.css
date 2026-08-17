@@ -12,6 +12,43 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
+/* Collapsed, the rail keeps only icons; the toggle centres itself. */
+.palette[data-collapsed] .palette__header {
+  padding: var(--space-3) var(--space-2);
+}
+
+.palette__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.palette[data-collapsed] .palette__title-row {
+  justify-content: center;
+}
+
+.palette__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.palette__toggle:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
 .palette__title {
   font-size: var(--text-md);
   font-weight: 650;
@@ -174,4 +211,34 @@
   font-size: var(--text-xs);
   line-height: 1.4;
   color: var(--text-muted);
+}
+
+/* ---- Collapsed rail ---- */
+
+.palette[data-collapsed] .palette__groups {
+  padding: var(--space-2);
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.palette[data-collapsed] .palette__items {
+  gap: var(--space-1);
+}
+
+.palette[data-collapsed] .palette__item {
+  justify-content: center;
+  padding: var(--space-1);
+}
+
+.palette[data-collapsed] .palette__item-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+}
+
+/* Separator between category runs, replacing the group headings. */
+.palette[data-collapsed] .palette__group + .palette__group {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  width: 100%;
 }

@@ -40,7 +40,7 @@
 
 /* Reserved height stops the robot from jumping when a bubble appears. */
 .robot__bubble-slot {
-  min-height: 56px;
+  min-height: min(44px, 5.5vh);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -94,7 +94,10 @@
 }
 
 .robot__body {
-  width: min(100%, 190px);
+  /* Sized against viewport height so short laptop screens shrink the robot
+     rather than pushing the console out of view. */
+  width: min(100%, 148px);
+  max-height: min(160px, 15vh);
   height: auto;
   overflow: visible;
 }

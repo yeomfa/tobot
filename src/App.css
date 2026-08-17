@@ -72,6 +72,28 @@
   flex-shrink: 0;
 }
 
+.app__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-default);
+}
+
+.app__ghost-button {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.app__ghost-button:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
 .app__select {
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-xs);
@@ -109,7 +131,17 @@
   min-height: 0;
   display: grid;
   /* Palette · editor+diagram · code+robot */
-  grid-template-columns: 268px minmax(340px, 1fr) minmax(360px, 460px);
+  grid-template-columns: var(--palette-width) minmax(340px, 1fr) minmax(370px, 470px);
+  transition: grid-template-columns var(--duration-base) var(--ease-out);
+}
+
+.app {
+  --palette-width: 268px;
+}
+
+/* Collapsing the palette hands its width to the editor. */
+.app[data-palette='closed'] {
+  --palette-width: 60px;
 }
 
 .app__palette {
@@ -131,68 +163,13 @@
   min-height: 0;
 }
 
-.app__lower {
+.app__diagram {
   display: flex;
   flex-direction: column;
-  flex: 1 1 45%;
-  min-height: 220px;
+  /* The diagram owns the full lower half now that concepts moved out. */
+  flex: 1 1 46%;
+  min-height: 260px;
   border-top: 1px solid var(--border-default);
-}
-
-.app__lower-tabs {
-  display: flex;
-  gap: 2px;
-  padding: var(--space-2) var(--space-3) 0;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
-  flex-shrink: 0;
-}
-
-.app__lower-tab {
-  position: relative;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: 550;
-  color: var(--text-muted);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-}
-
-.app__lower-tab:hover {
-  color: var(--text-secondary);
-}
-
-.app__lower-tab[data-selected] {
-  color: var(--text-primary);
-  font-weight: 650;
-}
-
-.app__lower-tab[data-selected]::after {
-  content: '';
-  position: absolute;
-  left: var(--space-2);
-  right: var(--space-2);
-  bottom: -1px;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--accent);
-}
-
-.app__lower-body {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-}
-
-/* Panes stay mounted; hiding preserves the flowchart SVG for export. */
-.app__lower-pane {
-  position: absolute;
-  inset: 0;
-  min-height: 0;
-}
-
-.app__lower-pane[data-hidden] {
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .app__right {
@@ -200,25 +177,41 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  /* On short screens the stage cannot compress far enough for the console to
+     stay visible, so the column scrolls instead of clipping it away. */
+  overflow-y: auto;
 }
 
 .app__code {
-  flex: 1 1 52%;
-  min-height: 0;
+  flex: 1 1 46%;
+  /* Code scrolls internally, so it yields height to the stage, which cannot. */
+  min-height: min(176px, 22vh);
   border-left: 1px solid var(--border-subtle);
 }
 
 .app__stage {
-  flex: 1 1 48%;
-  min-height: 300px;
+  /* The stage stacks robot, controls, variables and console; this floor is
+     what those four regions need before the console starts getting squeezed. */
+  flex: 1 1 54%;
+  flex-shrink: 0;
+  /* Tracks viewport height: a 768px laptop gets a shorter stage rather than a
+     console pushed below the fold. */
+  min-height: min(412px, 52vh);
   border-top: 1px solid var(--border-default);
 }
 
 /* ---- Responsive ---- */
 
-@media (max-width: 1280px) {
+/* Narrower screens shrink the palette but must not override the collapsed
+   state, so this adjusts the open width only — the `[data-palette='closed']`
+   rule below re-asserts the rail width at every breakpoint. */
+@media (max-width: 1400px) {
+  .app[data-palette='open'] {
+    --palette-width: 234px;
+  }
+
   .app__main {
-    grid-template-columns: 232px minmax(300px, 1fr) minmax(320px, 400px);
+    grid-template-columns: var(--palette-width) minmax(280px, 1fr) minmax(330px, 400px);
   }
 }
 
@@ -233,7 +226,7 @@
   .app__palette,
   .app__center,
   .app__right {
-    min-height: 420px;
+    min-height: 460px;
     border-right: none;
   }
 

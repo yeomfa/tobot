@@ -42,6 +42,8 @@ export const es = {
     subtitle: 'Elige una instrucción para agregarla a tu algoritmo',
     search: 'Buscar instrucción…',
     empty: 'No hay instrucciones que coincidan',
+    collapse: 'Contraer panel',
+    expand: 'Expandir panel',
     groups: {
       variables: 'Variables',
       io: 'Entrada y salida',
