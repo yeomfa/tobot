@@ -393,3 +393,25 @@ describe('comments', () => {
     expect(runEmittedJs(withComment)).toEqual(['hola']);
   });
 });
+
+describe('multi-line comments', () => {
+  const multi: Statement[] = [
+    { id: createId(), kind: 'comment', text: 'Primera línea\nSegunda línea' },
+    { id: createId(), kind: 'say', value: literal('ok', 'text') },
+  ];
+
+  it('marks every line so the code stays valid', () => {
+    const js = renderLines(emitters.javascript.emit(wrap(multi), { locale: 'es' }));
+    expect(js).toContain('// Primera línea');
+    expect(js).toContain('// Segunda línea');
+    // A bare second line would be a syntax error.
+    expect(() => new Function('prompt', 'console', js)).not.toThrow();
+    expect(runEmittedJs(multi)).toEqual(['ok']);
+  });
+
+  it('marks every line in Python too', () => {
+    const py = renderLines(emitters.python.emit(wrap(multi), { locale: 'es' }));
+    expect(py).toContain('# Primera línea');
+    expect(py).toContain('# Segunda línea');
+  });
+});

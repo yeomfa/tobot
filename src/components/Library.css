@@ -56,6 +56,18 @@
   color: var(--text-primary);
 }
 
+/* The primary action carries the accent so "add" is the obvious one of the
+   two, now that neither shows a label. */
+.library__icon-action--primary {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.library__icon-action--primary:hover {
+  color: var(--text-inverse);
+  background: var(--accent);
+}
+
 .library__error {
   margin-bottom: var(--space-2);
   padding: var(--space-2) var(--space-3);

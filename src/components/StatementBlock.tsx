@@ -266,14 +266,28 @@ function StatementBody({
   switch (statement.kind) {
     case 'comment':
       return (
-        <input
+        <textarea
           className="statement-block__comment"
           value={statement.text}
-          onChange={(event) =>
+          rows={1}
+          onChange={(event) => {
+            // Grow to fit: an instruction sheet written as a comment can run
+            // to several lines, and a scrollbar inside a block reads badly.
+            const field = event.currentTarget;
+            field.style.height = 'auto';
+            field.style.height = `${field.scrollHeight}px`;
+            const { value } = event.target;
             callbacks.update(statement.id, (current) =>
-              current.kind === 'comment' ? { ...current, text: event.target.value } : current,
-            )
-          }
+              current.kind === 'comment' ? { ...current, text: value } : current,
+            );
+          }}
+          ref={(field) => {
+            // Also size it on mount, for comments loaded from a file.
+            if (field) {
+              field.style.height = 'auto';
+              field.style.height = `${field.scrollHeight}px`;
+            }
+          }}
           placeholder={d.statements.comment.hint}
           aria-label={d.statements.comment.label}
         />

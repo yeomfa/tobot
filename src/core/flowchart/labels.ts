@@ -23,7 +23,8 @@ export function createFlowLabels(dictionary: Dictionary, locale: Language): Flow
   const describe = (statement: Statement): { text: string; shape: ShapeKind } => {
     switch (statement.kind) {
       case 'comment':
-        return { text: truncate(statement.text || '…'), shape: 'note' };
+        // Only the first line: a diagram node has room for a label, not prose.
+        return { text: truncate(statement.text.split('\n')[0] || '…'), shape: 'note' };
       case 'declare':
         return { text: truncate(`${statement.name} ← ${expr(statement.value)}`), shape: 'process' };
       case 'assign':

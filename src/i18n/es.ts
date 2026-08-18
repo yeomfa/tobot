@@ -13,7 +13,8 @@ export const es = {
     run: 'Ejecutar',
     stop: 'Detener',
     step: 'Paso a paso',
-    next: 'Siguiente',
+    next: 'Paso a paso',
+    stepOne: 'Ejecuta una sola instrucción y espera',
     pause: 'Pausar',
     resume: 'Continuar',
     reset: 'Reiniciar',
@@ -200,6 +201,7 @@ export const es = {
   console: {
     title: 'Consola',
     empty: 'Aún no hay salida. Ejecuta tu algoritmo para ver qué dice el robot.',
+    seeAll: 'Ver las {count} líneas',
     variablesTitle: 'Variables',
     variablesEmpty: 'Sin variables todavía',
     outputLabel: 'Salida',

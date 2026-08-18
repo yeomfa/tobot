@@ -57,7 +57,7 @@ function emitStatement(statement: Statement, indent: number): EmittedLine[] {
 
   switch (statement.kind) {
     case 'comment':
-      return [line(`# ${statement.text}`)];
+      return statement.text.split('\n').map((part) => line(`# ${part}`));
 
     case 'declare':
     case 'assign':

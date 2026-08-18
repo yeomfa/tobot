@@ -14,7 +14,8 @@ export const en: Dictionary = {
     run: 'Run',
     stop: 'Stop',
     step: 'Step through',
-    next: 'Next',
+    next: 'Step through',
+    stepOne: 'Run one statement and wait',
     pause: 'Pause',
     resume: 'Resume',
     reset: 'Reset',
@@ -195,6 +196,7 @@ export const en: Dictionary = {
   console: {
     title: 'Console',
     empty: 'No output yet. Run your algorithm to hear the robot.',
+    seeAll: 'See all {count} lines',
     variablesTitle: 'Variables',
     variablesEmpty: 'No variables yet',
     outputLabel: 'Output',

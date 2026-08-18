@@ -186,27 +186,40 @@
 
 /**
  * Icon-shaped picker: the select is stretched invisibly over the icon so the
- * control keeps the native menu behaviour while looking like the icon buttons
- * beside it.
+ * control keeps the native menu behaviour while looking like a button.
+ *
+ * The pair sits in a shared inset well, which groups them as settings and
+ * separates them from the actions to their left.
  */
+.app__settings {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-sunken);
+  border-radius: var(--radius-md);
+}
+
 .app__picker {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  color: var(--text-muted);
+  width: 30px;
+  height: 26px;
+  color: var(--text-secondary);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .app__picker:hover {
-  background: var(--bg-sunken);
   color: var(--text-primary);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-xs);
 }
 
 .app__picker svg {

@@ -71,7 +71,8 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
 
   switch (statement.kind) {
     case 'comment':
-      return [line(`// ${statement.text}`)];
+      // Every line needs its own marker, or the second line becomes code.
+      return statement.text.split('\n').map((part) => line(`// ${part}`));
 
     case 'declare':
       return [

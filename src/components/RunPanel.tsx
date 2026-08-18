@@ -1,3 +1,9 @@
+import {
+  ArrowCounterClockwise,
+  FootprintsIcon,
+  Pause,
+  Play,
+} from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState } from 'react';
 
 import type { NodeId } from '../core/ast/types';
@@ -11,6 +17,8 @@ import './RunPanel.css';
 interface RunPanelProps {
   execution: ExecutionController;
   onSelectNode: (id: NodeId) => void;
+  /** Opens the console tab in the bottom drawer, where the full log lives. */
+  onShowConsole: () => void;
 }
 
 /** Maps interpreter status onto the robot's expression. */
@@ -30,12 +38,15 @@ function moodFor(state: ExecutionState, isPlaying: boolean): RobotMood {
  * run at any moment without first summoning a panel, and the console keeps its
  * history between runs.
  */
-export const RunPanel = memo(function RunPanel({ execution, onSelectNode }: RunPanelProps) {
+export const RunPanel = memo(function RunPanel({
+  execution,
+  onSelectNode,
+  onShowConsole,
+}: RunPanelProps) {
   const { d, t, fill } = useTranslation();
   const { state, isPlaying } = execution;
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const logRef = useRef<HTMLOListElement>(null);
 
   const mood = moodFor(state, isPlaying);
 
@@ -43,12 +54,8 @@ export const RunPanel = memo(function RunPanel({ execution, onSelectNode }: RunP
     if (state.status === 'awaitingInput') inputRef.current?.focus();
   }, [state.status]);
 
-  useEffect(() => {
-    const log = logRef.current;
-    if (log) log.scrollTop = log.scrollHeight;
-  }, [state.output.length]);
-
   const lastSpoken = [...state.output].reverse().find((entry) => entry.kind === 'say');
+  const latest = state.output[state.output.length - 1] ?? null;
 
   const bubble = (() => {
     if (state.status === 'error' && state.error) {
@@ -113,10 +120,18 @@ export const RunPanel = memo(function RunPanel({ execution, onSelectNode }: RunP
         </form>
       )}
 
+      {/* Icon-only transport: the three actions are universal shapes, and
+          spelling them out crowded a panel this narrow. */}
       <div className="run-panel__controls">
         {isPlaying ? (
-          <button type="button" className="run-panel__button" onClick={execution.pause}>
-            {d.actions.pause}
+          <button
+            type="button"
+            className="run-panel__button run-panel__button--primary"
+            onClick={execution.pause}
+            title={d.actions.pause}
+            aria-label={d.actions.pause}
+          >
+            <Pause weight="fill" />
           </button>
         ) : (
           <button
@@ -124,10 +139,14 @@ export const RunPanel = memo(function RunPanel({ execution, onSelectNode }: RunP
             className="run-panel__button run-panel__button--primary"
             onClick={execution.play}
             disabled={state.status === 'awaitingInput'}
+            title={
+              state.stepCount > 0 && state.status !== 'finished' && state.status !== 'error'
+                ? d.actions.resume
+                : d.actions.run
+            }
+            aria-label={d.actions.run}
           >
-            {state.stepCount > 0 && state.status !== 'finished' && state.status !== 'error'
-              ? d.actions.resume
-              : d.actions.run}
+            <Play weight="fill" />
           </button>
         )}
         <button
@@ -135,16 +154,20 @@ export const RunPanel = memo(function RunPanel({ execution, onSelectNode }: RunP
           className="run-panel__button"
           onClick={execution.stepOnce}
           disabled={isPlaying || state.status === 'awaitingInput'}
+          title={`${d.actions.next} — ${d.actions.stepOne}`}
+          aria-label={d.actions.next}
         >
-          {d.actions.next}
+          <FootprintsIcon />
         </button>
         <button
           type="button"
           className="run-panel__button"
           onClick={execution.stop}
           disabled={state.stepCount === 0}
+          title={d.actions.reset}
+          aria-label={d.actions.reset}
         >
-          {d.actions.reset}
+          <ArrowCounterClockwise />
         </button>
         <select
           className="run-panel__speed"
@@ -159,43 +182,42 @@ export const RunPanel = memo(function RunPanel({ execution, onSelectNode }: RunP
       </div>
 
       <div className="run-panel__details">
-          {state.variables.length > 0 && (
-            <ul className="run-panel__vars">
-              {state.variables.map((variable) => (
-                <li
-                  key={variable.name}
-                  className="run-panel__var"
-                  data-changed={variable.justChanged || undefined}
-                >
-                  <span className="run-panel__var-name">{variable.name}</span>
-                  <span className="run-panel__var-value" data-kind={variable.kind}>
-                    {variable.kind === 'text' ? `"${variable.value}"` : String(variable.value)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+        {state.variables.length > 0 && (
+          <ul className="run-panel__vars">
+            {state.variables.map((variable) => (
+              <li
+                key={variable.name}
+                className="run-panel__var"
+                data-changed={variable.justChanged || undefined}
+              >
+                <span className="run-panel__var-name">{variable.name}</span>
+                <span className="run-panel__var-value" data-kind={variable.kind}>
+                  {variable.kind === 'text' ? `"${variable.value}"` : String(variable.value)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-          {state.output.length > 0 && (
-            <ol className="run-panel__log" ref={logRef}>
-              {state.output.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="run-panel__log-entry"
-                  data-kind={entry.kind}
-                  data-clickable={entry.nodeId !== null || undefined}
-                  onClick={() => entry.nodeId && onSelectNode(entry.nodeId)}
-                >
-                  <span className="run-panel__log-marker" aria-hidden="true" />
-                  <span className="run-panel__log-text">
-                    {entry.kind === 'error' ? t(entry.text) : entry.text}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-
-        {state.output.length === 0 && (
+        {/* Only what the robot just said. The whole transcript is one click
+            away in the console tab, which keeps this panel calm. */}
+        {latest ? (
+          <button
+            type="button"
+            className="run-panel__latest"
+            data-kind={latest.kind}
+            onClick={() => latest.nodeId && onSelectNode(latest.nodeId)}
+          >
+            <span className="run-panel__latest-text">
+              {latest.kind === 'error' ? t(latest.text) : latest.text}
+            </span>
+            {state.output.length > 1 && (
+              <span className="run-panel__more" onClick={onShowConsole}>
+                {fill(d.console.seeAll, { count: state.output.length })}
+              </span>
+            )}
+          </button>
+        ) : (
           <p className="run-panel__empty">{d.console.empty}</p>
         )}
       </div>

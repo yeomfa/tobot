@@ -162,7 +162,9 @@ function emitStatement(
   switch (statement.kind) {
     case 'comment':
       // A note reads as a note, not as a numbered step of the algorithm.
-      return [{ nodeId: id, indent, text: `— ${statement.text}` }];
+      return statement.text
+        .split('\n')
+        .map((part) => ({ nodeId: id, indent, text: `— ${part}` }));
 
     case 'declare':
       return [line(phrases.declare(statement.name, expr(statement.value)))];

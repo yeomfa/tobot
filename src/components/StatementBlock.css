@@ -38,32 +38,47 @@
   --block-border: var(--hue-conditional-border);
 }
 
-/* A note is not an instruction: it loses the card treatment and reads as
-   marginalia written on the page. */
+/**
+ * A note is not an instruction, so it does not take a category colour — but it
+ * still needs a surface of its own. Fully transparent left the italic text
+ * floating on the graph paper and hard to read.
+ */
 .statement-block[data-category='notes'] {
-  --block-hue: var(--slate-400);
-  --block-soft: transparent;
-  --block-border: transparent;
+  --block-hue: var(--slate-500);
+  --block-soft: color-mix(in srgb, var(--slate-400) 9%, var(--bg-surface));
+  --block-border: var(--border-default);
   box-shadow: none;
 }
 
-.statement-block[data-category='notes']:hover {
-  border-color: var(--border-default);
+:root[data-theme='dark'] .statement-block[data-category='notes'] {
+  --block-soft: color-mix(in srgb, var(--slate-0) 5%, var(--bg-surface));
 }
 
-.statement-block[data-category='notes'] .statement-block__handle {
-  background: transparent;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .statement-block[data-category='notes'] {
+    --block-soft: color-mix(in srgb, var(--slate-0) 5%, var(--bg-surface));
+  }
+}
+
+.statement-block[data-category='notes']:hover {
+  border-color: var(--border-strong);
 }
 
 .statement-block__comment {
   flex: 1;
   min-width: 0;
   padding: 2px 0;
+  /* Reads darker than a hint: this is content, not placeholder text. */
+  color: var(--text-secondary);
+  font-family: inherit;
   font-size: var(--text-sm);
   font-style: italic;
-  color: var(--text-muted);
+  line-height: 1.5;
   background: transparent;
   border: none;
+  /* Sized by script to its content, so it never scrolls internally. */
+  resize: none;
+  overflow: hidden;
 }
 
 .statement-block__comment:focus {

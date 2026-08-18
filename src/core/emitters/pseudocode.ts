@@ -167,7 +167,7 @@ function emitStatement(statement: Statement, indent: number, kw: Keywords): Emit
 
   switch (statement.kind) {
     case 'comment':
-      return [line(`// ${statement.text}`)];
+      return statement.text.split('\n').map((part) => line(`// ${part}`));
 
     case 'declare':
       return [line(`${kw.declare} ${statement.name} ← ${expr(statement.value)}`)];

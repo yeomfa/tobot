@@ -10,14 +10,17 @@ import {
   Translate,
   Moon,
   Sun,
+  BookOpenText,
   Compass,
   Desktop,
+  Export,
 } from '@phosphor-icons/react';
 
 import type { NodeId, Statement } from './core/ast/types';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
 import { CodePanel } from './components/CodePanel';
+import { Console } from './components/Console';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
@@ -42,15 +45,16 @@ import './App.css';
 type Theme = Preferences['theme'];
 
 /** Views available in the bottom drawer. */
-type DrawerView = 'natural' | 'pseudocode' | 'code' | 'flowchart';
+type DrawerView = 'natural' | 'pseudocode' | 'code' | 'flowchart' | 'console';
 
-const DRAWER_TABS: DrawerView[] = ['natural', 'pseudocode', 'code', 'flowchart'];
+const DRAWER_TABS: DrawerView[] = ['natural', 'pseudocode', 'code', 'flowchart', 'console'];
 
 function drawerTabLabel(d: Dictionary, id: DrawerView): string {
   if (id === 'natural') return d.tabs.natural;
   if (id === 'pseudocode') return d.tabs.pseudocode;
   if (id === 'code') return d.tabs.code;
-  return d.tabs.flowchart;
+  if (id === 'flowchart') return d.tabs.flowchart;
+  return d.tabs.console;
 }
 
 const preferenceStore = createPreferenceStore();
@@ -390,19 +394,28 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
           </button>
           <button
             type="button"
-            className="app__ghost-button"
+            className="app__icon-button"
             onClick={() => setOpenConcept('variables')}
+            title={d.concepts.title}
+            aria-label={d.concepts.title}
           >
-            {d.concepts.title}
+            <BookOpenText />
           </button>
-          <button type="button" className="app__ghost-button" onClick={() => setShowExport(true)}>
-            {d.actions.export}
+          <button
+            type="button"
+            className="app__icon-button"
+            onClick={() => setShowExport(true)}
+            title={d.actions.export}
+            aria-label={d.actions.export}
+          >
+            <Export />
           </button>
 
           <span className="app__divider" aria-hidden="true" />
 
           {/* Language and theme are peers, so they share one control shape: an
               icon with the native select laid transparently over it. */}
+          <span className="app__settings">
           <span className="app__picker" title={d.settings.language}>
             <Translate />
             <select
@@ -429,6 +442,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
               <option value="light">{d.settings.themeLight}</option>
               <option value="dark">{d.settings.themeDark}</option>
             </select>
+          </span>
           </span>
 
           <button type="button" className="app__run" onClick={startRun}>
@@ -506,16 +520,28 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
                 {/* Both stay mounted: the flowchart's SVG must exist for export. */}
                 <div
                   className="app__drawer-pane"
-                  data-hidden={drawerView === 'flowchart' || undefined}
+                  data-hidden={
+                    drawerView === 'flowchart' || drawerView === 'console' || undefined
+                  }
                 >
                   <CodePanel
                     algorithm={algorithm}
-                    view={drawerView === 'flowchart' ? 'natural' : drawerView}
+                    view={
+                      drawerView === 'flowchart' || drawerView === 'console'
+                        ? 'natural'
+                        : drawerView
+                    }
                     activeNodeId={activeNodeId}
                     erroredNodeId={erroredNodeId}
                     onSelectNode={setSelectedNode}
                     onExport={() => setShowExport(true)}
                   />
+                </div>
+                <div
+                  className="app__drawer-pane"
+                  data-hidden={drawerView !== 'console' || undefined}
+                >
+                  <Console output={execution.state.output} onSelectNode={setSelectedNode} />
                 </div>
                 <div
                   className="app__drawer-pane"
@@ -536,7 +562,14 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
         {robotOpen && (
           <aside className="app__robot">
             <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
-            <RunPanel execution={execution} onSelectNode={setSelectedNode} />
+            <RunPanel
+              execution={execution}
+              onSelectNode={setSelectedNode}
+              onShowConsole={() => {
+                setDrawerView('console');
+                setDrawerOpen(true);
+              }}
+            />
           </aside>
         )}
       </main>

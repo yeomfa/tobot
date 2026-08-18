@@ -133,11 +133,12 @@ export const Library = memo(function Library({
             </button>
             <button
               type="button"
-              className="library__new"
+              className="library__icon-action library__icon-action--primary"
               onClick={onCreate}
               title={d.actions.newAlgorithm}
+              aria-label={d.actions.newAlgorithm}
             >
-              <Plus weight="bold" /> {d.actions.newAlgorithm}
+              <Plus weight="bold" />
             </button>
           </div>
         </div>
