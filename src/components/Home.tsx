@@ -94,18 +94,68 @@ function BrandMark() {
   );
 }
 
-/** A large watermark of the robot, giving the banner its character. */
-function RobotMark() {
+/**
+ * A watermark per section, drawn in the banner's own colour.
+ *
+ * Each is a plain shape rather than a scene: at this size and opacity a busy
+ * illustration turns to noise, while one clear form still says which part of
+ * the app you are in.
+ */
+function SectionArt({ section }: { section: Section }) {
+  if (section === 'mine') {
+    return (
+      <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
+        <line x1="60" y1="18" x2="60" y2="26" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="60" cy="14" r="5" className="home__art-dot" />
+        <rect x="22" y="26" width="76" height="58" rx="18" strokeWidth="3" />
+        <rect x="34" y="38" width="52" height="34" rx="13" className="home__art-fill" />
+        <circle cx="49" cy="55" r="5.5" className="home__art-eye" />
+        <circle cx="71" cy="55" r="5.5" className="home__art-eye" />
+        <rect x="12" y="46" width="8" height="18" rx="4" strokeWidth="3" />
+        <rect x="100" y="46" width="8" height="18" rx="4" strokeWidth="3" />
+      </svg>
+    );
+  }
+
+  if (section === 'challenges') {
+    // Interlocking pieces: something to complete.
+    return (
+      <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
+        <path
+          d="M20 26h30v10a8 8 0 0 0 16 0V26h30v30h-10a8 8 0 0 1 0 16h10v30H66V82a8 8 0 0 0-16 0v20H20V26z"
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+        <circle cx="86" cy="42" r="4" className="home__art-dot" />
+      </svg>
+    );
+  }
+
+  if (section === 'examples') {
+    // A lamp: the worked answer.
+    return (
+      <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
+        <path
+          d="M60 16a28 28 0 0 0-16 51v9h32v-9a28 28 0 0 0-16-51z"
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+        <path d="M48 84h24M52 94h16" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="60" cy="46" r="9" className="home__art-dot" />
+      </svg>
+    );
+  }
+
+  // An open book: the reference material.
   return (
-    <svg className="home__robot" viewBox="0 0 120 110" aria-hidden="true">
-      <line x1="60" y1="18" x2="60" y2="26" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="60" cy="14" r="5" className="home__robot-dot" />
-      <rect x="22" y="26" width="76" height="58" rx="18" strokeWidth="3" />
-      <rect x="34" y="38" width="52" height="34" rx="13" className="home__robot-visor" />
-      <circle cx="49" cy="55" r="5.5" className="home__robot-eye" />
-      <circle cx="71" cy="55" r="5.5" className="home__robot-eye" />
-      <rect x="12" y="46" width="8" height="18" rx="4" strokeWidth="3" />
-      <rect x="100" y="46" width="8" height="18" rx="4" strokeWidth="3" />
+    <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
+      <path
+        d="M60 32c-8-7-20-10-32-9v56c12-1 24 2 32 9 8-7 20-10 32-9V23c-12-1-24 2-32 9z"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <line x1="60" y1="32" x2="60" y2="88" strokeWidth="3" />
+      <circle cx="60" cy="24" r="4" className="home__art-dot" />
     </svg>
   );
 }
@@ -178,6 +228,24 @@ export const Home = memo(function Home({
     }
   };
 
+  const bannerTitle =
+    section === 'mine'
+      ? d.banners.mineTitle
+      : section === 'challenges'
+        ? d.banners.challengesTitle
+        : section === 'examples'
+          ? d.banners.examplesTitle
+          : d.banners.conceptsTitle;
+
+  const bannerBody =
+    section === 'mine'
+      ? d.banners.mineBody
+      : section === 'challenges'
+        ? d.banners.challengesBody
+        : section === 'examples'
+          ? d.banners.examplesBody
+          : d.banners.conceptsBody;
+
   const reload = async (): Promise<void> => {
     setSaved(await createAlgorithmStore().list());
   };
@@ -213,30 +281,50 @@ export const Home = memo(function Home({
 
   return (
     <div className="home">
-      <div className="home__inner">
-        <header className="home__banner">
-          <div className="home__banner-bar">
-            <span className="home__banner-brand">
-              <BrandMark />
-              {d.app.name}
-            </span>
+      <div className="home__body">
+        <nav className="home__rail" aria-label={d.home.sections}>
+          <div className="home__rail-brand">
+            <BrandMark />
+            <span>{d.app.name}</span>
+          </div>
 
-            <span className="home__banner-actions">
-              {/* The editor keeps whatever was open, so this is a way back to
-                  it rather than a way to open something. */}
+          <div className="home__rail-list">
+            {SECTIONS.map((entry) => {
+              const Glyph = entry.icon;
+              return (
+                <button
+                  key={entry.id}
+                  type="button"
+                  className="home__rail-item"
+                  data-selected={section === entry.id || undefined}
+                  onClick={() => setSection(entry.id)}
+                >
+                  <Glyph weight={section === entry.id ? 'fill' : 'regular'} />
+                  <span>{sectionLabel(d, entry.id)}</span>
+                  {entry.id === 'mine' && saved.length > 0 && (
+                    <span className="home__rail-count">{saved.length}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* The settings that belong to both screens, and the way back. */}
+          <div className="home__rail-footer">
+            <button
+              type="button"
+              className="home__rail-back"
+              onClick={onBackToEditor}
+              title={`${d.home.backToEditor}: ${currentName}`}
+            >
+              <PencilSimple />
+              <span>{d.home.backToEditor}</span>
+            </button>
+
+            <div className="home__rail-settings">
               <button
                 type="button"
-                className="home__banner-back"
-                onClick={onBackToEditor}
-                title={`${d.home.backToEditor}: ${currentName}`}
-              >
-                <PencilSimple />
-                <span>{d.home.backToEditor}</span>
-              </button>
-
-              <button
-                type="button"
-                className="home__banner-button"
+                className="home__rail-icon"
                 onClick={onShowTour}
                 title={d.tour.replay}
                 aria-label={d.tour.replay}
@@ -261,38 +349,20 @@ export const Home = memo(function Home({
                 trigger={theme === 'dark' ? Moon : theme === 'light' ? Sun : Desktop}
                 label={d.settings.theme}
               />
-            </span>
+            </div>
           </div>
+        </nav>
 
-          <div className="home__banner-copy">
-            <h1 className="home__title">{d.home.title}</h1>
-            <p className="home__subtitle">{d.home.subtitle}</p>
-          </div>
-
-          <RobotMark />
-        </header>
-
-        <div className="home__body">
-          <nav className="home__rail" aria-label={d.home.sections}>
-            {SECTIONS.map((entry) => {
-              const Glyph = entry.icon;
-              return (
-                <button
-                  key={entry.id}
-                  type="button"
-                  className="home__rail-item"
-                  data-selected={section === entry.id || undefined}
-                  onClick={() => setSection(entry.id)}
-                >
-                  <Glyph weight={section === entry.id ? 'fill' : 'regular'} />
-                  <span>{sectionLabel(d, entry.id)}</span>
-                  {entry.id === 'mine' && saved.length > 0 && (
-                    <span className="home__rail-count">{saved.length}</span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+        <div className="home__main">
+          {/* One banner per section, so the page always says what you are
+              looking at rather than repeating a single greeting. */}
+          <header className="home__banner" data-section={section}>
+            <div className="home__banner-copy">
+              <h1 className="home__title">{bannerTitle}</h1>
+              <p className="home__subtitle">{bannerBody}</p>
+            </div>
+            <SectionArt section={section} />
+          </header>
 
           <div className="home__content">
             {section === 'mine' && (
@@ -406,7 +476,6 @@ export const Home = memo(function Home({
 
             {section === 'challenges' && (
               <>
-                <p className="home__lead">{d.library.challengesHint}</p>
                 <div className="home__grid">
                   {challenges.map((challenge) => (
                     <button
@@ -429,7 +498,6 @@ export const Home = memo(function Home({
 
             {section === 'examples' && (
               <>
-                <p className="home__lead">{d.library.examplesHint}</p>
                 <div className="home__grid">
                   {examples.map((example) => {
                     const Glyph = EXAMPLE_ICONS[example.id] ?? Circle;
@@ -455,7 +523,6 @@ export const Home = memo(function Home({
 
             {section === 'concepts' && (
               <>
-                <p className="home__lead">{d.concepts.subtitle}</p>
                 <div className="home__grid">
                   {concepts.map((concept) => (
                     <button

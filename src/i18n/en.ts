@@ -134,6 +134,16 @@ export const en: Dictionary = {
     sections: 'Sections',
     goHome: 'Home',
   },
+  banners: {
+    mineTitle: 'Your algorithms',
+    mineBody: 'Start a new one, pick up where you left off, or bring in a file someone shared with you.',
+    challengesTitle: 'Test yourself',
+    challengesBody: 'Half-built exercises: the comments say what is missing and you write the rest.',
+    examplesTitle: 'Learn from examples',
+    examplesBody: 'Typical problems already solved. Open one and compare the four views to see how it works.',
+    conceptsTitle: 'Understand the ideas',
+    conceptsBody: 'Variables, decisions and loops explained from scratch, with references to go deeper.',
+  },
   verbs: {
     declare: 'variable',
     assign: 'change',

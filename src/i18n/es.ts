@@ -140,6 +140,17 @@ export const es = {
     sections: 'Secciones',
     goHome: 'Inicio',
   },
+  /** One banner per section: each says what that section is for. */
+  banners: {
+    mineTitle: 'Tus algoritmos',
+    mineBody: 'Empieza uno nuevo, retoma lo que dejaste, o trae un archivo que te hayan compartido.',
+    challengesTitle: 'Ponte a prueba',
+    challengesBody: 'Ejercicios a medio hacer: los comentarios te dicen qué falta y tú escribes el resto.',
+    examplesTitle: 'Aprende con ejemplos',
+    examplesBody: 'Problemas típicos ya resueltos. Ábrelos y compara las cuatro vistas para ver cómo funcionan.',
+    conceptsTitle: 'Entiende las ideas',
+    conceptsBody: 'Variables, decisiones y ciclos explicados desde cero, con referencias para profundizar.',
+  },
   verbs: {
     declare: 'variable',
     assign: 'cambiar',
