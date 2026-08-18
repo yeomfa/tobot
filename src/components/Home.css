@@ -16,23 +16,184 @@
   padding: var(--space-7) var(--space-5) var(--space-7);
 }
 
-.home__hero {
+/* ---- Banner ---- */
+
+/**
+ * The landing view carries its own banner instead of the editor's header:
+ * a title bar, the greeting, and the robot as a watermark. The editor's
+ * controls (undo, panels, run) mean nothing here, so they are simply absent.
+ */
+.home__banner {
+  position: relative;
+  overflow: hidden;
   margin-bottom: var(--space-6);
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      ellipse 70% 120% at 85% 20%,
+      color-mix(in srgb, var(--accent) 20%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(135deg, var(--slate-900), var(--slate-800));
+}
+
+.home__banner-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.home__banner-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--slate-0);
+}
+
+.home__mark {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.home__mark-dot,
+.home__mark-eye {
+  fill: var(--accent);
+  stroke: none;
+}
+
+.home__banner-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-md);
+}
+
+.home__banner-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  white-space: nowrap;
+  color: rgb(255 255 255 / 0.82);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.home__banner-back svg {
+  width: 14px;
+  height: 14px;
+}
+
+.home__banner-back:hover {
+  color: var(--slate-0);
+  background: rgb(255 255 255 / 0.12);
+}
+
+.home__banner-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  color: rgb(255 255 255 / 0.72);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.home__banner-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.home__banner-button:hover {
+  color: var(--slate-0);
+  background: rgb(255 255 255 / 0.12);
+}
+
+/* The settings menus sit on a dark ground here, so their trigger inverts. */
+.home__banner-actions .settings-menu__trigger {
+  color: rgb(255 255 255 / 0.72);
+}
+
+.home__banner-actions .settings-menu__trigger:hover,
+.home__banner-actions .settings-menu__trigger[data-open] {
+  color: var(--slate-0);
+  background: rgb(255 255 255 / 0.12);
+  box-shadow: none;
+}
+
+.home__banner-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 34rem;
 }
 
 .home__title {
   font-size: var(--text-2xl);
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: var(--text-primary);
+  color: var(--slate-0);
 }
 
 .home__subtitle {
   margin-top: var(--space-2);
   font-size: var(--text-md);
   line-height: 1.6;
-  color: var(--text-secondary);
-  max-width: 60ch;
+  color: rgb(255 255 255 / 0.76);
+}
+
+/* Watermark: large, low-contrast, and clipped by the banner's corner. */
+.home__robot {
+  position: absolute;
+  right: var(--space-5);
+  bottom: -18px;
+  width: 190px;
+  height: auto;
+  fill: none;
+  stroke: rgb(255 255 255 / 0.16);
+  pointer-events: none;
+}
+
+.home__robot-dot {
+  fill: color-mix(in srgb, var(--accent) 70%, transparent);
+  stroke: none;
+}
+
+.home__robot-visor {
+  fill: rgb(0 0 0 / 0.25);
+  stroke: none;
+}
+
+.home__robot-eye {
+  fill: rgb(125 211 252 / 0.5);
+  stroke: none;
+}
+
+@media (max-width: 720px) {
+  .home__robot {
+    display: none;
+  }
 }
 
 .home__section + .home__section {
@@ -265,4 +426,65 @@
 
 .home__card--saved {
   background: var(--bg-inset);
+  padding: 0;
+  overflow: hidden;
+}
+
+.home__card-open {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  text-align: left;
+}
+
+.home__card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--space-2) var(--space-2);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.home__card--saved:hover .home__card-actions,
+.home__card--saved:focus-within .home__card-actions {
+  opacity: 1;
+}
+
+.home__card-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.home__card-action svg {
+  width: 15px;
+  height: 15px;
+}
+
+.home__card-action:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.home__card-action--danger:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.home__card-action--confirm {
+  color: var(--text-inverse);
+  background: var(--danger);
 }

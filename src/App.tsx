@@ -308,6 +308,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
       data-robot={robotOpen ? 'open' : 'closed'}
       data-drawer={drawerOpen ? 'open' : 'closed'}
     >
+      {screen === 'editor' && (
       <header className="app__header">
         <h1 className="app__brand">
           <BrandMark />
@@ -323,15 +324,16 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
         />
 
         <div className="app__header-actions">
+          {/* Inside the editor this always means "go home"; the landing view
+              has its own way back. */}
           <button
             type="button"
             className="app__icon-button"
-            data-active={screen === 'home' || undefined}
-            onClick={() => setScreen(screen === 'home' ? 'editor' : 'home')}
-            title={screen === 'home' ? d.home.backToEditor : d.home.goHome}
-            aria-label={screen === 'home' ? d.home.backToEditor : d.home.goHome}
+            onClick={() => setScreen('home')}
+            title={d.home.goHome}
+            aria-label={d.home.goHome}
           >
-            <House weight={screen === 'home' ? 'fill' : 'regular'} />
+            <House />
           </button>
 
           <span className="app__divider" aria-hidden="true" />
@@ -467,14 +469,22 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
           </button>
         </div>
       </header>
+      )}
 
       {screen === 'home' ? (
         <main className="app__main app__main--home">
           <Home
             revision={libraryRevision}
+            language={language}
+            theme={theme}
+            onLanguageChange={onLanguageChange}
+            onThemeChange={onThemeChange}
             onOpen={openAlgorithm}
             onCreate={createNew}
             onOpenConcept={setOpenConcept}
+            onShowTour={() => setTourOpen(true)}
+            currentName={algorithm.name}
+            onBackToEditor={() => setScreen('editor')}
           />
         </main>
       ) : (
