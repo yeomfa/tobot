@@ -4,20 +4,27 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 /**
  * The Supabase client, created only when the project is configured.
  *
- * Both values are meant to be public: the anon key identifies the project, and
- * every rule about who may read or write lives in the database's row-level
- * security policies rather than in keeping this string secret.
+ * Both values are meant to be public: the key identifies the project, and every
+ * rule about who may read or write lives in the database's row-level security
+ * policies rather than in keeping this string secret.
  *
- * When they are absent the app runs exactly as before, on localStorage. That
- * keeps the repository cloneable and the tests runnable without an account.
+ * Supabase renamed this key in 2025. New projects issue a publishable key
+ * (`sb_publishable_...`); older ones have the legacy `anon` JWT. They behave
+ * identically here, so either is accepted and the older variable name is still
+ * read as a fallback.
+ *
+ * When both are absent the app runs on localStorage, which keeps the
+ * repository cloneable and the tests runnable without an account.
  */
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const publishableKey =
+  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ||
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
 
-export const isSupabaseConfigured = Boolean(url && anonKey);
+export const isSupabaseConfigured = Boolean(url && publishableKey);
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(url as string, anonKey as string, {
+  ? createClient(url as string, publishableKey as string, {
       auth: {
         // Students move between the lab and home, so the session should
         // survive a closed tab.

@@ -20,17 +20,27 @@ impide que un estudiante lea el trabajo de otro**, no el código del navegador.
 
 ## 3. Conecta la app
 
-En **Project Settings > Data API** copia la *Project URL* y la clave
-*anon public*. Crea un archivo `.env.local` en la raíz:
+En **Project Settings > API Keys** copia la *Project URL* y la clave
+**publishable** (empieza con `sb_publishable_`). Crea un archivo `.env.local`
+en la raíz:
 
 ```
 VITE_SUPABASE_URL=https://tuproyecto.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGci...
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 VITE_SUPABASE_GOOGLE=false
 ```
 
+Si tu proyecto es anterior a 2025 puede que solo tengas una clave `anon`, en
+la pestaña *Legacy API Keys*. Funciona igual: pégala en esa misma variable, o
+usa `VITE_SUPABASE_ANON_KEY`, que la app también lee.
+
+No confundas la clave publishable con la **secret** (`sb_secret_`): esa
+salta las políticas de seguridad y nunca debe llegar al navegador.
+
 Ambos valores son públicos por diseño; están pensados para vivir en el
 navegador. `.env.local` está en `.gitignore` de todos modos.
+
+Después de editarlo, reinicia `pnpm dev`: Vite lee las variables al arrancar.
 
 Para el sitio publicado, añade las dos como *repository secrets* en GitHub
 (**Settings > Secrets and variables > Actions**) y pásalas al paso de build
