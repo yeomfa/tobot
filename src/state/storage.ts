@@ -1,4 +1,6 @@
 import type { Algorithm } from '../core/ast/types';
+import { isSupabaseConfigured } from './supabase';
+import { SupabaseAlgorithmStore } from './supabaseStore';
 
 /**
  * Persistence seam.
@@ -123,11 +125,36 @@ export class LocalPreferenceStore implements PreferenceStore {
 }
 
 /**
- * Single construction point for persistence. A Supabase-backed store would be
- * selected here, e.g. by checking for configured credentials.
+ * Single construction point for persistence.
+ *
+ * A signed-in student reads and writes their own rows in Supabase; everyone
+ * else stays on localStorage. Because both satisfy the same interface, no
+ * component knows or cares which one it is talking to.
  */
 export function createAlgorithmStore(): AlgorithmStore {
-  return new LocalAlgorithmStore();
+  return hasSession() ? new SupabaseAlgorithmStore() : new LocalAlgorithmStore();
+}
+
+/**
+ * Whether a Supabase session exists, read synchronously so the store can be
+ * chosen without awaiting. Supabase keeps the session in localStorage under a
+ * key derived from the project ref, and reading it directly avoids making
+ * every caller of `createAlgorithmStore` async.
+ */
+function hasSession(): boolean {
+  if (!isSupabaseConfigured) return false;
+  try {
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const raw = window.localStorage.getItem(key);
+        if (raw && raw.length > 2) return true;
+      }
+    }
+  } catch {
+    // Storage can be unavailable; fall back to local.
+  }
+  return false;
 }
 
 export function createPreferenceStore(): PreferenceStore {

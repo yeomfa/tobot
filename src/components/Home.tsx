@@ -16,12 +16,14 @@ import {
   Plus,
   PuzzlePiece,
   SealCheck,
+  SignOut,
   Sun,
   Target,
   Timer,
   Translate,
   Trash,
   UploadSimple,
+  UserCircle,
   UserCheck,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
@@ -36,6 +38,7 @@ import { languageNames, LANGUAGES } from '../i18n';
 import type { Language } from '../i18n';
 import { useTranslation } from '../i18n/context';
 import { createAlgorithmStore } from '../state/storage';
+import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
 import './Home.css';
 
@@ -53,6 +56,10 @@ interface HomeProps {
   /** Name of the algorithm open in the editor, for the way back. */
   currentName: string;
   onBackToEditor: () => void;
+  /** Signed-in email, or `null` when working on this browser only. */
+  email: string | null;
+  onSignOut: () => void;
+  onSignIn: () => void;
 }
 
 type Section = 'mine' | 'challenges' | 'examples' | 'concepts';
@@ -181,6 +188,9 @@ export const Home = memo(function Home({
   onShowTour,
   currentName,
   onBackToEditor,
+  email,
+  onSignOut,
+  onSignIn,
 }: HomeProps) {
   const { d, fill, formatDate } = useTranslation();
   const [saved, setSaved] = useState<Algorithm[]>([]);
@@ -311,6 +321,32 @@ export const Home = memo(function Home({
 
           {/* The settings that belong to both screens, and the way back. */}
           <div className="home__rail-footer">
+            {isSupabaseConfigured && (
+              <div className="home__account">
+                {email ? (
+                  <>
+                    <span className="home__account-who" title={email}>
+                      <UserCircle weight="duotone" />
+                      <span>{email}</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="home__account-action"
+                      onClick={onSignOut}
+                      title={d.auth.signOut}
+                    >
+                      <SignOut />
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" className="home__account-signin" onClick={onSignIn}>
+                    <UserCircle />
+                    <span>{d.auth.signInPrompt}</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             <button
               type="button"
               className="home__rail-back"

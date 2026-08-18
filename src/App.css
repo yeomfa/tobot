@@ -7,6 +7,12 @@
  * anything itself.
  */
 
+/* Shown for the moment it takes to resolve the session, so the app does not
+   flash a half-built interface before deciding which screen to show. */
+.app--loading {
+  background: var(--bg-app);
+}
+
 .app {
   display: flex;
   flex-direction: column;

@@ -3,3 +3,7 @@ node_modules
 *.local
 .DS_Store
 .vite
+
+# Local secrets
+.env.local
+.env

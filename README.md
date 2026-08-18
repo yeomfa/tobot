@@ -91,10 +91,16 @@ of the algorithm stays identical while only the words change.
 ## Persistence
 
 Algorithms and preferences are stored in `localStorage` behind the
-`AlgorithmStore` interface in `src/state/storage.ts`. Every method is async so
-that a Supabase-backed implementation can be dropped in by writing a second
-class and changing the one line in `createAlgorithmStore()` — no calling code
-changes.
+`AlgorithmStore` interface in `src/state/storage.ts`.
+
+Optionally, students can sign in and have their work follow them between
+computers. `createAlgorithmStore()` returns the Supabase-backed store when a
+session exists and the local one when it does not, so no component knows which
+it is talking to. With no credentials configured the account layer does not
+exist at all: no sign-in screen, no network calls, and the app behaves exactly
+as it did before.
+
+See [SUPABASE.md](SUPABASE.md) for the setup, which takes about ten minutes.
 
 ## Deployment
 

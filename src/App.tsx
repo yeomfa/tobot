@@ -27,6 +27,7 @@ import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
 import { Home } from './components/Home';
 import { Palette } from './components/Palette';
+import { SignIn } from './components/SignIn';
 import { SettingsMenu } from './components/SettingsMenu';
 import { Tour } from './components/Tour';
 import { ResizeHandle } from './components/ResizeHandle';
@@ -39,6 +40,8 @@ import { createAlgorithmStore, createPreferenceStore } from './state/storage';
 import type { Preferences } from './state/storage';
 import { useAlgorithm } from './state/useAlgorithm';
 import { useExecution } from './state/useExecution';
+import { useSession } from './state/useSession';
+import { isSupabaseConfigured } from './state/supabase';
 import { useResizable } from './state/useResizable';
 import { welcomeAlgorithm } from './content/examples';
 import { createEmptyAlgorithm } from './state/useAlgorithm';
@@ -78,9 +81,16 @@ function initialPreferences(): Preferences {
   };
 }
 
+/** Set once a student chooses to work without an account on this browser. */
+const SKIP_AUTH_KEY = 'tobot.skipAuth';
+
 export default function App() {
   const [preferences, setPreferences] = useState<Preferences>(initialPreferences);
   const language = preferences.language as Language;
+  const auth = useSession();
+  const [skippedAuth, setSkippedAuth] = useState(
+    () => window.localStorage.getItem(SKIP_AUTH_KEY) === 'true',
+  );
 
   useEffect(() => {
     preferenceStore.write(preferences);
@@ -111,9 +121,40 @@ export default function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  // Without Supabase configured there is no account layer at all, and the app
+  // runs on localStorage exactly as before.
+  const needsAuth = isSupabaseConfigured && !auth.session && !skippedAuth;
+
+  if (isSupabaseConfigured && auth.loading) {
+    return (
+      <I18nProvider language={language}>
+        <div className="app app--loading" />
+      </I18nProvider>
+    );
+  }
+
+  if (needsAuth) {
+    return (
+      <I18nProvider language={language}>
+        <SignIn
+          onSkip={() => {
+            window.localStorage.setItem(SKIP_AUTH_KEY, 'true');
+            setSkippedAuth(true);
+          }}
+        />
+      </I18nProvider>
+    );
+  }
+
   return (
     <I18nProvider language={language}>
       <Workbench
+        email={auth.email}
+        onSignOut={() => void auth.signOut()}
+        onSignIn={() => {
+          window.localStorage.removeItem(SKIP_AUTH_KEY);
+          setSkippedAuth(false);
+        }}
         firstVisit={IS_FIRST_VISIT}
         theme={preferences.theme}
         onThemeChange={(theme) => setPreferences((current) => ({ ...current, theme }))}
@@ -126,6 +167,10 @@ export default function App() {
 }
 
 interface WorkbenchProps {
+  /** Signed-in student's email, or `null` when working locally. */
+  email: string | null;
+  onSignOut: () => void;
+  onSignIn: () => void;
   /** True until the student has opened the app once. */
   firstVisit: boolean;
   theme: Theme;
@@ -144,7 +189,15 @@ interface WorkbenchProps {
  * Sizes persist per panel, so the workspace a student arranges is the one they
  * come back to.
  */
-function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
+function Workbench({
+  email,
+  onSignOut,
+  onSignIn,
+  firstVisit,
+  theme,
+  onThemeChange,
+  onLanguageChange,
+}: WorkbenchProps) {
   const { d, language } = useTranslation();
 
   /**
@@ -494,6 +547,9 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
             onShowTour={() => setTourOpen(true)}
             currentName={algorithm.name}
             onBackToEditor={() => setScreen('editor')}
+            email={email}
+            onSignOut={onSignOut}
+            onSignIn={onSignIn}
           />
         </main>
       ) : (
