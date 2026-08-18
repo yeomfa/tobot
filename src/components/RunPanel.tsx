@@ -42,7 +42,6 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
   }, [state.status]);
 
   const lastSpoken = [...state.output].reverse().find((entry) => entry.kind === 'say');
-  const latest = state.output[state.output.length - 1] ?? null;
 
   const bubble = (() => {
     if (state.status === 'error' && state.error) {
@@ -185,20 +184,6 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
         </div>
       </div>
 
-      {/*
-        Just what the robot is saying right now, faded at its edges so lines
-        appear to surface and dissolve rather than stack up. The transcript,
-        the variables and everything scrollable live in the console tab.
-      */}
-      <div className="run-panel__now" aria-live="polite">
-        {latest ? (
-          <p key={latest.id} className="run-panel__now-line" data-kind={latest.kind}>
-            {latest.kind === 'error' ? t(latest.text) : latest.text}
-          </p>
-        ) : (
-          <p className="run-panel__now-idle">{d.console.empty}</p>
-        )}
-      </div>
     </section>
   );
 });

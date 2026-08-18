@@ -1,10 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!--
-    The same mark the header draws, on a rounded dark ground. Keeping one
-    geometry means the tab, the installed icon and the header all read as the
-    same product; the previous favicon was a second, different robot.
-
-    Stroke widths are set for a 32-unit box so the shape survives at 16px.
+    The robot's head, matching what the app draws on screen and what the
+    header shows. One character across the tab, the header and the panel.
   -->
   <rect width="32" height="32" rx="7" fill="#171d2e"/>
 

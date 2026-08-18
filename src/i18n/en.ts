@@ -105,25 +105,33 @@ export const en: Dictionary = {
       'Here you build algorithms from statements you drag into place, and see them at once in natural language, pseudocode, real code and as a flowchart. Let me show you where everything is.',
     paletteTitle: 'The statements',
     paletteBody:
-      'Every statement lives here, grouped by topic and colour. Click to add one at the end, or drag it exactly where you want it. Under "My algorithms" you will find your work, worked examples and challenges to practise with.',
+      'Every statement lives here, grouped by topic and colour. Click to add one at the end, or drag it exactly where you want it.',
     canvasTitle: 'Your algorithm',
     canvasBody:
-      'Blocks read as sentences. Hover one to edit, move or delete it. If something does not add up — a repeated variable, a loop that never ends — a note appears on the block itself before you even run it.',
+      'Blocks read as sentences. Hover one to edit, move or delete it. If something does not add up, like a repeated variable or a loop that never ends, a note appears on the block itself before you even run it.',
     drawerTitle: 'The four views',
     drawerBody:
-      'The same algorithm written four ways. Switch tabs to compare; while it runs, the current line is highlighted in all of them at once. Click the open tab to fold the panel away.',
+      'The same algorithm written four ways, plus the console with everything the robot has said. Switch tabs to compare; while it runs, the current line is highlighted in all of them at once. Click the open tab to fold the panel away.',
     robotTitle: 'The robot',
     robotBody:
-      'The robot runs your algorithm: it says what you ask it to, puts questions to you, and shows the value of every variable as it goes.',
+      'The robot runs your algorithm and talks to you as it goes. Below it are run and step-through, and the button to clear the console sits in its top corner.',
     runTitle: 'Run it',
     runBody:
-      'Run the whole algorithm, or use "Next" to advance one statement at a time and see exactly what each one does. The speed selector decides how fast it goes.',
+      'Run the whole algorithm, or use the beetle button to advance one statement at a time and see what each one does. The speed control decides how fast it goes.',
     panelsTitle: 'Arrange your space',
     panelsBody:
-      'These buttons show or hide each panel. You can also drag any panel edge to resize it — the app remembers how you left things.',
+      'These buttons show or hide each panel, and the house takes you home, where your algorithms, the challenges, the examples and the concepts live. You can also drag any panel edge to resize it.',
     endTitle: 'Ready to start',
     endBody:
-      'Open an example to see how something is solved, or a challenge to practise. You can see this tour again from the "Concepts" button.',
+      'From home you can open an example to see how something is solved, or a challenge to practise. You can see this tour again with the compass button.',
+  },
+  home: {
+    title: 'Your algorithms',
+    subtitle:
+      'Start a new one, pick up where you left off, or open a challenge or example and learn by solving.',
+    newHint: 'Begin with a blank canvas',
+    backToEditor: 'Back to the editor',
+    goHome: 'Home',
   },
   verbs: {
     declare: 'variable',

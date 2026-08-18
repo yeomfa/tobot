@@ -11,6 +11,7 @@ import {
   Moon,
   Sun,
   BookOpenText,
+  House,
   Compass,
   Desktop,
   Export,
@@ -24,10 +25,10 @@ import { Console } from './components/Console';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
+import { Home } from './components/Home';
+import { Palette } from './components/Palette';
 import { SettingsMenu } from './components/SettingsMenu';
-import { Sidebar } from './components/Sidebar';
 import { Tour } from './components/Tour';
-import type { SidebarView } from './components/Sidebar';
 import { ResizeHandle } from './components/ResizeHandle';
 import { RunPanel } from './components/RunPanel';
 import type { BlockCallbacks } from './components/StatementBlock';
@@ -181,7 +182,8 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
-  const [sidebarView, setSidebarView] = useState<SidebarView>('statements');
+  /** The app shows one screen at a time: the landing view or the editor. */
+  const [screen, setScreen] = useState<'home' | 'editor'>(firstVisit ? 'editor' : 'home');
   /** Bumped on save so the library list picks up name and size changes. */
   const [libraryRevision, setLibraryRevision] = useState(0);
 
@@ -271,7 +273,17 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
   /** Starts a blank algorithm and leaves the library open behind it. */
   const createNew = useCallback(() => {
     load(createEmptyAlgorithm(d.app.untitled));
+    setScreen('editor');
   }, [load, d.app.untitled]);
+
+  /** Opening anything from the landing view moves to the editor with it. */
+  const openAlgorithm = useCallback(
+    (next: Parameters<typeof load>[0]) => {
+      load(next);
+      setScreen('editor');
+    },
+    [load],
+  );
 
   /** The header's Run reveals the robot if it was hidden, then starts. */
   const startRun = useCallback(() => {
@@ -311,6 +323,19 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
         />
 
         <div className="app__header-actions">
+          <button
+            type="button"
+            className="app__icon-button"
+            data-active={screen === 'home' || undefined}
+            onClick={() => setScreen(screen === 'home' ? 'editor' : 'home')}
+            title={screen === 'home' ? d.home.backToEditor : d.home.goHome}
+            aria-label={screen === 'home' ? d.home.backToEditor : d.home.goHome}
+          >
+            <House weight={screen === 'home' ? 'fill' : 'regular'} />
+          </button>
+
+          <span className="app__divider" aria-hidden="true" />
+
           <div className="app__history">
             <button
               type="button"
@@ -443,18 +468,20 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
         </div>
       </header>
 
+      {screen === 'home' ? (
+        <main className="app__main app__main--home">
+          <Home
+            revision={libraryRevision}
+            onOpen={openAlgorithm}
+            onCreate={createNew}
+            onOpenConcept={setOpenConcept}
+          />
+        </main>
+      ) : (
       <main className="app__main">
         {paletteOpen && (
           <aside className="app__palette">
-            <Sidebar
-              view={sidebarView}
-              onViewChange={setSidebarView}
-              onAdd={appendStatement}
-              revision={libraryRevision}
-              currentId={algorithm.id}
-              onOpen={load}
-              onCreate={createNew}
-            />
+            <Palette onAdd={appendStatement} />
             <ResizeHandle resizable={paletteSize} edge="right" label={d.panels.resize} />
           </aside>
         )}
@@ -562,6 +589,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
           </aside>
         )}
       </main>
+      )}
 
       <Tour open={tourOpen} onClose={() => setTourOpen(false)} />
 

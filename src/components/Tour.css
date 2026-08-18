@@ -13,7 +13,7 @@
 .tour__scrim {
   position: absolute;
   inset: 0;
-  background: rgb(14 19 32 / 0.55);
+  background: rgb(14 19 32 / 0.4);
   animation: tour-fade var(--duration-base) var(--ease-out);
 }
 
@@ -26,13 +26,19 @@
   }
 }
 
-/* The cutout: a huge shadow paints the scrim everywhere except this box. */
+/**
+ * The cutout: one huge shadow paints the scrim everywhere except this box.
+ * The ring and outer glow are what make the region read as lit; at a heavier
+ * scrim with only a hairline border, the highlight was hard to pick out.
+ */
 .tour__spotlight {
   position: absolute;
   border-radius: var(--radius-md);
   box-shadow:
-    0 0 0 9999px rgb(14 19 32 / 0.55),
-    0 0 0 2px var(--accent);
+    0 0 0 9999px rgb(14 19 32 / 0.4),
+    0 0 0 3px var(--accent),
+    0 0 0 9px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 0 34px 6px color-mix(in srgb, var(--accent) 30%, transparent);
   pointer-events: none;
   transition:
     top var(--duration-base) var(--ease-out),

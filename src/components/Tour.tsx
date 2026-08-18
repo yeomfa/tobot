@@ -23,7 +23,9 @@ const STOPS: Stop[] = [
   { target: '.app__canvas', titleKey: 'canvasTitle', bodyKey: 'canvasBody' },
   { target: '.app__drawer-tabs', titleKey: 'drawerTitle', bodyKey: 'drawerBody' },
   { target: '.app__robot', titleKey: 'robotTitle', bodyKey: 'robotBody' },
-  { target: '.app__run', titleKey: 'runTitle', bodyKey: 'runBody' },
+  // Points at the robot's own transport rather than the header button, which
+  // is where a student actually drives a run from.
+  { target: '.run-panel__controls', titleKey: 'runTitle', bodyKey: 'runBody' },
   { target: '.app__toggles', titleKey: 'panelsTitle', bodyKey: 'panelsBody' },
   { target: null, titleKey: 'endTitle', bodyKey: 'endBody' },
 ];

@@ -123,7 +123,7 @@
 
 .robot__antenna-tip {
   fill: var(--robot-accent);
-  transform-origin: 100px 14px;
+  transform-origin: 100px 15px;
 }
 
 .robot[data-mood='thinking'] .robot__antenna-tip,
@@ -165,7 +165,7 @@
 
 .robot__eyes {
   animation: blink 5.5s var(--ease-out) infinite;
-  transform-origin: 100px 80px;
+  transform-origin: 100px 76px;
 }
 
 @keyframes blink {
@@ -239,7 +239,7 @@
 .robot[data-mood='asking'] .robot__mouth--speak {
   opacity: 1;
   animation: talk 0.42s var(--ease-out) infinite;
-  transform-origin: 100px 101px;
+  transform-origin: 100px 97px;
 }
 
 .robot[data-mood='error'] .robot__mouth--flat {
@@ -269,7 +269,7 @@
   stroke: var(--robot-accent);
   stroke-width: 2;
   opacity: 0;
-  transform-origin: 100px 169px;
+  transform-origin: 100px 171px;
 }
 
 .robot[data-mood='thinking'] .robot__core-ring,
@@ -306,11 +306,11 @@
 }
 
 .robot__arm--left {
-  transform-origin: 38px 150px;
+  transform-origin: 38px 154px;
 }
 
 .robot__arm--right {
-  transform-origin: 162px 150px;
+  transform-origin: 162px 154px;
 }
 
 /* A small wave on completion, and an attentive lift when asking. */

@@ -15,7 +15,7 @@ const note = (text: string): Statement => ({ id: createId(), kind: 'comment', te
  *
  * Each ships partially built: the parts a student should supply are left out
  * and described by a comment in their place. That is exactly the shape an
- * instructor can hand out — and the same shape they can author themselves by
+ * instructor can hand out, and the same shape they can author themselves by
  * writing comments and exporting the JSON.
  */
 export interface Challenge {

@@ -51,67 +51,110 @@ export const Robot = memo(function Robot({ mood, message }: RobotProps) {
         {/* Ambient glow, brightening when the robot is active. */}
         <ellipse className="robot__glow" cx="100" cy="96" rx="86" ry="80" fill="url(#robot-glow)" />
 
-        {/* Antenna */}
+        {/* Antenna. Drawn first so the head covers where it meets the shell. */}
         <g className="robot__antenna">
-          <line x1="100" y1="34" x2="100" y2="18" stroke="var(--robot-outline)" strokeWidth="4" strokeLinecap="round" />
-          <circle className="robot__antenna-tip" cx="100" cy="14" r="7" />
+          <line
+            x1="100"
+            y1="34"
+            x2="100"
+            y2="20"
+            stroke="var(--robot-outline)"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          <circle className="robot__antenna-tip" cx="100" cy="15" r="7" />
         </g>
 
-        {/* Head */}
+        {/*
+          The neck is drawn before the head and torso, so both overlap it
+          rather than the other way round. Previously the neck started two
+          pixels above the head's lower edge and its stroke cut across the jaw.
+        */}
+        <rect
+          x="86"
+          y="120"
+          width="28"
+          height="26"
+          rx="6"
+          fill="var(--robot-shell-bottom)"
+          stroke="var(--robot-outline)"
+          strokeWidth="3"
+        />
+
+        {/*
+          Head. Same proportions as the app icon: a 22:17 rounded rect with the
+          visor and two eyes, so the mark in the tab, the header and the robot
+          on screen are recognisably one character.
+        */}
         <rect
           x="38"
           y="32"
           width="124"
           height="98"
-          rx="28"
+          rx="30"
           fill="url(#robot-shell)"
           stroke="var(--robot-outline)"
           strokeWidth="3"
         />
 
+        {/* Ears, tucked behind the head's rounded corners. */}
+        <rect
+          x="24"
+          y="66"
+          width="14"
+          height="30"
+          rx="7"
+          fill="var(--robot-shell-bottom)"
+          stroke="var(--robot-outline)"
+          strokeWidth="3"
+        />
+        <rect
+          x="162"
+          y="66"
+          width="14"
+          height="30"
+          rx="7"
+          fill="var(--robot-shell-bottom)"
+          stroke="var(--robot-outline)"
+          strokeWidth="3"
+        />
+
         {/* Visor */}
-        <rect x="54" y="50" width="92" height="60" rx="20" fill="url(#robot-visor)" />
+        <rect x="54" y="50" width="92" height="60" rx="22" fill="url(#robot-visor)" />
 
         {/* Eyes: the blink is a CSS scale animation on the group. */}
         <g className="robot__eyes">
-          <circle className="robot__eye robot__eye--left" cx="80" cy="80" r="9" />
-          <circle className="robot__eye robot__eye--right" cx="120" cy="80" r="9" />
+          <circle className="robot__eye robot__eye--left" cx="80" cy="76" r="9" />
+          <circle className="robot__eye robot__eye--right" cx="120" cy="76" r="9" />
         </g>
 
         {/* Mouth swaps shape by mood; only one is visible at a time. */}
         <g className="robot__mouth">
-          <path className="robot__mouth--neutral" d="M86 102 H114" strokeLinecap="round" />
-          <path className="robot__mouth--smile" d="M84 98 Q100 110 116 98" fill="none" strokeLinecap="round" />
-          <circle className="robot__mouth--speak" cx="100" cy="101" r="7" />
-          <path className="robot__mouth--flat" d="M86 103 H114" strokeLinecap="round" />
+          <path className="robot__mouth--neutral" d="M86 98 H114" strokeLinecap="round" />
+          <path className="robot__mouth--smile" d="M84 94 Q100 106 116 94" fill="none" strokeLinecap="round" />
+          <circle className="robot__mouth--speak" cx="100" cy="97" r="7" />
+          <path className="robot__mouth--flat" d="M86 99 H114" strokeLinecap="round" />
         </g>
-
-        {/* Ears */}
-        <rect x="26" y="66" width="14" height="30" rx="7" fill="var(--robot-shell-bottom)" stroke="var(--robot-outline)" strokeWidth="3" />
-        <rect x="160" y="66" width="14" height="30" rx="7" fill="var(--robot-shell-bottom)" stroke="var(--robot-outline)" strokeWidth="3" />
-
-        {/* Neck */}
-        <rect x="88" y="128" width="24" height="14" fill="var(--robot-shell-bottom)" stroke="var(--robot-outline)" strokeWidth="3" />
 
         {/* Torso */}
         <rect
           x="52"
-          y="140"
+          y="142"
           width="96"
           height="58"
-          rx="20"
+          rx="22"
           fill="url(#robot-shell)"
           stroke="var(--robot-outline)"
           strokeWidth="3"
         />
 
         {/* Chest indicator: pulses while the program runs. */}
-        <circle className="robot__core" cx="100" cy="169" r="13" />
-        <circle className="robot__core-ring" cx="100" cy="169" r="13" />
+        <circle className="robot__core" cx="100" cy="171" r="13" />
+        <circle className="robot__core-ring" cx="100" cy="171" r="13" />
 
         {/* Arms */}
-        <rect className="robot__arm robot__arm--left" x="30" y="146" width="16" height="42" rx="8" />
-        <rect className="robot__arm robot__arm--right" x="154" y="146" width="16" height="42" rx="8" />
+        <rect className="robot__arm robot__arm--left" x="30" y="150" width="16" height="42" rx="8" />
+        <rect className="robot__arm robot__arm--right" x="154" y="150" width="16" height="42" rx="8" />
       </svg>
     </div>
   );

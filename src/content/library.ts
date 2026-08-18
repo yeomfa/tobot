@@ -13,7 +13,7 @@ const s = (value: string): Expression => literal(value, 'text');
  * Worked examples, one per topic.
  *
  * Each is a problem a first-year student would actually be set, solved with
- * only the statements in the palette — so opening one and reading its three
+ * only the statements in the palette: so opening one and reading its three
  * language views is itself a lesson.
  */
 export interface Example {

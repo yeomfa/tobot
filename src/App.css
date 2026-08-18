@@ -259,6 +259,18 @@
   grid-column: 3;
 }
 
+/* The landing view fills the main area on its own, so it opts out of the
+   editor's three-column grid. */
+.app__main--home {
+  display: block;
+  overflow: hidden;
+}
+
+.app__icon-button[data-active] {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
 .app__palette,
 .app__robot {
   position: relative;

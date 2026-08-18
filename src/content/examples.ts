@@ -30,8 +30,8 @@ const COPY: Record<Language, Record<string, string>> = {
 /**
  * The algorithm a student sees on first load.
  *
- * It deliberately touches all five topics — a variable, output, input, a
- * conditional and a loop — so the three language tabs and the flowchart all
+ * It deliberately touches all five topics (a variable, output, input, a
+ * conditional and a loop) so the three language tabs and the flowchart all
  * have something meaningful to show before anything is typed.
  */
 /**

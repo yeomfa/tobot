@@ -76,7 +76,7 @@ export const es = {
     resize: 'Arrastra para redimensionar',
   },
   /** Validation messages shown on the block itself. Each one names the fix,
-   * not just the fault — a student should know what to do next. */
+   * not just the fault: a student should know what to do next. */
   problems: {
     undefinedVariable: 'La variable «{name}» no existe todavía. Créala antes de esta instrucción.',
     assignBeforeDeclare: 'No puedes cambiar «{name}» porque aún no la has creado.',
@@ -110,25 +110,34 @@ export const es = {
       'Aquí escribes algoritmos con instrucciones que se arrastran, y los ves al instante en lenguaje natural, pseudocódigo, código real y como diagrama de flujo. Te muestro dónde está cada cosa.',
     paletteTitle: 'Las instrucciones',
     paletteBody:
-      'Aquí están todas las instrucciones, agrupadas por tema y con su color. Haz clic para agregarlas al final, o arrástralas al lugar exacto. En «Mis algoritmos» encuentras tus trabajos, ejemplos resueltos y retos para practicar.',
+      'Aquí están todas las instrucciones, agrupadas por tema y con su color. Haz clic para agregarlas al final, o arrástralas al lugar exacto.',
     canvasTitle: 'Tu algoritmo',
     canvasBody:
-      'Los bloques se leen como frases. Pasa el ratón sobre uno para editarlo, moverlo o borrarlo. Si algo no cuadra —una variable repetida, un ciclo que nunca termina— aparece un aviso en el bloque mismo antes de ejecutar.',
+      'Los bloques se leen como frases. Pasa el ratón sobre uno para editarlo, moverlo o borrarlo. Si algo no cuadra, como una variable repetida o un ciclo que nunca termina, aparece un aviso en el bloque mismo antes de ejecutar.',
     drawerTitle: 'Las cuatro vistas',
     drawerBody:
-      'El mismo algoritmo escrito de cuatro formas. Cambia de pestaña para comparar; al ejecutar se resalta la línea que corre en todas a la vez. Haz clic en el nombre de la pestaña abierta para plegar el panel.',
+      'El mismo algoritmo escrito de cuatro formas, más la consola con todo lo que dijo el robot. Cambia de pestaña para comparar; al ejecutar se resalta la línea que corre en todas a la vez. Haz clic en la pestaña abierta para plegar el panel.',
     robotTitle: 'El robot',
     robotBody:
-      'El robot ejecuta tu algoritmo: dice lo que le pides, te hace preguntas y muestra el valor de cada variable mientras avanza.',
+      'El robot ejecuta tu algoritmo y te habla mientras avanza. Debajo tienes ejecutar y depurar paso a paso, y arriba a la derecha el botón para limpiar la consola.',
     runTitle: 'Ejecutar',
     runBody:
-      'Ejecuta todo el algoritmo, o usa «Siguiente» para avanzar de a una instrucción y ver exactamente qué pasa en cada paso. Con el selector de velocidad decides qué tan rápido va.',
+      'Ejecuta todo el algoritmo, o usa el botón del bicho para avanzar de a una instrucción y ver qué pasa en cada paso. Con la velocidad decides qué tan rápido va.',
     panelsTitle: 'Acomoda tu espacio',
     panelsBody:
-      'Estos botones muestran u ocultan cada panel. También puedes arrastrar el borde de cualquiera para cambiar su tamaño: la app recuerda cómo lo dejaste.',
+      'Estos botones muestran u ocultan cada panel, y la casita te lleva al inicio, donde están tus algoritmos, los retos, los ejemplos y los conceptos. También puedes arrastrar el borde de cualquier panel para cambiar su tamaño.',
     endTitle: 'Listo para empezar',
     endBody:
-      'Abre un ejemplo para ver cómo se resuelve algo, o un reto para practicar. Puedes volver a ver esta guía desde el botón «Conceptos».',
+      'Desde el inicio puedes abrir un ejemplo para ver cómo se resuelve algo, o un reto para practicar. Puedes volver a ver esta guía con el botón de la brújula.',
+  },
+  /** Landing view copy. */
+  home: {
+    title: 'Tus algoritmos',
+    subtitle:
+      'Empieza uno nuevo, retoma lo que dejaste, o abre un reto o un ejemplo para aprender resolviendo.',
+    newHint: 'Empieza con el lienzo en blanco',
+    backToEditor: 'Volver al editor',
+    goHome: 'Inicio',
   },
   verbs: {
     declare: 'variable',
