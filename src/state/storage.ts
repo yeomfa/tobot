@@ -21,6 +21,12 @@ export interface Preferences {
   theme: 'light' | 'dark' | 'system';
   /** Last opened algorithm, restored on the next visit. */
   activeAlgorithmId: string | null;
+  /**
+   * Set once the app has been opened. Without it there is no way to tell a
+   * first visit from a returning student who deleted everything — and the
+   * welcome example would keep coming back after being deleted.
+   */
+  visited?: boolean;
 }
 
 export interface PreferenceStore {

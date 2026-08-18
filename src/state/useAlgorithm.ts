@@ -22,6 +22,14 @@ export function createEmptyAlgorithm(name: string): Algorithm {
 }
 
 /**
+ * An untouched blank algorithm is scratch space, not work worth keeping.
+ * Persisting it would add an empty row to the library on every visit.
+ */
+function isWorthSaving(algorithm: Algorithm, blankName: string): boolean {
+  return algorithm.body.length > 0 || algorithm.name !== blankName;
+}
+
+/**
  * Algorithm and its undo history live in one reducer.
  *
  * Keeping them together is what makes undo correct: a single pure transition
@@ -104,7 +112,7 @@ export interface AlgorithmController {
   load: (algorithm: Algorithm) => void;
 }
 
-export function useAlgorithm(initial: Algorithm): AlgorithmController {
+export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmController {
   const [state, dispatch] = useReducer(reducer, {
     algorithm: initial,
     past: [],
@@ -118,6 +126,7 @@ export function useAlgorithm(initial: Algorithm): AlgorithmController {
 
   // Debounced persistence, so typing does not hit storage on every keystroke.
   useEffect(() => {
+    if (!isWorthSaving(state.algorithm, blankName)) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       void store.save(state.algorithm);
@@ -126,14 +135,14 @@ export function useAlgorithm(initial: Algorithm): AlgorithmController {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [state.algorithm, store]);
+  }, [state.algorithm, store, blankName]);
 
   // Flush on unmount so an edit mid-debounce is never lost.
   useEffect(() => {
     return () => {
-      void store.save(latest.current);
+      if (isWorthSaving(latest.current, blankName)) void store.save(latest.current);
     };
-  }, [store]);
+  }, [store, blankName]);
 
   const edit = useCallback((transform: (body: Statement[]) => Statement[]) => {
     dispatch({ type: 'edit', transform });

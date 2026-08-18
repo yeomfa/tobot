@@ -46,6 +46,7 @@ function initialPreferences(): Preferences {
     language: isLanguage(stored?.language) ? stored.language : DEFAULT_LANGUAGE,
     theme: stored?.theme === 'dark' || stored?.theme === 'light' ? stored.theme : 'system',
     activeAlgorithmId: stored?.activeAlgorithmId ?? null,
+    visited: stored?.visited ?? false,
   };
 }
 
@@ -56,6 +57,21 @@ export default function App() {
   useEffect(() => {
     preferenceStore.write(preferences);
   }, [preferences]);
+
+  /**
+   * Records the visit immediately, straight through the store.
+   * Routing it through `setPreferences` did not work: the write effect runs
+   * before this one on the first render, so the flag missed that pass and the
+   * welcome example was seeded again on every load.
+   */
+  useEffect(() => {
+    if (preferences.visited) return;
+    const next = { ...preferences, visited: true };
+    preferenceStore.write(next);
+    setPreferences(next);
+    // Intentionally runs once: `preferences` is read from the first render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -70,6 +86,7 @@ export default function App() {
   return (
     <I18nProvider language={language}>
       <Workbench
+        firstVisit={!preferences.visited}
         theme={preferences.theme}
         onThemeChange={(theme) => setPreferences((current) => ({ ...current, theme }))}
         onLanguageChange={(next) =>
@@ -81,6 +98,8 @@ export default function App() {
 }
 
 interface WorkbenchProps {
+  /** True until the student has opened the app once. */
+  firstVisit: boolean;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
   onLanguageChange: (language: Language) => void;
@@ -97,12 +116,20 @@ interface WorkbenchProps {
  * Sizes persist per panel, so the workspace a student arranges is the one they
  * come back to.
  */
-function Workbench({ theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
+function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: WorkbenchProps) {
   const { d, language } = useTranslation();
 
+  /**
+   * A newcomer starts with the welcome example; anyone returning starts blank
+   * and has their own work loaded below. Seeding the example on every mount
+   * meant deleting it never stuck — it was recreated and re-saved next load.
+   */
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const initial = useMemo(() => welcomeAlgorithm(language), []);
-  const controller = useAlgorithm(initial);
+  const initial = useMemo(
+    () => (firstVisit ? welcomeAlgorithm(language) : createEmptyAlgorithm(d.app.untitled)),
+    [],
+  );
+  const controller = useAlgorithm(initial, d.app.untitled);
   const { algorithm, load } = controller;
 
   useEffect(() => {

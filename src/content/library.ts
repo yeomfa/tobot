@@ -246,20 +246,21 @@ export const examples: Example[] = [
       const c = COPY[language];
       return [
         { id: createId(), kind: 'declare', name: 'secreto', valueKind: 'number', value: n(7) },
-        { id: createId(), kind: 'declare', name: 'intento', valueKind: 'number', value: n(0) },
         { id: createId(), kind: 'declare', name: 'intentos', valueKind: 'number', value: n(0) },
+        // The first guess happens before the loop, so the condition has a
+        // value to test and `ask` inside the body only ever reassigns it.
+        {
+          id: createId(),
+          kind: 'ask',
+          prompt: s(c.askSecret),
+          target: 'intento',
+          expect: 'number',
+        },
         {
           id: createId(),
           kind: 'while',
           condition: bin('!=', variable('intento'), variable('secreto')),
           body: [
-            {
-              id: createId(),
-              kind: 'ask',
-              prompt: s(c.askSecret),
-              target: 'intento',
-              expect: 'number',
-            },
             {
               id: createId(),
               kind: 'assign',
@@ -271,18 +272,24 @@ export const examples: Example[] = [
               kind: 'if',
               condition: bin('<', variable('intento'), variable('secreto')),
               then: [{ id: createId(), kind: 'say', value: s(c.tooLow) }],
-              otherwise: [
-                {
-                  id: createId(),
-                  kind: 'if',
-                  condition: bin('>', variable('intento'), variable('secreto')),
-                  then: [{ id: createId(), kind: 'say', value: s(c.tooHigh) }],
-                  otherwise: [{ id: createId(), kind: 'say', value: s(c.correct) }],
-                },
-              ],
+              otherwise: [{ id: createId(), kind: 'say', value: s(c.tooHigh) }],
+            },
+            {
+              id: createId(),
+              kind: 'ask',
+              prompt: s(c.askSecret),
+              target: 'intento',
+              expect: 'number',
             },
           ],
         },
+        {
+          id: createId(),
+          kind: 'assign',
+          name: 'intentos',
+          value: bin('+', variable('intentos'), n(1)),
+        },
+        { id: createId(), kind: 'say', value: s(c.correct) },
         { id: createId(), kind: 'say', value: bin('+', s(c.attempts), variable('intentos')) },
       ];
     },

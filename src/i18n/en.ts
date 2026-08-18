@@ -26,6 +26,7 @@ export const en: Dictionary = {
     duplicate: 'Duplicate',
     moveUp: 'Move up',
     moveDown: 'Move down',
+    addValue: 'Add value',
     addStatement: 'Add statement',
     addElse: 'Add "otherwise"',
     removeElse: 'Remove "otherwise"',

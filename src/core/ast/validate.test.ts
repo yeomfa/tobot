@@ -213,3 +213,33 @@ describe('validate', () => {
     expect(problems[0].nodeId).toBe(badId);
   });
 });
+
+describe('ask re-prompting', () => {
+  it('does not flag asking into a variable that already exists', () => {
+    // Re-prompting inside a loop is the normal shape of "keep asking until…".
+    const problems = validate([
+      {
+        id: createId(),
+        kind: 'ask',
+        prompt: literal('?', 'text'),
+        target: 'intento',
+        expect: 'number',
+      },
+      {
+        id: createId(),
+        kind: 'while',
+        condition: bin('!=', variable('intento'), literal(7, 'number')),
+        body: [
+          {
+            id: createId(),
+            kind: 'ask',
+            prompt: literal('?', 'text'),
+            target: 'intento',
+            expect: 'number',
+          },
+        ],
+      },
+    ]);
+    expect(problems.map((problem) => problem.messageKey)).toEqual([]);
+  });
+});

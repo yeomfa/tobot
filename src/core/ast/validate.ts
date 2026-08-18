@@ -160,7 +160,9 @@ export function validate(program: Statement[]): Problem[] {
           if (isEmptyText(statement.prompt)) {
             problems.push({ nodeId: statement.id, severity: 'warning', messageKey: 'emptyAsk' });
           }
-          checkName(statement.target, statement.id, true);
+          // Asking into an existing variable overwrites it, which is normal in
+          // a loop — only the first `ask` introduces the name.
+          checkName(statement.target, statement.id, !declared.has(statement.target));
           declared.add(statement.target);
           break;
 

@@ -25,6 +25,7 @@ export const es = {
     duplicate: 'Duplicar',
     moveUp: 'Subir',
     moveDown: 'Bajar',
+    addValue: 'Agregar valor',
     addStatement: 'Agregar instrucción',
     addElse: 'Agregar «si no»',
     removeElse: 'Quitar «si no»',
