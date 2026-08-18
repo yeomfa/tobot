@@ -59,6 +59,39 @@
   white-space: nowrap;
 }
 
+/* Tucked into the corner of the title bar: a housekeeping action, not part of
+   the transport. */
+.run-panel__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.run-panel__clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+.run-panel__clear:hover:not(:disabled) {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.run-panel__clear:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
 .run-panel__icon-button {
   display: flex;
   align-items: center;

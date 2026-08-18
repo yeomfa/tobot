@@ -1,4 +1,14 @@
-import { DotsSixVertical, Question, Trash, Warning, WarningCircle } from '@phosphor-icons/react';
+import {
+  DotsSixVertical,
+  Hash,
+  Question,
+  TextAa,
+  ToggleLeft,
+  Trash,
+  Warning,
+  WarningCircle,
+} from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { createStatement } from '../core/ast/factory';
@@ -485,6 +495,19 @@ function Keyword({ children, muted }: { children: React.ReactNode; muted?: boole
   );
 }
 
+/**
+ * The data type as a labelled chip rather than a bare select.
+ *
+ * As plain grey words next to the value, "texto" and "número" read as
+ * placeholder text — something unfilled. A chip with the type's own icon and
+ * colour reads as a property of the variable, which is what it is.
+ */
+const TYPE_ICON: Record<LiteralKind, Icon> = {
+  number: Hash,
+  text: TextAa,
+  boolean: ToggleLeft,
+};
+
 function TypeSelect({
   value,
   onChange,
@@ -493,17 +516,24 @@ function TypeSelect({
   onChange: (kind: LiteralKind) => void;
 }) {
   const { d } = useTranslation();
+  const Glyph = TYPE_ICON[value];
+  const label =
+    value === 'number' ? d.kinds.number : value === 'text' ? d.kinds.text : d.kinds.boolean;
+
   return (
-    <select
-      className="statement-block__type"
-      value={value}
-      onChange={(event) => onChange(event.target.value as LiteralKind)}
-      aria-label={d.fields.expect}
-    >
-      <option value="number">{d.kinds.number}</option>
-      <option value="text">{d.kinds.text}</option>
-      <option value="boolean">{d.kinds.boolean}</option>
-    </select>
+    <span className="statement-block__type" data-kind={value} title={`${d.fields.expect}: ${label}`}>
+      <Glyph weight="bold" aria-hidden="true" />
+      <span className="statement-block__type-label">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value as LiteralKind)}
+        aria-label={d.fields.expect}
+      >
+        <option value="number">{d.kinds.number}</option>
+        <option value="text">{d.kinds.text}</option>
+        <option value="boolean">{d.kinds.boolean}</option>
+      </select>
+    </span>
   );
 }
 

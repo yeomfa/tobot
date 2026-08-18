@@ -1,4 +1,4 @@
-import { Broom, Pause, Play, SkipForward } from '@phosphor-icons/react';
+import { Broom, BugBeetle, Pause, Play } from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState } from 'react';
 
 import type { ExecutionState } from '../core/runtime/types';
@@ -79,6 +79,18 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
             {fill(d.runtime.stepCount, { count: state.stepCount })}
           </span>
         )}
+        {/* Clearing acts on the run rather than driving it, so it sits with
+            the status instead of among the transport controls. */}
+        <button
+          type="button"
+          className="run-panel__clear"
+          onClick={execution.stop}
+          disabled={state.stepCount === 0}
+          title={d.actions.clearConsole}
+          aria-label={d.actions.clearConsole}
+        >
+          <Broom />
+        </button>
       </header>
 
       <div className="run-panel__robot">
@@ -144,17 +156,7 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
           title={`${d.actions.next} — ${d.actions.stepOne}`}
           aria-label={d.actions.next}
         >
-          <SkipForward weight="fill" />
-        </button>
-        <button
-          type="button"
-          className="run-panel__button"
-          onClick={execution.stop}
-          disabled={state.stepCount === 0}
-          title={d.actions.clearConsole}
-          aria-label={d.actions.clearConsole}
-        >
-          <Broom />
+          <BugBeetle weight="fill" />
         </button>
       </div>
 
