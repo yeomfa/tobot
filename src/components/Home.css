@@ -126,49 +126,133 @@
   border-top: 1px solid var(--border-subtle);
 }
 
-/* Who is signed in, kept quiet: it matters once, when you check it. */
+/**
+ * The account card, always present so the rail can answer "who am I, and is
+ * my work safe?" at a glance. It carries three states: signed in, signed out,
+ * and accounts not configured on this deployment.
+ */
 .home__account {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   padding: var(--space-2);
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
   background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
 }
 
-.home__account-who {
+/* Signed out is an invitation, so it takes the accent. */
+.home__account[data-state='out'] {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+.home__account[data-state='out']:hover {
+  border-color: var(--accent);
+}
+
+.home__account-cta,
+.home__account-offline {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex: 1;
   min-width: 0;
-  font-size: var(--text-xs);
-  color: var(--text-secondary);
+  text-align: left;
 }
 
-.home__account-who svg {
-  width: 18px;
-  height: 18px;
+.home__account-cta svg,
+.home__account-offline svg {
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
+}
+
+.home__account-cta svg {
   color: var(--accent-strong);
 }
 
-.home__account-who span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.home__account-offline svg {
+  color: var(--text-muted);
 }
 
-.home__account-action {
+/* The signed-in state leads with an initial, which reads as a person rather
+   than one more icon in a rail full of them. */
+.home__account-avatar {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 26px;
   height: 26px;
   flex-shrink: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-inverse);
+  background: var(--accent);
+  border-radius: var(--radius-full);
+}
+
+.home__account-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.home__account-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.home__account[data-state='out'] .home__account-label {
+  color: color-mix(in srgb, var(--accent-strong) 80%, transparent);
+}
+
+.home__account-who {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home__account[data-state='out'] .home__account-who {
+  color: var(--accent-strong);
+}
+
+.home__account[data-state='off'] .home__account-who {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Both of these are sentences rather than addresses, so they wrap. Only the
+   signed-in state holds an email, where an ellipsis is the right answer. */
+.home__account[data-state='off'] .home__account-who,
+.home__account[data-state='out'] .home__account-who {
+  white-space: normal;
+  overflow: visible;
+}
+
+.home__account-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
   color: var(--text-muted);
   border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .home__account-action svg {
@@ -177,29 +261,8 @@
 }
 
 .home__account-action:hover {
-  background: var(--bg-sunken);
-  color: var(--text-primary);
-}
-
-.home__account-signin {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  text-align: left;
-  color: var(--accent-strong);
-}
-
-.home__account-signin svg {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-}
-
-.home__account-signin:hover {
-  text-decoration: underline;
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .home__rail-back {

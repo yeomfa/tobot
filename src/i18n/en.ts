@@ -169,6 +169,11 @@ export const en: Dictionary = {
     account: 'Your account',
     localOnly: 'Working on this browser only',
     signInPrompt: 'Sign in to save my work',
+    signedInAs: 'Your account',
+    signedOut: 'Signed out',
+    localMode: 'Local mode',
+    notConfigured: 'Your algorithms live in this browser',
+    notConfiguredHint: 'Signing in needs Supabase connected. See SUPABASE.md.',
   },
   verbs: {
     declare: 'variable',

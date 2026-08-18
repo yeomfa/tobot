@@ -177,6 +177,12 @@ export const es = {
     account: 'Tu cuenta',
     localOnly: 'Trabajando solo en este navegador',
     signInPrompt: 'Entrar para guardar mi trabajo',
+    signedInAs: 'Tu cuenta',
+    signedOut: 'Sin sesión',
+    localMode: 'Modo local',
+    notConfigured: 'Tus algoritmos viven en este navegador',
+    notConfiguredHint:
+      'Para entrar con una cuenta hay que conectar Supabase. Mira SUPABASE.md.',
   },
   verbs: {
     declare: 'variable',

@@ -11,6 +11,7 @@ import {
   Lightbulb,
   GridFour,
   HandWaving,
+  HardDrives,
   Moon,
   PencilSimple,
   Plus,
@@ -238,6 +239,17 @@ export const Home = memo(function Home({
     }
   };
 
+  /**
+   * Three states, not two: signed in, signed out with accounts available, and
+   * accounts not set up at all. The third still needs to say something, or the
+   * rail looks broken to anyone who expects a sign-in button.
+   */
+  const accountState: 'in' | 'out' | 'off' = !isSupabaseConfigured
+    ? 'off'
+    : email
+      ? 'in'
+      : 'out';
+
   const bannerTitle =
     section === 'mine'
       ? d.banners.mineTitle
@@ -321,31 +333,56 @@ export const Home = memo(function Home({
 
           {/* The settings that belong to both screens, and the way back. */}
           <div className="home__rail-footer">
-            {isSupabaseConfigured && (
-              <div className="home__account">
-                {email ? (
-                  <>
-                    <span className="home__account-who" title={email}>
-                      <UserCircle weight="duotone" />
-                      <span>{email}</span>
+            {/*
+              Always present, whatever the state. Hiding it when Supabase was
+              unconfigured meant a student had no way to tell whether they were
+              signed in, signed out, or working locally: the panel simply was
+              not there.
+            */}
+            <div className="home__account" data-state={accountState}>
+              {accountState === 'in' && (
+                <>
+                  <span className="home__account-avatar" aria-hidden="true">
+                    {(email ?? '?').slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="home__account-text">
+                    <span className="home__account-label">{d.auth.signedInAs}</span>
+                    <span className="home__account-who" title={email ?? ''}>
+                      {email}
                     </span>
-                    <button
-                      type="button"
-                      className="home__account-action"
-                      onClick={onSignOut}
-                      title={d.auth.signOut}
-                    >
-                      <SignOut />
-                    </button>
-                  </>
-                ) : (
-                  <button type="button" className="home__account-signin" onClick={onSignIn}>
-                    <UserCircle />
-                    <span>{d.auth.signInPrompt}</span>
+                  </span>
+                  <button
+                    type="button"
+                    className="home__account-action"
+                    onClick={onSignOut}
+                    title={d.auth.signOut}
+                    aria-label={d.auth.signOut}
+                  >
+                    <SignOut />
                   </button>
-                )}
-              </div>
-            )}
+                </>
+              )}
+
+              {accountState === 'out' && (
+                <button type="button" className="home__account-cta" onClick={onSignIn}>
+                  <UserCircle weight="duotone" />
+                  <span className="home__account-text">
+                    <span className="home__account-label">{d.auth.signedOut}</span>
+                    <span className="home__account-who">{d.auth.signInPrompt}</span>
+                  </span>
+                </button>
+              )}
+
+              {accountState === 'off' && (
+                <span className="home__account-offline" title={d.auth.notConfiguredHint}>
+                  <HardDrives weight="duotone" />
+                  <span className="home__account-text">
+                    <span className="home__account-label">{d.auth.localMode}</span>
+                    <span className="home__account-who">{d.auth.notConfigured}</span>
+                  </span>
+                </span>
+              )}
+            </div>
 
             <button
               type="button"
