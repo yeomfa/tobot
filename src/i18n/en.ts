@@ -109,7 +109,7 @@ export const en: Dictionary = {
     canvasTitle: 'Your algorithm',
     canvasBody:
       'Blocks read as sentences. Hover one to edit, move or delete it. If something does not add up, like a repeated variable or a loop that never ends, a note appears on the block itself before you even run it.',
-    drawerTitle: 'The four views',
+    drawerTitle: 'The five views',
     drawerBody:
       'The same algorithm written four ways, plus the console with everything the robot has said. Switch tabs to compare; while it runs, the current line is highlighted in all of them at once. Click the open tab to fold the panel away.',
     robotTitle: 'The robot',
@@ -140,7 +140,7 @@ export const en: Dictionary = {
     challengesTitle: 'Test yourself',
     challengesBody: 'Half-built exercises: the comments say what is missing and you write the rest.',
     examplesTitle: 'Learn from examples',
-    examplesBody: 'Typical problems already solved. Open one and compare the four views to see how it works.',
+    examplesBody: 'Typical problems already solved. Open one and compare the four languages to see how it works.',
     conceptsTitle: 'Understand the ideas',
     conceptsBody: 'Variables, decisions and loops explained from scratch, with references to go deeper.',
   },

@@ -3,6 +3,16 @@
   display: inline-flex;
 }
 
+/* Inside a grid of equal columns the trigger fills its cell. */
+.home__rail-settings .settings-menu,
+.home__rail-settings .settings-menu__trigger {
+  width: 100%;
+}
+
+.home__rail-settings .settings-menu__trigger {
+  height: 28px;
+}
+
 .settings-menu__trigger {
   display: inline-flex;
   align-items: center;

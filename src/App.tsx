@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   ArrowClockwise,
@@ -95,21 +95,6 @@ export default function App() {
   useEffect(() => {
     preferenceStore.write(preferences);
   }, [preferences]);
-
-  /**
-   * Records the visit immediately, straight through the store.
-   * Routing it through `setPreferences` did not work: the write effect runs
-   * before this one on the first render, so the flag missed that pass and the
-   * welcome example was seeded again on every load.
-   */
-  useEffect(() => {
-    if (preferences.visited) return;
-    const next = { ...preferences, visited: true };
-    preferenceStore.write(next);
-    setPreferences(next);
-    // Intentionally runs once: `preferences` is read from the first render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -236,7 +221,7 @@ function Workbench({
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
   /** The app shows one screen at a time: the landing view or the editor. */
-  const [screen, setScreen] = useState<'home' | 'editor'>(firstVisit ? 'editor' : 'home');
+  const [screen, setScreen] = useState<'home' | 'editor'>('home');
   /** Bumped on save so the library list picks up name and size changes. */
   const [libraryRevision, setLibraryRevision] = useState(0);
 
@@ -245,7 +230,43 @@ function Workbench({
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [drawerView, setDrawerView] = useState<DrawerView>('natural');
   // The tour opens itself on a first visit and can be replayed from the header.
-  const [tourOpen, setTourOpen] = useState(firstVisit);
+  const [tourOpen, setTourOpen] = useState(false);
+  /**
+   * The tour points at the editor's own regions, so it waits until the student
+   * actually opens the editor. Starting it over the landing view highlighted
+   * elements that were not on screen.
+   */
+  const tourPending = useRef(firstVisit);
+
+  /**
+   * Records the visit, written straight through the store because the write
+   * effect above runs before this one on the first render.
+   *
+   * It lives here rather than in `App`, which also mounts behind the sign-in
+   * screen: marking the visit there meant a student who signed in counted as
+   * "returning" before ever reaching the editor, so the tour never ran.
+   */
+  useEffect(() => {
+    const stored = preferenceStore.read();
+    if (stored?.visited) return;
+    preferenceStore.write({
+      language: stored?.language ?? DEFAULT_LANGUAGE,
+      theme: stored?.theme ?? 'system',
+      activeAlgorithmId: stored?.activeAlgorithmId ?? null,
+      visited: true,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (screen !== 'editor' || !tourPending.current) return;
+    // A ref rather than state: StrictMode mounts twice, and clearing a state
+    // flag on the first pass left nothing for the second to act on, so the
+    // tour never opened.
+    tourPending.current = false;
+    // A beat, so the editor has painted before the spotlight measures it.
+    const timer = setTimeout(() => setTourOpen(true), 240);
+    return () => clearTimeout(timer);
+  }, [screen]);
 
   const paletteSize = useResizable({
     initial: 244,
