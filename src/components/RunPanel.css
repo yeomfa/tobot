@@ -245,24 +245,95 @@
   flex-shrink: 1;
 }
 
-/* ---- Variables and console ---- */
+/* ---- Output section ---- */
 
-.run-panel__details {
+/**
+ * Collapsible, and closed at rest so an idle panel is just the robot. It opens
+ * itself on the first line of output; the height transition is what makes the
+ * robot feel like it is speaking rather than a log filling up.
+ */
+.run-panel__output {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-height: 0;
+  margin-top: auto;
   border-top: 1px solid var(--border-subtle);
+}
+
+.run-panel__output-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.run-panel__output-toggle:hover {
+  color: var(--text-secondary);
+}
+
+.run-panel__output-caret {
+  width: 12px;
+  height: 12px;
+  /* Points right when closed, down when open. */
+  transform: rotate(-90deg);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.run-panel__output[data-open] .run-panel__output-caret {
+  transform: rotate(0deg);
+}
+
+.run-panel__output-count {
+  margin-left: auto;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
+  font-variant-numeric: tabular-nums;
+}
+
+/**
+ * Collapsed with a grid row rather than a fixed height, so the section can
+ * animate open to whatever its content needs. The inner wrapper carries the
+ * padding: putting it on this element would leave a 12px strip behind when
+ * the row collapses to zero.
+ */
+.run-panel__output-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  min-height: 0;
+  overflow: hidden;
+  transition: grid-template-rows var(--duration-slow) var(--ease-out);
+}
+
+.run-panel__output[data-open] .run-panel__output-body {
+  grid-template-rows: 1fr;
+}
+
+.run-panel__output-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .run-panel__vars {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  max-height: 62px;
-  overflow-y: auto;
+  padding: 0 var(--space-3) var(--space-2);
   flex-shrink: 0;
+  max-height: 76px;
+  overflow-y: auto;
 }
 
 .run-panel__var {
@@ -298,53 +369,55 @@
   color: var(--hue-conditional);
 }
 
-/* The most recent thing the robot said, sitting under it like a caption. */
+/* The current line, animated in so each new one registers as an event. */
 .run-panel__latest {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  display: block;
   width: 100%;
-  padding: var(--space-3) var(--space-4);
-  text-align: left;
-  border-top: 1px solid var(--border-subtle);
-  transition: background var(--duration-fast) var(--ease-out);
-}
-
-.run-panel__latest:hover {
-  background: var(--bg-inset);
-}
-
-.run-panel__latest-text {
+  padding: var(--space-2) var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: 1.55;
+  text-align: left;
   color: var(--text-primary);
   overflow-wrap: anywhere;
-  /* Two lines is enough for a caption; the rest is in the console tab. */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  border-left: 2px solid var(--hue-io);
+  animation: latest-in var(--duration-base) var(--ease-out);
 }
 
-.run-panel__latest[data-kind='answer'] .run-panel__latest-text {
+@keyframes latest-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.run-panel__latest[data-kind='answer'] {
   color: var(--success);
   font-weight: 600;
+  border-left-color: var(--success);
 }
 
-.run-panel__latest[data-kind='error'] .run-panel__latest-text {
+.run-panel__latest[data-kind='error'] {
   color: var(--danger);
+  border-left-color: var(--danger);
 }
 
-.run-panel__latest[data-kind='ask'] .run-panel__latest-text {
+.run-panel__latest[data-kind='ask'] {
   color: var(--text-secondary);
+  border-left-color: var(--accent);
 }
 
 .run-panel__more {
-  font-family: var(--font-ui);
+  display: block;
+  width: 100%;
+  padding: var(--space-1) var(--space-3) var(--space-3);
   font-size: var(--text-xs);
   font-weight: 600;
+  text-align: left;
   color: var(--accent-strong);
 }
 
@@ -352,80 +425,17 @@
   text-decoration: underline;
 }
 
-.run-panel__log {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: var(--space-2) var(--space-3) var(--space-3);
-  /* Grows into the leftover space rather than capping at a fixed height. */
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  border-top: 1px solid var(--border-subtle);
-}
-
 .run-panel__empty {
-  padding: var(--space-4) var(--space-3);
+  padding: 0 var(--space-3) var(--space-3);
   font-size: var(--text-xs);
   line-height: 1.5;
   color: var(--text-muted);
-  border-top: 1px solid var(--border-subtle);
 }
 
-.run-panel__log-entry {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: 2px var(--space-1);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  line-height: 1.5;
-  border-radius: var(--radius-xs);
-  overflow-wrap: anywhere;
+@media (prefers-reduced-motion: reduce) {
+  .run-panel__output-body,
+  .run-panel__latest {
+    transition: none;
+    animation: none;
+  }
 }
-
-.run-panel__log-entry[data-clickable] {
-  cursor: pointer;
-}
-
-.run-panel__log-entry[data-clickable]:hover {
-  background: var(--bg-sunken);
-}
-
-.run-panel__log-marker {
-  width: 3px;
-  align-self: stretch;
-  border-radius: 2px;
-  flex-shrink: 0;
-  background: var(--border-strong);
-}
-
-.run-panel__log-entry[data-kind='say'] .run-panel__log-marker {
-  background: var(--hue-io);
-}
-
-.run-panel__log-entry[data-kind='ask'] .run-panel__log-marker {
-  background: var(--accent);
-}
-
-.run-panel__log-entry[data-kind='answer'] .run-panel__log-marker {
-  background: var(--success);
-}
-
-.run-panel__log-entry[data-kind='error'] .run-panel__log-marker {
-  background: var(--danger);
-}
-
-.run-panel__log-entry[data-kind='answer'] .run-panel__log-text {
-  color: var(--success);
-  font-weight: 600;
-}
-
-.run-panel__log-entry[data-kind='error'] .run-panel__log-text {
-  color: var(--danger);
-}
-
-.run-panel__log-entry[data-kind='ask'] .run-panel__log-text {
-  color: var(--text-secondary);
-}
-

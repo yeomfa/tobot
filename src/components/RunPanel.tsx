@@ -1,8 +1,9 @@
 import {
   ArrowCounterClockwise,
-  FootprintsIcon,
+  CaretDown,
   Pause,
   Play,
+  Steps,
 } from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState } from 'react';
 
@@ -46,6 +47,8 @@ export const RunPanel = memo(function RunPanel({
   const { d, t, fill } = useTranslation();
   const { state, isPlaying } = execution;
   const [draft, setDraft] = useState('');
+  /** The output section starts closed and opens on the first line of output. */
+  const [outputOpen, setOutputOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const mood = moodFor(state, isPlaying);
@@ -53,6 +56,13 @@ export const RunPanel = memo(function RunPanel({
   useEffect(() => {
     if (state.status === 'awaitingInput') inputRef.current?.focus();
   }, [state.status]);
+
+  // Reveal itself the moment the robot has something to say, and fold away
+  // again when the run is cleared.
+  useEffect(() => {
+    if (state.output.length > 0) setOutputOpen(true);
+    else setOutputOpen(false);
+  }, [state.output.length]);
 
   const lastSpoken = [...state.output].reverse().find((entry) => entry.kind === 'say');
   const latest = state.output[state.output.length - 1] ?? null;
@@ -157,7 +167,7 @@ export const RunPanel = memo(function RunPanel({
           title={`${d.actions.next} — ${d.actions.stepOne}`}
           aria-label={d.actions.next}
         >
-          <FootprintsIcon />
+          <Steps />
         </button>
         <button
           type="button"
@@ -181,45 +191,67 @@ export const RunPanel = memo(function RunPanel({
         </select>
       </div>
 
-      <div className="run-panel__details">
-        {state.variables.length > 0 && (
-          <ul className="run-panel__vars">
-            {state.variables.map((variable) => (
-              <li
-                key={variable.name}
-                className="run-panel__var"
-                data-changed={variable.justChanged || undefined}
-              >
-                <span className="run-panel__var-name">{variable.name}</span>
-                <span className="run-panel__var-value" data-kind={variable.kind}>
-                  {variable.kind === 'text' ? `"${variable.value}"` : String(variable.value)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Closed by default: at rest the panel is just the robot. It opens
+          itself once the program starts producing output, then shows the
+          current line, with the full transcript one click away. */}
+      <div className="run-panel__output" data-open={outputOpen || undefined}>
+        <button
+          type="button"
+          className="run-panel__output-toggle"
+          onClick={() => setOutputOpen((open) => !open)}
+          aria-expanded={outputOpen}
+        >
+          <CaretDown className="run-panel__output-caret" weight="bold" aria-hidden="true" />
+          <span className="run-panel__output-label">{d.console.title}</span>
+          {state.output.length > 0 && (
+            <span className="run-panel__output-count">{state.output.length}</span>
+          )}
+        </button>
 
-        {/* Only what the robot just said. The whole transcript is one click
-            away in the console tab, which keeps this panel calm. */}
-        {latest ? (
-          <button
-            type="button"
-            className="run-panel__latest"
-            data-kind={latest.kind}
-            onClick={() => latest.nodeId && onSelectNode(latest.nodeId)}
-          >
-            <span className="run-panel__latest-text">
-              {latest.kind === 'error' ? t(latest.text) : latest.text}
-            </span>
-            {state.output.length > 1 && (
-              <span className="run-panel__more" onClick={onShowConsole}>
-                {fill(d.console.seeAll, { count: state.output.length })}
-              </span>
-            )}
-          </button>
-        ) : (
-          <p className="run-panel__empty">{d.console.empty}</p>
-        )}
+        <div className="run-panel__output-body">
+          <div className="run-panel__output-inner">
+          {state.variables.length > 0 && (
+            <ul className="run-panel__vars">
+              {state.variables.map((variable) => (
+                <li
+                  key={variable.name}
+                  className="run-panel__var"
+                  data-changed={variable.justChanged || undefined}
+                >
+                  <span className="run-panel__var-name">{variable.name}</span>
+                  <span className="run-panel__var-value" data-kind={variable.kind}>
+                    {variable.kind === 'text' ? `"${variable.value}"` : String(variable.value)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {latest ? (
+            <>
+              {/* Keyed on the entry id so each new line animates in, which is
+                  what makes the panel feel like the robot speaking. */}
+              <button
+                key={latest.id}
+                type="button"
+                className="run-panel__latest"
+                data-kind={latest.kind}
+                onClick={() => latest.nodeId && onSelectNode(latest.nodeId)}
+                title={latest.nodeId ? d.a11y.activeStep : undefined}
+              >
+                {latest.kind === 'error' ? t(latest.text) : latest.text}
+              </button>
+              {state.output.length > 1 && (
+                <button type="button" className="run-panel__more" onClick={onShowConsole}>
+                  {fill(d.console.seeAll, { count: state.output.length })}
+                </button>
+              )}
+            </>
+          ) : (
+            <p className="run-panel__empty">{d.console.empty}</p>
+          )}
+          </div>
+        </div>
       </div>
     </section>
   );

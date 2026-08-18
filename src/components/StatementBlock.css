@@ -151,11 +151,16 @@
   }
 }
 
+/**
+ * The rail is flush with the block edge, so the row pads only on the right.
+ * Vertical padding lives on the content instead of the row: the rail stretches
+ * full height, and padding here pushed the text off-centre against it.
+ */
 .statement-block__row {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-3) var(--space-3) 0;
+  padding: 0 var(--space-2) 0 0;
 }
 
 /* Colour rail doubles as the drag handle. */
@@ -164,7 +169,7 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  min-height: 34px;
+  min-height: 42px;
   width: 30px;
   flex-shrink: 0;
   border-radius: var(--radius-md) 0 0 var(--radius-md);
@@ -219,7 +224,8 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  padding-top: 2px;
+  /* Equal top and bottom, so a one-line block is optically centred. */
+  padding: var(--space-3) 0;
 }
 
 .statement-block__keyword {
@@ -308,11 +314,27 @@
 
 /* The badge stays visible even at rest — a problem should not need a hover
    to be noticed — while the edit actions keep hiding. */
+/**
+ * Floated over the block rather than laid out in it. Hidden buttons still
+ * reserve their width, which left a dead 66px gutter on the right of every
+ * block even when nothing was showing.
+ */
 .statement-block__actions {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
   display: flex;
   align-items: center;
   gap: 2px;
-  flex-shrink: 0;
+  /* A soft ground so the buttons stay legible over the block's own tint. */
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--block-soft) 82%, var(--bg-surface));
+}
+
+/* The badge is always visible, so it needs no ground of its own. */
+.statement-block:not(:hover):not(:focus-within) .statement-block__actions {
+  background: transparent;
 }
 
 /* Only the edit buttons hide at rest; the badge must always be visible. */
@@ -402,8 +424,9 @@
 
 /* ---- Nested branches ---- */
 
+/* Indented to sit under the parent's content, not its rail. */
 .statement-block__branches {
-  padding: 0 var(--space-2) var(--space-2) var(--space-5);
+  padding: 0 var(--space-2) var(--space-3) var(--space-6);
 }
 
 .branch {
