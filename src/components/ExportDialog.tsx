@@ -157,7 +157,7 @@ export const ExportDialog = memo(function ExportDialog({ algorithm, onClose }: E
             </div>
 
             <pre className="export-preview">
-              <code>{source || '—'}</code>
+              <code>{source || '···'}</code>
             </pre>
 
             <div className="export-actions">

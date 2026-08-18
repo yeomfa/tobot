@@ -178,7 +178,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           aria-label={d.fields.name}
         >
           {/* A dangling reference stays selectable so it can be fixed. */}
-          {!variables.includes(value.name) && <option value={value.name}>{value.name || '—'}</option>}
+          {!variables.includes(value.name) && <option value={value.name}>{value.name || '···'}</option>}
           {variables.map((name) => (
             <option key={name} value={name}>
               {name}
