@@ -70,16 +70,33 @@
   overflow-y: auto;
 }
 
-.robot__bubble-tail {
+/**
+ * The tail is drawn with two stacked pseudo-elements rather than an SVG: the
+ * lower one paints the border colour, the upper one covers it in the bubble's
+ * own fill, leaving a clean 1px outline. The previous SVG rendered as a
+ * separate V floating below the bubble.
+ */
+.robot__bubble::before,
+.robot__bubble::after {
+  content: '';
   position: absolute;
-  bottom: -11px;
   left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+}
+
+.robot__bubble::before {
+  bottom: -9px;
   transform: translateX(-50%);
-  width: 20px;
-  height: 12px;
-  fill: var(--bg-raised);
-  stroke: var(--border-default);
-  stroke-width: 1;
+  border-top: 9px solid var(--border-default);
+}
+
+.robot__bubble::after {
+  bottom: -8px;
+  transform: translateX(-50%);
+  border-top: 9px solid var(--bg-raised);
 }
 
 @keyframes bubble-in {

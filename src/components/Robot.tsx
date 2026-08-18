@@ -22,9 +22,6 @@ export const Robot = memo(function Robot({ mood, message }: RobotProps) {
         {message !== null && (
           <div className="robot__bubble" role="status" aria-live="polite">
             <span className="robot__bubble-text">{message}</span>
-            <svg className="robot__bubble-tail" viewBox="0 0 20 12" aria-hidden="true">
-              <path d="M2 0 C 8 2, 10 7, 10 12 C 10 7, 14 2, 20 0 Z" />
-            </svg>
           </div>
         )}
       </div>

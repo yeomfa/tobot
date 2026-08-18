@@ -15,6 +15,65 @@
   padding: var(--space-5);
 }
 
+/* Variables sit above the log, so the run's state and its output read
+   together in one place. */
+.console__vars {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.console__vars-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.console__vars-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.console__var {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    background var(--duration-base) var(--ease-out);
+}
+
+.console__var[data-changed] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.console__var-name {
+  font-weight: 650;
+  color: var(--hue-variable);
+}
+
+.console__var-value[data-kind='text'] {
+  color: var(--success);
+}
+
+.console__var-value[data-kind='boolean'] {
+  color: var(--hue-conditional);
+}
+
 .console__list {
   flex: 1;
   min-height: 0;

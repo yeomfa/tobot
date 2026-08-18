@@ -334,8 +334,8 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
           const parsed = Number(event.target.value);
           onChange(literal(Number.isNaN(parsed) ? 0 : parsed, 'number'));
         }}
-        // Sized to content so blocks stay compact.
-        style={{ width: `${Math.max(String(value.value).length, 2) + 1.5}ch` }}
+        // Sized to content, with room for the 6px side padding on each side.
+        style={{ width: `${Math.max(String(value.value).length, 2) + 2.5}ch` }}
       />
     );
   }

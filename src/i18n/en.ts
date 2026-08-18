@@ -19,6 +19,7 @@ export const en: Dictionary = {
     pause: 'Pause',
     resume: 'Resume',
     reset: 'Reset',
+    clearConsole: 'Clear the console',
     clear: 'Clear',
     copy: 'Copy',
     copied: 'Copied',

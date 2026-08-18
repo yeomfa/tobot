@@ -226,6 +226,24 @@
   overflow: hidden;
   /* Equal top and bottom, so a one-line block is optically centred. */
   padding: var(--space-3) 0;
+  transition: padding-right var(--duration-fast) var(--ease-out);
+}
+
+/* The action buttons float over the block, so the content yields a gutter
+   while they are showing rather than sitting underneath them. */
+.statement-block:hover > .statement-block__row > .statement-block__content,
+.statement-block:focus-within > .statement-block__row > .statement-block__content {
+  padding-right: 58px;
+}
+
+/* A block carrying a badge always reserves room for it, since the badge never
+   hides. */
+.statement-block[data-problem] > .statement-block__row > .statement-block__content {
+  padding-right: 26px;
+}
+
+.statement-block[data-problem]:hover > .statement-block__row > .statement-block__content {
+  padding-right: 80px;
 }
 
 .statement-block__keyword {
@@ -517,6 +535,9 @@
 .drop-zone {
   position: relative;
   height: 10px;
+  /* The hint is taller than the collapsed strip, so it is clipped rather than
+     forcing the zone to grow. */
+  overflow: hidden;
   transition: height var(--duration-fast) var(--ease-out);
 }
 

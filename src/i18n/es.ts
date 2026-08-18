@@ -18,6 +18,7 @@ export const es = {
     pause: 'Pausar',
     resume: 'Continuar',
     reset: 'Reiniciar',
+    clearConsole: 'Limpiar la consola',
     clear: 'Limpiar',
     copy: 'Copiar',
     copied: 'Copiado',

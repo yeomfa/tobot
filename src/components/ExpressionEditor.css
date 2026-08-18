@@ -160,8 +160,25 @@
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.statement-block:hover .expr__tools,
-.expr__tools:focus-within {
+/**
+ * Only the value under the pointer shows its tools. Revealing every set on
+ * block hover put three toolbars into a two-part expression, which read as
+ * clutter competing with the sentence itself.
+ */
+.expr:hover > .expr__tools,
+.expr:focus-within > .expr__tools {
+  opacity: 1;
+}
+
+/* An ancestor is "hovered" whenever a descendant is, so a parent whose subtree
+   contains the real target keeps its own tools hidden. Only the innermost
+   expression under the pointer shows them. */
+.expr:has(.expr:hover) > .expr__tools {
+  opacity: 0;
+}
+
+/* Focus still wins: tabbing to a value must reveal its controls. */
+.expr:focus-within:not(:has(.expr:focus-within)) > .expr__tools {
   opacity: 1;
 }
 

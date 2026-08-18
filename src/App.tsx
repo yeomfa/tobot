@@ -533,7 +533,11 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
                   className="app__drawer-pane"
                   data-hidden={drawerView !== 'console' || undefined}
                 >
-                  <Console output={execution.state.output} onSelectNode={setSelectedNode} />
+                  <Console
+                    output={execution.state.output}
+                    variables={execution.state.variables}
+                    onSelectNode={setSelectedNode}
+                  />
                 </div>
                 <div
                   className="app__drawer-pane"
@@ -554,14 +558,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
         {robotOpen && (
           <aside className="app__robot">
             <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
-            <RunPanel
-              execution={execution}
-              onSelectNode={setSelectedNode}
-              onShowConsole={() => {
-                setDrawerView('console');
-                setDrawerOpen(true);
-              }}
-            />
+            <RunPanel execution={execution} />
           </aside>
         )}
       </main>
