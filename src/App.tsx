@@ -7,7 +7,11 @@ import {
   CaretUp,
   Play,
   SidebarSimple,
-  SquareSplitVertical,
+  Translate,
+  Moon,
+  Sun,
+  Compass,
+  Desktop,
 } from '@phosphor-icons/react';
 
 import type { NodeId, Statement } from './core/ast/types';
@@ -18,6 +22,7 @@ import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
 import { Sidebar } from './components/Sidebar';
+import { Tour } from './components/Tour';
 import type { SidebarView } from './components/Sidebar';
 import { ResizeHandle } from './components/ResizeHandle';
 import { RunPanel } from './components/RunPanel';
@@ -49,6 +54,13 @@ function drawerTabLabel(d: Dictionary, id: DrawerView): string {
 }
 
 const preferenceStore = createPreferenceStore();
+
+/**
+ * Captured at module load, before any effect can write the flag back. Reading
+ * it from state instead always saw `true`, because the effect that records the
+ * visit runs before the workbench mounts.
+ */
+const IS_FIRST_VISIT = preferenceStore.read()?.visited !== true;
 
 function initialPreferences(): Preferences {
   const stored = preferenceStore.read();
@@ -96,7 +108,7 @@ export default function App() {
   return (
     <I18nProvider language={language}>
       <Workbench
-        firstVisit={!preferences.visited}
+        firstVisit={IS_FIRST_VISIT}
         theme={preferences.theme}
         onThemeChange={(theme) => setPreferences((current) => ({ ...current, theme }))}
         onLanguageChange={(next) =>
@@ -172,6 +184,8 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
   const [robotOpen, setRobotOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [drawerView, setDrawerView] = useState<DrawerView>('natural');
+  // The tour opens itself on a first visit and can be replayed from the header.
+  const [tourOpen, setTourOpen] = useState(firstVisit);
 
   const paletteSize = useResizable({
     initial: 244,
@@ -339,7 +353,12 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
               aria-label={d.panels.drawer}
               aria-pressed={drawerOpen}
             >
-              <SquareSplitVertical weight={drawerOpen ? 'fill' : 'regular'} />
+              {/* The same sidebar mark rotated to point down, so all three toggles
+                  read as one family aimed at their own panel. */}
+              <SidebarSimple
+                weight={drawerOpen ? 'fill' : 'regular'}
+                style={{ transform: 'rotate(-90deg)' }}
+              />
             </button>
             <button
               type="button"
@@ -362,6 +381,15 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
 
           <button
             type="button"
+            className="app__icon-button"
+            onClick={() => setTourOpen(true)}
+            title={d.tour.replay}
+            aria-label={d.tour.replay}
+          >
+            <Compass />
+          </button>
+          <button
+            type="button"
             className="app__ghost-button"
             onClick={() => setOpenConcept('variables')}
           >
@@ -373,29 +401,35 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
 
           <span className="app__divider" aria-hidden="true" />
 
-          <select
-            className="app__select"
-            value={language}
-            onChange={(event) => onLanguageChange(event.target.value as Language)}
-            aria-label={d.settings.language}
-          >
-            {LANGUAGES.map((code) => (
-              <option key={code} value={code}>
-                {languageNames[code]}
-              </option>
-            ))}
-          </select>
+          {/* Language and theme are peers, so they share one control shape: an
+              icon with the native select laid transparently over it. */}
+          <span className="app__picker" title={d.settings.language}>
+            <Translate />
+            <select
+              value={language}
+              onChange={(event) => onLanguageChange(event.target.value as Language)}
+              aria-label={d.settings.language}
+            >
+              {LANGUAGES.map((code) => (
+                <option key={code} value={code}>
+                  {languageNames[code]}
+                </option>
+              ))}
+            </select>
+          </span>
 
-          <select
-            className="app__select"
-            value={theme}
-            onChange={(event) => onThemeChange(event.target.value as Theme)}
-            aria-label={d.settings.theme}
-          >
-            <option value="system">{d.settings.themeSystem}</option>
-            <option value="light">{d.settings.themeLight}</option>
-            <option value="dark">{d.settings.themeDark}</option>
-          </select>
+          <span className="app__picker" title={d.settings.theme}>
+            {theme === 'dark' ? <Moon /> : theme === 'light' ? <Sun /> : <Desktop />}
+            <select
+              value={theme}
+              onChange={(event) => onThemeChange(event.target.value as Theme)}
+              aria-label={d.settings.theme}
+            >
+              <option value="system">{d.settings.themeSystem}</option>
+              <option value="light">{d.settings.themeLight}</option>
+              <option value="dark">{d.settings.themeDark}</option>
+            </select>
+          </span>
 
           <button type="button" className="app__run" onClick={startRun}>
             <Play weight="fill" /> {d.actions.run}
@@ -506,6 +540,8 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
           </aside>
         )}
       </main>
+
+      <Tour open={tourOpen} onClose={() => setTourOpen(false)} />
 
       <ConceptDrawer
         conceptId={openConcept}

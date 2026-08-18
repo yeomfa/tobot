@@ -56,6 +56,9 @@ function emitStatement(statement: Statement, indent: number): EmittedLine[] {
   const expr = expressionToPython;
 
   switch (statement.kind) {
+    case 'comment':
+      return [line(`# ${statement.text}`)];
+
     case 'declare':
     case 'assign':
       return [line(`${statement.name} = ${expr(statement.value)}`)];

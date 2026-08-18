@@ -160,6 +160,10 @@ function emitStatement(
   const expr = (expression: Expression): string => expressionToNatural(expression, phrases);
 
   switch (statement.kind) {
+    case 'comment':
+      // A note reads as a note, not as a numbered step of the algorithm.
+      return [{ nodeId: id, indent, text: `— ${statement.text}` }];
+
     case 'declare':
       return [line(phrases.declare(statement.name, expr(statement.value)))];
     case 'assign':

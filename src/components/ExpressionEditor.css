@@ -4,10 +4,18 @@
  * than a form.
  */
 
+/**
+ * Expressions wrap instead of overflowing. A long concatenation is a normal
+ * thing for a student to write, and the block has to grow downwards rather
+ * than push its own contents out of view.
+ */
 .expr {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 3px;
+  row-gap: 4px;
+  min-width: 0;
   vertical-align: middle;
 }
 
@@ -19,7 +27,10 @@
 .expr[data-kind='binary'] {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 3px;
+  row-gap: 4px;
+  min-width: 0;
 }
 
 /* A grouped subexpression inside a chain keeps its bracket, since there the
@@ -32,17 +43,20 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--block-hue, var(--slate-400)) 16%, transparent);
 }
 
+/* Each operand travels with the operator in front of it, so a wrap never
+   leaves a stranded "+" at the end of a line. */
 .expr__chain-item {
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  min-width: 0;
 }
 
 .expr__literal,
 .expr__var {
   min-width: 2.5ch;
   /* Wide enough for a full sentence prompt; blocks wrap rather than clip. */
-  max-width: 46ch;
+  max-width: min(46ch, 100%);
   padding: 2px 6px;
   font-family: var(--font-mono);
   font-size: var(--text-sm);

@@ -184,6 +184,49 @@
   color: var(--text-primary);
 }
 
+/**
+ * Icon-shaped picker: the select is stretched invisibly over the icon so the
+ * control keeps the native menu behaviour while looking like the icon buttons
+ * beside it.
+ */
+.app__picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.app__picker:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.app__picker svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.app__picker select {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.app__picker:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .app__select {
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-xs);

@@ -362,3 +362,34 @@ describe('emitted lines map back to their statement', () => {
     }
   });
 });
+
+describe('comments', () => {
+  const withComment: Statement[] = [
+    { id: createId(), kind: 'comment', text: 'Pide la altura' },
+    { id: createId(), kind: 'say', value: literal('hola', 'text') },
+  ];
+
+  it('runs as a no-op without affecting output', () => {
+    const state = run(withComment);
+    expect(state.status).toBe('finished');
+    expect(spoken(state)).toEqual(['hola']);
+  });
+
+  it('emits a comment in every target language', () => {
+    const algorithm = wrap(withComment);
+    expect(renderLines(emitters.javascript.emit(algorithm, { locale: 'es' }))).toContain(
+      '// Pide la altura',
+    );
+    expect(renderLines(emitters.python.emit(algorithm, { locale: 'es' }))).toContain(
+      '# Pide la altura',
+    );
+    expect(renderLines(emitters.pseudocode.emit(algorithm, { locale: 'es' }))).toContain(
+      '// Pide la altura',
+    );
+  });
+
+  it('keeps emitted JavaScript valid', () => {
+    // A comment must not break the program it annotates.
+    expect(runEmittedJs(withComment)).toEqual(['hola']);
+  });
+});

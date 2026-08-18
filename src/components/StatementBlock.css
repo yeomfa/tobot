@@ -38,6 +38,39 @@
   --block-border: var(--hue-conditional-border);
 }
 
+/* A note is not an instruction: it loses the card treatment and reads as
+   marginalia written on the page. */
+.statement-block[data-category='notes'] {
+  --block-hue: var(--slate-400);
+  --block-soft: transparent;
+  --block-border: transparent;
+  box-shadow: none;
+}
+
+.statement-block[data-category='notes']:hover {
+  border-color: var(--border-default);
+}
+
+.statement-block[data-category='notes'] .statement-block__handle {
+  background: transparent;
+}
+
+.statement-block__comment {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 0;
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+}
+
+.statement-block__comment:focus {
+  outline: none;
+  color: var(--text-secondary);
+}
+
 .statement-block[data-category='loops'] {
   --block-hue: var(--hue-loop);
   --block-soft: var(--hue-loop-soft);
@@ -167,8 +200,10 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 5px;
+  row-gap: 6px;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
   padding-top: 2px;
 }
 

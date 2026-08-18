@@ -229,6 +229,11 @@ export class Interpreter {
 
   private execute(statement: Statement): void {
     switch (statement.kind) {
+      // Comments are notes for the reader; running one is a no-op, though it
+      // still counts as a step so the highlight moves through it.
+      case 'comment':
+        return;
+
       case 'declare': {
         const value = this.evaluate(statement.value);
         this.variables.set(statement.name, { value, kind: statement.valueKind });

@@ -130,6 +130,11 @@
   stroke: var(--hue-io);
 }
 
+.fc-shape--note path {
+  stroke: var(--slate-400);
+  stroke-dasharray: 4 3;
+}
+
 .fc-label {
   font-family: var(--font-mono);
   font-size: 12.5px;

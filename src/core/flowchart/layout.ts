@@ -10,7 +10,7 @@ import type { NodeId, Statement } from '../ast/types';
  * their decision diamond without any iterative force simulation.
  */
 
-export type ShapeKind = 'terminal' | 'process' | 'decision' | 'io';
+export type ShapeKind = 'terminal' | 'process' | 'decision' | 'io' | 'note';
 
 export interface FlowNode {
   id: string;

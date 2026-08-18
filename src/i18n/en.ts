@@ -51,6 +51,7 @@ export const en: Dictionary = {
       io: 'Input and output',
       conditionals: 'Conditionals',
       loops: 'Loops',
+      notes: 'Notes',
     },
   },
   statements: {
@@ -62,6 +63,7 @@ export const en: Dictionary = {
     while: { label: 'While', hint: 'Repeat while the condition stays true' },
     repeat: { label: 'Repeat N times', hint: 'Repeat a fixed number of times' },
     forEach: { label: 'From… to', hint: 'Count from one number up to another' },
+    comment: { label: 'Comment', hint: 'A note for the reader; it does not run' },
   },
   panels: {
     palette: 'Statements panel',
@@ -90,6 +92,37 @@ export const en: Dictionary = {
     countOne: '1 thing to review',
     count: '{count} things to review',
   },
+  tour: {
+    replay: 'Show the tour again',
+    skip: 'Skip',
+    next: 'Next',
+    back: 'Back',
+    done: 'Start',
+    welcomeTitle: 'Meet Tobot',
+    welcomeBody:
+      'Here you build algorithms from statements you drag into place, and see them at once in natural language, pseudocode, real code and as a flowchart. Let me show you where everything is.',
+    paletteTitle: 'The statements',
+    paletteBody:
+      'Every statement lives here, grouped by topic and colour. Click to add one at the end, or drag it exactly where you want it. Under "My algorithms" you will find your work, worked examples and challenges to practise with.',
+    canvasTitle: 'Your algorithm',
+    canvasBody:
+      'Blocks read as sentences. Hover one to edit, move or delete it. If something does not add up — a repeated variable, a loop that never ends — a note appears on the block itself before you even run it.',
+    drawerTitle: 'The four views',
+    drawerBody:
+      'The same algorithm written four ways. Switch tabs to compare; while it runs, the current line is highlighted in all of them at once. Click the open tab to fold the panel away.',
+    robotTitle: 'The robot',
+    robotBody:
+      'The robot runs your algorithm: it says what you ask it to, puts questions to you, and shows the value of every variable as it goes.',
+    runTitle: 'Run it',
+    runBody:
+      'Run the whole algorithm, or use "Next" to advance one statement at a time and see exactly what each one does. The speed selector decides how fast it goes.',
+    panelsTitle: 'Arrange your space',
+    panelsBody:
+      'These buttons show or hide each panel. You can also drag any panel edge to resize it — the app remembers how you left things.',
+    endTitle: 'Ready to start',
+    endBody:
+      'Open an example to see how something is solved, or a challenge to practise. You can see this tour again from the "Concepts" button.',
+  },
   verbs: {
     declare: 'variable',
     assign: 'change',
@@ -99,6 +132,7 @@ export const en: Dictionary = {
     while: 'while',
     repeat: 'repeat',
     forEach: 'from',
+    comment: 'note',
   },
   editor: {
     title: 'My algorithm',
@@ -229,6 +263,10 @@ export const en: Dictionary = {
     lastEdited: 'Edited {date}',
     confirmDelete: 'Delete "{name}"? This cannot be undone.',
     import: 'Import',
+    importHint: 'Open a .json file exported from Tobot',
+    importError: 'That file could not be read. Is it an algorithm exported from Tobot?',
+    challenges: 'Challenges',
+    challengesHint: 'Exercises with parts to complete',
     duplicateSuffix: 'copy',
   },
   concepts: {

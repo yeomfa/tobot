@@ -50,6 +50,7 @@ export const es = {
       io: 'Entrada y salida',
       conditionals: 'Condicionales',
       loops: 'Ciclos',
+      notes: 'Notas',
     },
   },
   statements: {
@@ -61,6 +62,7 @@ export const es = {
     while: { label: 'Mientras', hint: 'Repite mientras la condición sea verdadera' },
     repeat: { label: 'Repetir N veces', hint: 'Repite una cantidad fija de veces' },
     forEach: { label: 'Desde… hasta', hint: 'Cuenta desde un número hasta otro' },
+    comment: { label: 'Comentario', hint: 'Una nota para quien lee; no se ejecuta' },
   },
   /** Short inline wording used inside blocks, where the palette's longer
    * labels ("Crear variable") would read awkwardly mid-sentence. */
@@ -94,6 +96,38 @@ export const es = {
     countOne: '1 detalle por revisar',
     count: '{count} detalles por revisar',
   },
+  /** First-run tour. Each stop names one region and says what it is for. */
+  tour: {
+    replay: 'Ver la guía otra vez',
+    skip: 'Saltar',
+    next: 'Siguiente',
+    back: 'Atrás',
+    done: 'Empezar',
+    welcomeTitle: 'Te presento a Tobot',
+    welcomeBody:
+      'Aquí escribes algoritmos con instrucciones que se arrastran, y los ves al instante en lenguaje natural, pseudocódigo, código real y como diagrama de flujo. Te muestro dónde está cada cosa.',
+    paletteTitle: 'Las instrucciones',
+    paletteBody:
+      'Aquí están todas las instrucciones, agrupadas por tema y con su color. Haz clic para agregarlas al final, o arrástralas al lugar exacto. En «Mis algoritmos» encuentras tus trabajos, ejemplos resueltos y retos para practicar.',
+    canvasTitle: 'Tu algoritmo',
+    canvasBody:
+      'Los bloques se leen como frases. Pasa el ratón sobre uno para editarlo, moverlo o borrarlo. Si algo no cuadra —una variable repetida, un ciclo que nunca termina— aparece un aviso en el bloque mismo antes de ejecutar.',
+    drawerTitle: 'Las cuatro vistas',
+    drawerBody:
+      'El mismo algoritmo escrito de cuatro formas. Cambia de pestaña para comparar; al ejecutar se resalta la línea que corre en todas a la vez. Haz clic en el nombre de la pestaña abierta para plegar el panel.',
+    robotTitle: 'El robot',
+    robotBody:
+      'El robot ejecuta tu algoritmo: dice lo que le pides, te hace preguntas y muestra el valor de cada variable mientras avanza.',
+    runTitle: 'Ejecutar',
+    runBody:
+      'Ejecuta todo el algoritmo, o usa «Siguiente» para avanzar de a una instrucción y ver exactamente qué pasa en cada paso. Con el selector de velocidad decides qué tan rápido va.',
+    panelsTitle: 'Acomoda tu espacio',
+    panelsBody:
+      'Estos botones muestran u ocultan cada panel. También puedes arrastrar el borde de cualquiera para cambiar su tamaño: la app recuerda cómo lo dejaste.',
+    endTitle: 'Listo para empezar',
+    endBody:
+      'Abre un ejemplo para ver cómo se resuelve algo, o un reto para practicar. Puedes volver a ver esta guía desde el botón «Conceptos».',
+  },
   verbs: {
     declare: 'variable',
     assign: 'cambiar',
@@ -103,6 +137,7 @@ export const es = {
     while: 'mientras',
     repeat: 'repetir',
     forEach: 'desde',
+    comment: 'nota',
   },
   editor: {
     title: 'Mi algoritmo',
@@ -234,6 +269,10 @@ export const es = {
     lastEdited: 'Editado {date}',
     confirmDelete: '¿Eliminar «{name}»? Esta acción no se puede deshacer.',
     import: 'Importar',
+    importHint: 'Abre un archivo .json exportado desde Tobot',
+    importError: 'No se pudo leer ese archivo. ¿Es un algoritmo exportado desde Tobot?',
+    challenges: 'Retos',
+    challengesHint: 'Ejercicios con partes por completar',
     duplicateSuffix: 'copia',
   },
   concepts: {

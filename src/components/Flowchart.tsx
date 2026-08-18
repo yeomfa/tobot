@@ -211,6 +211,13 @@ function NodeShape({ node, isActive, isErrored, onSelect }: NodeShapeProps) {
             d={`M ${centerX} ${y} L ${x + width} ${centerY} L ${centerX} ${y + height} L ${x} ${centerY} Z`}
           />
         );
+      case 'note':
+        // A folded-corner card, the conventional annotation symbol.
+        return (
+          <path
+            d={`M ${x} ${y} H ${x + width - 12} L ${x + width} ${y + 12} V ${y + height} H ${x} Z`}
+          />
+        );
       case 'io':
         // Parallelogram, the standard input/output symbol.
         return (

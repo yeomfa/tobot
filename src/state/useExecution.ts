@@ -6,11 +6,17 @@ import type { ExecutionState } from '../core/runtime/types';
 
 export type Speed = 'slow' | 'normal' | 'fast';
 
-/** Milliseconds between steps in continuous playback. */
+/**
+ * Milliseconds between steps in continuous playback.
+ *
+ * These are pitched for watching, not for finishing: at "normal" a student has
+ * time to follow the highlight move through the blocks, the code and the
+ * diagram at once. The previous 420ms was faster than that reading takes.
+ */
 const SPEED_DELAY: Record<Speed, number> = {
-  slow: 900,
-  normal: 420,
-  fast: 140,
+  slow: 1600,
+  normal: 800,
+  fast: 250,
 };
 
 const IDLE_STATE: ExecutionState = {

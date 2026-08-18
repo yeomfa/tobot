@@ -1,5 +1,6 @@
 import type {
   AskStatement,
+  CommentStatement,
   AssignStatement,
   DeclareStatement,
   Expression,
@@ -44,6 +45,8 @@ type StatementKind = Statement['kind'];
 export function createStatement(kind: StatementKind, suggestedName = 'x'): Statement {
   const id = createId();
   switch (kind) {
+    case 'comment':
+      return { id, kind: 'comment', text: '' } satisfies CommentStatement;
     case 'declare':
       return {
         id,

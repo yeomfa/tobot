@@ -64,6 +64,7 @@ export interface UnaryExpression {
 }
 
 export type Statement =
+  | CommentStatement
   | DeclareStatement
   | AssignStatement
   | SayStatement
@@ -75,6 +76,16 @@ export type Statement =
 
 interface StatementBase {
   id: NodeId;
+}
+
+/**
+ * A note to the reader. It executes as a no-op, which is what makes it useful
+ * for handing out exercises: an instructor can ship an algorithm whose
+ * comments say what each missing part should do.
+ */
+export interface CommentStatement extends StatementBase {
+  kind: 'comment';
+  text: string;
 }
 
 /** `variable` topic: introduce a named box with a starting value. */

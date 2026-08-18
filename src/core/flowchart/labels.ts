@@ -22,6 +22,8 @@ export function createFlowLabels(dictionary: Dictionary, locale: Language): Flow
 
   const describe = (statement: Statement): { text: string; shape: ShapeKind } => {
     switch (statement.kind) {
+      case 'comment':
+        return { text: truncate(statement.text || '…'), shape: 'note' };
       case 'declare':
         return { text: truncate(`${statement.name} ← ${expr(statement.value)}`), shape: 'process' };
       case 'assign':

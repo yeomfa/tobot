@@ -264,6 +264,21 @@ function StatementBody({
   );
 
   switch (statement.kind) {
+    case 'comment':
+      return (
+        <input
+          className="statement-block__comment"
+          value={statement.text}
+          onChange={(event) =>
+            callbacks.update(statement.id, (current) =>
+              current.kind === 'comment' ? { ...current, text: event.target.value } : current,
+            )
+          }
+          placeholder={d.statements.comment.hint}
+          aria-label={d.statements.comment.label}
+        />
+      );
+
     case 'declare':
       return (
         <>

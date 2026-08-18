@@ -70,6 +70,9 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
   });
 
   switch (statement.kind) {
+    case 'comment':
+      return [line(`// ${statement.text}`)];
+
     case 'declare':
       return [
         line(`${bind(scope, statement.name)}${statement.name} = ${expressionToJs(statement.value)};`),

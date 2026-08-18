@@ -3,6 +3,7 @@ import {
   ArrowsSplit,
   ChatCircleText,
   ListNumbers,
+  NoteBlank,
   PencilSimple,
   Question,
   Repeat,
@@ -12,7 +13,7 @@ import type { Icon } from '@phosphor-icons/react';
 
 import type { Statement } from '../core/ast/types';
 
-export type Category = 'variables' | 'io' | 'conditionals' | 'loops';
+export type Category = 'variables' | 'io' | 'conditionals' | 'loops' | 'notes';
 
 export type StatementKind = Statement['kind'];
 
@@ -22,6 +23,7 @@ export type StatementKind = Statement['kind'];
  * a loop by its hue before they can read the keyword.
  */
 export const statementCategory: Record<StatementKind, Category> = {
+  comment: 'notes',
   declare: 'variables',
   assign: 'variables',
   say: 'io',
@@ -38,6 +40,7 @@ export const paletteGroups: Array<{ category: Category; kinds: StatementKind[] }
   { category: 'io', kinds: ['say', 'ask'] },
   { category: 'conditionals', kinds: ['if'] },
   { category: 'loops', kinds: ['repeat', 'forEach', 'while'] },
+  { category: 'notes', kinds: ['comment'] },
 ];
 
 /**
@@ -48,6 +51,7 @@ export const paletteGroups: Array<{ category: Category; kinds: StatementKind[] }
  * a speech bubble means the robot talks, a diamond-ish split means a decision.
  */
 export const statementIcon: Record<StatementKind, Icon> = {
+  comment: NoteBlank,
   declare: Tag,
   assign: PencilSimple,
   say: ChatCircleText,

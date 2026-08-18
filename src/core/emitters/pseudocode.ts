@@ -166,6 +166,9 @@ function emitStatement(statement: Statement, indent: number, kw: Keywords): Emit
   const expr = (expression: Expression): string => expressionToPseudocode(expression, kw);
 
   switch (statement.kind) {
+    case 'comment':
+      return [line(`// ${statement.text}`)];
+
     case 'declare':
       return [line(`${kw.declare} ${statement.name} ← ${expr(statement.value)}`)];
 
