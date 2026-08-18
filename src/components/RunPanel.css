@@ -86,8 +86,12 @@
 
 .run-panel__robot {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: var(--space-2) var(--space-3) 0;
+  /* Takes the height the output section is not using and centres the robot in
+     it, rather than pinning it to the top and leaving a gap below. */
+  flex: 1 1 auto;
+  padding: var(--space-3) var(--space-3) 0;
   flex-shrink: 0;
   background:
     radial-gradient(
@@ -172,40 +176,63 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3) var(--space-3);
   flex-shrink: 0;
 }
 
+/**
+ * Round controls, echoing the robot's own geometry — square outlined buttons
+ * read as a form beneath a character.
+ */
 .run-panel__button {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   color: var(--text-secondary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  border: none;
+  border-radius: var(--radius-full);
   transition:
     background var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
 
 .run-panel__button svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
+}
+
+.run-panel__button:hover:not(:disabled) {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
 }
 
 .run-panel__button:active:not(:disabled) {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
-/* The primary action is wider, so it reads as the main one in the row. */
+/* The primary action is larger and filled: the one obvious thing to press. */
 .run-panel__button--primary {
-  width: 46px;
+  width: 52px;
+  height: 52px;
+  color: var(--text-inverse);
+  background: var(--accent);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.run-panel__button--primary svg {
+  width: 21px;
+  height: 21px;
+}
+
+.run-panel__button--primary:hover:not(:disabled) {
+  color: var(--text-inverse);
+  background: var(--accent-strong);
 }
 
 .run-panel__button:hover:not(:disabled) {
@@ -230,19 +257,55 @@
   color: var(--text-inverse);
 }
 
-/* Sized to its own content so the label is never clipped, and allowed to
-   shrink before the buttons do. */
-.run-panel__speed {
-  margin-left: var(--space-1);
-  padding: var(--space-1) 2px;
-  font-size: var(--text-xs);
+/* ---- Speed ---- */
+
+.run-panel__speed-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-3);
+  flex-shrink: 0;
+}
+
+.run-panel__speed-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
   color: var(--text-muted);
-  background: transparent;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  min-width: 0;
-  flex-shrink: 1;
+}
+
+/* Three peers in one well: the choice is visible without opening a menu. */
+.run-panel__segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-sunken);
+  border-radius: var(--radius-full);
+}
+
+.run-panel__segment {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.run-panel__segment:hover:not([data-selected]) {
+  color: var(--text-secondary);
+}
+
+.run-panel__segment[data-selected] {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-xs);
 }
 
 /* ---- Output section ---- */

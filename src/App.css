@@ -184,13 +184,8 @@
   color: var(--text-primary);
 }
 
-/**
- * Icon-shaped picker: the select is stretched invisibly over the icon so the
- * control keeps the native menu behaviour while looking like a button.
- *
- * The pair sits in a shared inset well, which groups them as settings and
- * separates them from the actions to their left.
- */
+/* Groups language and theme as one settings cluster, set apart from the
+   actions to their left. */
 .app__settings {
   display: inline-flex;
   align-items: center;
@@ -198,46 +193,6 @@
   padding: 3px;
   background: var(--bg-sunken);
   border-radius: var(--radius-md);
-}
-
-.app__picker {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 26px;
-  color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
-}
-
-.app__picker:hover {
-  color: var(--text-primary);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-xs);
-}
-
-.app__picker svg {
-  width: 16px;
-  height: 16px;
-  pointer-events: none;
-}
-
-.app__picker select {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.app__picker:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .app__select {

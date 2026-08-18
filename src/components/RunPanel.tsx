@@ -179,16 +179,31 @@ export const RunPanel = memo(function RunPanel({
         >
           <ArrowCounterClockwise />
         </button>
-        <select
-          className="run-panel__speed"
-          value={execution.speed}
-          onChange={(event) => execution.setSpeed(event.target.value as Speed)}
-          aria-label={d.runtime.speed}
-        >
-          <option value="slow">{d.runtime.speedSlow}</option>
-          <option value="normal">{d.runtime.speedNormal}</option>
-          <option value="fast">{d.runtime.speedFast}</option>
-        </select>
+      </div>
+
+      {/* Speed sits on its own line: inside the transport row it pulled the
+          three buttons off the panel's centre line. */}
+      <div className="run-panel__speed-row">
+        <span className="run-panel__speed-label">{d.runtime.speed}</span>
+        <div className="run-panel__segmented" role="radiogroup" aria-label={d.runtime.speed}>
+          {(['slow', 'normal', 'fast'] as Speed[]).map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={execution.speed === option}
+              className="run-panel__segment"
+              data-selected={execution.speed === option || undefined}
+              onClick={() => execution.setSpeed(option)}
+            >
+              {option === 'slow'
+                ? d.runtime.speedSlow
+                : option === 'normal'
+                  ? d.runtime.speedNormal
+                  : d.runtime.speedFast}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Closed by default: at rest the panel is just the robot. It opens

@@ -24,6 +24,7 @@ import { Console } from './components/Console';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
+import { SettingsMenu } from './components/SettingsMenu';
 import { Sidebar } from './components/Sidebar';
 import { Tour } from './components/Tour';
 import type { SidebarView } from './components/Sidebar';
@@ -416,33 +417,24 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
           {/* Language and theme are peers, so they share one control shape: an
               icon with the native select laid transparently over it. */}
           <span className="app__settings">
-          <span className="app__picker" title={d.settings.language}>
-            <Translate />
-            <select
+            <SettingsMenu
               value={language}
-              onChange={(event) => onLanguageChange(event.target.value as Language)}
-              aria-label={d.settings.language}
-            >
-              {LANGUAGES.map((code) => (
-                <option key={code} value={code}>
-                  {languageNames[code]}
-                </option>
-              ))}
-            </select>
-          </span>
-
-          <span className="app__picker" title={d.settings.theme}>
-            {theme === 'dark' ? <Moon /> : theme === 'light' ? <Sun /> : <Desktop />}
-            <select
+              options={LANGUAGES.map((code) => ({ value: code, label: languageNames[code] }))}
+              onChange={onLanguageChange}
+              trigger={Translate}
+              label={d.settings.language}
+            />
+            <SettingsMenu
               value={theme}
-              onChange={(event) => onThemeChange(event.target.value as Theme)}
-              aria-label={d.settings.theme}
-            >
-              <option value="system">{d.settings.themeSystem}</option>
-              <option value="light">{d.settings.themeLight}</option>
-              <option value="dark">{d.settings.themeDark}</option>
-            </select>
-          </span>
+              options={[
+                { value: 'system' as Theme, label: d.settings.themeSystem, icon: Desktop },
+                { value: 'light' as Theme, label: d.settings.themeLight, icon: Sun },
+                { value: 'dark' as Theme, label: d.settings.themeDark, icon: Moon },
+              ]}
+              onChange={onThemeChange}
+              trigger={theme === 'dark' ? Moon : theme === 'light' ? Sun : Desktop}
+              label={d.settings.theme}
+            />
           </span>
 
           <button type="button" className="app__run" onClick={startRun}>
