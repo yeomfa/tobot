@@ -6,11 +6,14 @@ on:
   # Allows deploying by hand from the Actions tab.
   workflow_dispatch:
 
-# Required for the Pages deployment to authenticate.
+# `pages: write` and `id-token: write` authenticate the deployment;
+# `administration: write` is what lets the enablement step below switch Pages
+# on for the repository the first time.
 permissions:
   contents: read
   pages: write
   id-token: write
+  administration: write
 
 # Let a running deploy finish rather than cancelling it mid-publish.
 concurrency:
@@ -43,7 +46,12 @@ jobs:
           BASE_PATH: /${{ github.event.repository.name }}/
         run: pnpm build
 
+      # `enablement` turns Pages on for the repository the first time this
+      # runs, instead of failing with "Get Pages site failed" until someone
+      # switches it on by hand in Settings.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
