@@ -1,3 +1,17 @@
+import {
+  ChartBar,
+  Circle,
+  Copy,
+  GridFour,
+  HandWaving,
+  Plus,
+  SealCheck,
+  Target,
+  Timer,
+  Trash,
+  UserCheck,
+} from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
 import { memo, useEffect, useState } from 'react';
 
 import type { Algorithm } from '../core/ast/types';
@@ -76,7 +90,7 @@ export const Library = memo(function Library({
             onClick={onCreate}
             title={d.actions.newAlgorithm}
           >
-            <span aria-hidden="true">+</span> {d.actions.newAlgorithm}
+            <Plus weight="bold" /> {d.actions.newAlgorithm}
           </button>
         </div>
 
@@ -114,7 +128,7 @@ export const Library = memo(function Library({
                     title={d.actions.duplicate}
                     aria-label={d.actions.duplicate}
                   >
-                    ⧉
+                    <Copy />
                   </button>
                   {/* The open algorithm cannot be deleted from under itself. */}
                   {algorithm.id !== currentId &&
@@ -134,7 +148,7 @@ export const Library = memo(function Library({
                         title={d.actions.delete}
                         aria-label={d.actions.delete}
                       >
-                        ×
+                        <Trash />
                       </button>
                     ))}
                 </div>
@@ -177,87 +191,23 @@ export const Library = memo(function Library({
 });
 
 /**
- * A drawn mark per example rather than an emoji: these sit beside the
- * statement icons all day, so they follow the same line-art language and take
- * the topic colour from CSS.
+ * One Phosphor icon per example, imported individually so only these ship.
+ * Each is literal about the problem the example solves, which makes the card
+ * scannable before the title is read.
  */
-function ExampleIcon({ id }: { id: string }) {
-  const common = {
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    strokeWidth: 1.7,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
+const EXAMPLE_ICONS: Record<string, Icon> = {
+  greeting: HandWaving,
+  average: ChartBar,
+  grade: SealCheck,
+  adult: UserCheck,
+  'times-table': GridFour,
+  countdown: Timer,
+  guess: Target,
+};
 
-  switch (id) {
-    case 'greeting':
-      // Speech bubble with a waving hand.
-      return (
-        <svg {...common}>
-          <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v6A2.5 2.5 0 0 1 17.5 15H10l-4 3.5V15h-.5A1.5 1.5 0 0 1 4 13.5z" />
-          <path d="M9.5 9.5h.01M14.5 9.5h.01" />
-        </svg>
-      );
-    case 'average':
-      // Two bars and their midpoint.
-      return (
-        <svg {...common}>
-          <path d="M5 19V9M12 19V5M19 19v-7" />
-          <path d="M3 15h18" strokeDasharray="2 2.5" />
-        </svg>
-      );
-    case 'grade':
-      // A checkmark inside a rosette.
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="9.5" r="5.5" />
-          <path d="M9.8 9.6l1.7 1.7 3-3.4" />
-          <path d="M8.6 14.4L7 21l5-2.4L17 21l-1.6-6.6" />
-        </svg>
-      );
-    case 'adult':
-      // A person beside a threshold line.
-      return (
-        <svg {...common}>
-          <circle cx="9.5" cy="7" r="2.8" />
-          <path d="M4.5 19v-1.5a5 5 0 0 1 10 0V19" />
-          <path d="M18.5 4.5v15" strokeDasharray="2 2.5" />
-        </svg>
-      );
-    case 'times-table':
-      // A grid, as in a multiplication table.
-      return (
-        <svg {...common}>
-          <rect x="3.5" y="3.5" width="17" height="17" rx="2.5" />
-          <path d="M3.5 9.5h17M3.5 15h17M9.5 3.5v17M15 3.5v17" />
-        </svg>
-      );
-    case 'countdown':
-      // A clock winding down.
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="13" r="7.5" />
-          <path d="M12 9v4l2.5 1.8" />
-          <path d="M9.5 2.5h5" />
-        </svg>
-      );
-    case 'guess':
-      // A question mark in a target.
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="8.5" />
-          <path d="M9.8 9.6a2.3 2.3 0 1 1 3 2.2v1.4" />
-          <path d="M12.8 16.2h.01" />
-        </svg>
-      );
-    default:
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="8" />
-        </svg>
-      );
-  }
+function ExampleIcon({ id }: { id: string }) {
+  const Glyph = EXAMPLE_ICONS[id] ?? Circle;
+  return <Glyph weight="duotone" />;
 }
 
 export type { Example };

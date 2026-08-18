@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  ArrowClockwise,
+  ArrowCounterClockwise,
+  CaretDown,
+  CaretUp,
+  Play,
+  SidebarSimple,
+  SquareSplitVertical,
+} from '@phosphor-icons/react';
+
 import type { NodeId, Statement } from './core/ast/types';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
@@ -291,7 +301,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
               title="⌘Z"
               aria-label="Undo"
             >
-              ↶
+              <ArrowCounterClockwise weight="bold" />
             </button>
             <button
               type="button"
@@ -301,7 +311,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
               title="⇧⌘Z"
               aria-label="Redo"
             >
-              ↷
+              <ArrowClockwise weight="bold" />
             </button>
           </div>
 
@@ -318,7 +328,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
               aria-label={d.panels.palette}
               aria-pressed={paletteOpen}
             >
-              ◧
+              <SidebarSimple weight={paletteOpen ? 'fill' : 'regular'} />
             </button>
             <button
               type="button"
@@ -329,7 +339,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
               aria-label={d.panels.drawer}
               aria-pressed={drawerOpen}
             >
-              ◒
+              <SquareSplitVertical weight={drawerOpen ? 'fill' : 'regular'} />
             </button>
             <button
               type="button"
@@ -340,7 +350,11 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
               aria-label={d.panels.robot}
               aria-pressed={robotOpen}
             >
-              ◨
+              {/* Mirrored so the icon points at the rail it controls. */}
+              <SidebarSimple
+                weight={robotOpen ? 'fill' : 'regular'}
+                style={{ transform: 'scaleX(-1)' }}
+              />
             </button>
           </div>
 
@@ -384,7 +398,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
           </select>
 
           <button type="button" className="app__run" onClick={startRun}>
-            <span aria-hidden="true">▶</span> {d.actions.run}
+            <Play weight="fill" /> {d.actions.run}
           </button>
         </div>
       </header>
@@ -449,7 +463,7 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
                 title={drawerOpen ? d.palette.collapse : d.palette.expand}
                 aria-label={drawerOpen ? d.palette.collapse : d.palette.expand}
               >
-                {drawerOpen ? '▾' : '▴'}
+                {drawerOpen ? <CaretDown weight="bold" /> : <CaretUp weight="bold" />}
               </button>
             </div>
 

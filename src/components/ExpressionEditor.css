@@ -151,6 +151,11 @@
   opacity: 1;
 }
 
+.expr__tool svg {
+  width: 11px;
+  height: 11px;
+}
+
 .expr__tool {
   display: inline-flex;
   align-items: center;

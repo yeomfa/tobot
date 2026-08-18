@@ -63,6 +63,11 @@
   color: var(--text-muted);
 }
 
+.dialog__close svg {
+  width: 17px;
+  height: 17px;
+}
+
 .dialog__close {
   display: flex;
   align-items: center;

@@ -8,7 +8,7 @@
 }
 
 .palette__header {
-  padding: var(--space-4);
+  padding: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -64,7 +64,6 @@
 
 .palette__search {
   width: 100%;
-  margin-top: var(--space-3);
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
   background: var(--bg-inset);
@@ -181,12 +180,17 @@
   transform: scale(0.985);
 }
 
+.palette__item-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
 .palette__item-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   font-size: 13px;
   color: var(--group-hue);

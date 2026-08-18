@@ -101,6 +101,17 @@
   gap: 2px;
 }
 
+.app__icon-button svg,
+.app__toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.app__run svg {
+  width: 14px;
+  height: 14px;
+}
+
 .app__icon-button {
   display: flex;
   align-items: center;

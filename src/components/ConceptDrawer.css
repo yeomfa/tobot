@@ -103,6 +103,11 @@
   color: var(--text-muted);
 }
 
+.drawer__close svg {
+  width: 17px;
+  height: 17px;
+}
+
 .drawer__close {
   display: flex;
   align-items: center;
@@ -277,11 +282,13 @@
   color: var(--text-secondary);
 }
 
-.drawer__mistakes li::before {
-  content: '⚠';
+.drawer__mistake-icon {
   position: absolute;
   left: 0;
-  top: 1px;
+  top: 4px;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
   color: var(--hue-conditional);
 }
 
@@ -340,6 +347,8 @@
 }
 
 .drawer__ref-arrow {
+  width: 14px;
+  height: 14px;
   margin-left: auto;
   color: var(--drawer-hue);
   opacity: 0;

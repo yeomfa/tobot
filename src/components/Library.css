@@ -41,6 +41,11 @@
 }
 
 /* The primary action sits with the list it adds to. */
+.library__new svg {
+  width: 12px;
+  height: 12px;
+}
+
 .library__new {
   display: flex;
   align-items: center;
@@ -139,6 +144,11 @@
 .library__row:hover .library__row-actions,
 .library__row:focus-within .library__row-actions {
   opacity: 1;
+}
+
+.library__row-action svg {
+  width: 13px;
+  height: 13px;
 }
 
 .library__row-action {
@@ -241,7 +251,6 @@
 .library__card-icon svg {
   width: 19px;
   height: 19px;
-  stroke: currentColor;
 }
 
 .library__card-text {

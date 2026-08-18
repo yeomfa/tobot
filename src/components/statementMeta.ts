@@ -1,3 +1,15 @@
+import {
+  ArrowsClockwise,
+  ArrowsSplit,
+  ChatCircleText,
+  ListNumbers,
+  PencilSimple,
+  Question,
+  Repeat,
+  Tag,
+} from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
+
 import type { Statement } from '../core/ast/types';
 
 export type Category = 'variables' | 'io' | 'conditionals' | 'loops';
@@ -28,14 +40,20 @@ export const paletteGroups: Array<{ category: Category; kinds: StatementKind[] }
   { category: 'loops', kinds: ['repeat', 'forEach', 'while'] },
 ];
 
-/** Single-glyph icons keep the palette compact and language-neutral. */
-export const statementIcon: Record<StatementKind, string> = {
-  declare: '▢',
-  assign: '⇢',
-  say: '◗',
-  ask: '?',
-  if: '◇',
-  while: '↻',
-  repeat: '⟳',
-  forEach: '⇥',
+/**
+ * Phosphor icon per statement kind. They are imported individually rather than
+ * from the package barrel so only these eight ship in the bundle.
+ *
+ * The choices are literal about what each statement does: a tag names a value,
+ * a speech bubble means the robot talks, a diamond-ish split means a decision.
+ */
+export const statementIcon: Record<StatementKind, Icon> = {
+  declare: Tag,
+  assign: PencilSimple,
+  say: ChatCircleText,
+  ask: Question,
+  if: ArrowsSplit,
+  while: ArrowsClockwise,
+  repeat: Repeat,
+  forEach: ListNumbers,
 };

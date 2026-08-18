@@ -128,10 +128,38 @@
   cursor: grabbing;
 }
 
+/* The kind icon identifies the statement at rest; the drag grip fades in over
+   it on hover, so the rail carries one mark at a time. */
+.statement-block__handle {
+  position: relative;
+}
+
 .statement-block__icon {
-  font-size: 13px;
-  line-height: 1;
+  display: flex;
   color: var(--block-hue);
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.statement-block__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.statement-block__grip {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  color: var(--block-hue);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.statement-block:hover > .statement-block__row > .statement-block__handle .statement-block__grip {
+  opacity: 1;
+}
+
+.statement-block:hover > .statement-block__row > .statement-block__handle .statement-block__icon {
+  opacity: 0;
 }
 
 .statement-block__content {
@@ -200,6 +228,11 @@
 }
 
 /* Problem badge: a quiet marker, with the explanation in its tooltip. */
+.statement-block__badge svg {
+  width: 15px;
+  height: 15px;
+}
+
 .statement-block__badge {
   display: flex;
   align-items: center;
@@ -245,6 +278,11 @@
 
 .statement-block:hover > .statement-block__row > .statement-block__actions,
 .statement-block:focus-within > .statement-block__row > /* Problem badge: a quiet marker, with the explanation in its tooltip. */
+.statement-block__badge svg {
+  width: 15px;
+  height: 15px;
+}
+
 .statement-block__badge {
   display: flex;
   align-items: center;
@@ -277,6 +315,11 @@
 /* Edit buttons stay hidden until the block is hovered or focused, so a
    finished algorithm reads as prose. The problem badge is deliberately not
    part of this group — a problem must be visible without hunting for it. */
+.statement-block__action svg {
+  width: 14px;
+  height: 14px;
+}
+
 .statement-block__action {
   display: flex;
   align-items: center;
@@ -342,7 +385,14 @@
   color: var(--block-hue);
 }
 
+.branch__remove svg {
+  width: 12px;
+  height: 12px;
+}
+
 .branch__remove {
+  display: inline-flex;
+  align-items: center;
   font-size: 13px;
   line-height: 1;
   color: var(--text-muted);

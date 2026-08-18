@@ -1,3 +1,4 @@
+import { Minus, Plus, Textbox } from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { literal } from '../core/ast/factory';
@@ -272,7 +273,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           title={d.fields.value}
           aria-label={d.fields.value}
         >
-          {value.kind === 'variable' ? 'x' : value.kind === 'binary' ? '( )' : '"'}
+          <Textbox weight="bold" />
         </button>
         <button
           type="button"
@@ -281,7 +282,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           title={d.actions.addValue}
           aria-label={d.actions.addValue}
         >
-          +
+          <Plus weight="bold" />
         </button>
         {(value.kind === 'binary' || value.kind === 'unary') && (
           <button
@@ -291,7 +292,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             title={d.actions.delete}
             aria-label={d.actions.delete}
           >
-            −
+            <Minus weight="bold" />
           </button>
         )}
       </span>

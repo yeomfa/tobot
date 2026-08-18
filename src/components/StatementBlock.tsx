@@ -1,3 +1,4 @@
+import { DotsSixVertical, Question, Trash, Warning, WarningCircle } from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { createStatement } from '../core/ast/factory';
@@ -54,6 +55,7 @@ export const StatementBlock = memo(function StatementBlock({
   const category = statementCategory[statement.kind];
   const concept = conceptForStatement.get(statement.kind);
 
+  const Icon = statementIcon[statement.kind];
   const ownProblems = problems.get(statement.id) ?? [];
   // One badge per block: an error outranks a warning.
   const worst = ownProblems.some((problem) => problem.severity === 'error')
@@ -104,8 +106,11 @@ export const StatementBlock = memo(function StatementBlock({
     >
       <div className="statement-block__row">
         <span className="statement-block__handle" aria-label={d.a11y.dragHandle}>
+          {/* The grip only shows on hover; at rest the kind icon identifies
+              the statement, which is what a reader needs. */}
+          <DotsSixVertical className="statement-block__grip" weight="bold" aria-hidden="true" />
           <span className="statement-block__icon" aria-hidden="true">
-            {statementIcon[statement.kind]}
+            <Icon weight="duotone" />
           </span>
         </span>
 
@@ -131,7 +136,7 @@ export const StatementBlock = memo(function StatementBlock({
                 .join('\n')}
               role="status"
             >
-              {worst === 'error' ? '!' : '?'}
+              {worst === 'error' ? <WarningCircle weight="fill" /> : <Warning weight="fill" />}
             </span>
           )}
           {concept && (
@@ -142,7 +147,7 @@ export const StatementBlock = memo(function StatementBlock({
               title={d.actions.learnMore}
               aria-label={d.actions.learnMore}
             >
-              ?
+              <Question />
             </button>
           )}
           <button
@@ -152,7 +157,7 @@ export const StatementBlock = memo(function StatementBlock({
             title={d.actions.delete}
             aria-label={d.actions.delete}
           >
-            ×
+            <Trash />
           </button>
         </div>
       </div>
@@ -513,8 +518,9 @@ function Branch({
             className="branch__remove"
             onClick={onRemove}
             title={d.actions.removeElse}
+            aria-label={d.actions.removeElse}
           >
-            ×
+            <Trash />
           </button>
         )}
       </div>

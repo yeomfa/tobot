@@ -1,3 +1,4 @@
+import { ArrowSquareOut, Warning, X } from '@phosphor-icons/react';
 import { memo, useEffect, useRef } from 'react';
 
 import { concepts, conceptsById } from '../content/concepts';
@@ -107,7 +108,7 @@ export const ConceptDrawer = memo(function ConceptDrawer({
                 onClick={onClose}
                 aria-label={d.actions.close}
               >
-                ×
+                <X weight="bold" />
               </button>
             </header>
 
@@ -147,6 +148,7 @@ export const ConceptDrawer = memo(function ConceptDrawer({
               <ul className="drawer__mistakes">
                 {copy.mistakes.map((mistake, index) => (
                   <li key={index}>
+                    <Warning className="drawer__mistake-icon" weight="fill" aria-hidden="true" />
                     <RichText text={mistake} />
                   </li>
                 ))}
@@ -164,9 +166,7 @@ export const ConceptDrawer = memo(function ConceptDrawer({
                       <span className="drawer__ref-meta">
                         {reference.publisher}
                         <span className="drawer__ref-lang">{reference.language}</span>
-                        <span className="drawer__ref-arrow" aria-hidden="true">
-                          ↗
-                        </span>
+                        <ArrowSquareOut className="drawer__ref-arrow" aria-hidden="true" />
                       </span>
                     </a>
                   </li>

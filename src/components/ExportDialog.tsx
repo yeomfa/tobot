@@ -1,3 +1,4 @@
+import { X } from '@phosphor-icons/react';
 import { memo, useState } from 'react';
 
 import type { Algorithm } from '../core/ast/types';
@@ -134,7 +135,7 @@ export const ExportDialog = memo(function ExportDialog({ algorithm, onClose }: E
             onClick={onClose}
             aria-label={d.actions.close}
           >
-            ×
+            <X weight="bold" />
           </button>
         </header>
 

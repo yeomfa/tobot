@@ -38,7 +38,6 @@ export const Palette = memo(function Palette({ onAdd }: PaletteProps) {
   return (
     <div className="palette">
       <div className="palette__header">
-        <h2 className="palette__title">{d.palette.title}</h2>
         <input
           className="palette__search"
           type="search"
@@ -75,6 +74,7 @@ interface PaletteItemProps {
 function PaletteItem({ kind, onAdd }: PaletteItemProps) {
   const { d } = useTranslation();
   const copy = d.statements[kind];
+  const Icon = statementIcon[kind];
 
   return (
     <li>
@@ -93,7 +93,7 @@ function PaletteItem({ kind, onAdd }: PaletteItemProps) {
         title={copy.hint}
       >
         <span className="palette__item-icon" aria-hidden="true">
-          {statementIcon[kind]}
+          <Icon weight="duotone" />
         </span>
         <span className="palette__item-text">
           <span className="palette__item-label">{copy.label}</span>
