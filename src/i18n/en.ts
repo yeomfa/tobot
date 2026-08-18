@@ -131,6 +131,7 @@ export const en: Dictionary = {
       'Start a new one, pick up where you left off, or open a challenge or example and learn by solving.',
     newHint: 'Begin with a blank canvas',
     backToEditor: 'Back to the editor',
+    sections: 'Sections',
     goHome: 'Home',
   },
   verbs: {

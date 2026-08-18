@@ -152,7 +152,7 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
           className="run-panel__button"
           onClick={execution.stepOnce}
           disabled={isPlaying || state.status === 'awaitingInput'}
-          title={`${d.actions.next} — ${d.actions.stepOne}`}
+          title={`${d.actions.next}: ${d.actions.stepOne}`}
           aria-label={d.actions.next}
         >
           <BugBeetle weight="fill" />

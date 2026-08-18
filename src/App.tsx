@@ -310,9 +310,18 @@ function Workbench({ firstVisit, theme, onThemeChange, onLanguageChange }: Workb
     >
       {screen === 'editor' && (
       <header className="app__header">
+        {/* The mark doubles as the way home, which is where a logo usually
+            leads and saves reaching for the house button. */}
         <h1 className="app__brand">
-          <BrandMark />
-          <span className="app__name">{d.app.name}</span>
+          <button
+            type="button"
+            className="app__brand-button"
+            onClick={() => setScreen('home')}
+            title={d.home.goHome}
+          >
+            <BrandMark />
+            <span className="app__name">{d.app.name}</span>
+          </button>
         </h1>
 
         <input

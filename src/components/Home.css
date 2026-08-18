@@ -10,10 +10,118 @@
   background: var(--bg-app);
 }
 
+/* Wider than a reading column: this is a browsing page, and the extra room
+   goes to bigger cards rather than longer lines of text. */
 .home__inner {
-  max-width: 940px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: var(--space-7) var(--space-5) var(--space-7);
+  padding: var(--space-5) var(--space-5) var(--space-7);
+}
+
+/* ---- Rail plus content ---- */
+
+.home__body {
+  display: grid;
+  grid-template-columns: 208px minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.home__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: var(--space-5);
+}
+
+.home__rail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: left;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.home__rail-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.home__rail-item:hover {
+  background: var(--bg-inset);
+  color: var(--text-primary);
+}
+
+.home__rail-item[data-selected] {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.home__rail-item[data-selected] svg {
+  color: var(--accent-strong);
+}
+
+.home__rail-count {
+  margin-left: auto;
+  padding: 1px 7px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-sunken);
+  border-radius: var(--radius-full);
+  font-variant-numeric: tabular-nums;
+}
+
+.home__rail-item[data-selected] .home__rail-count {
+  color: var(--accent-strong);
+  background: rgb(255 255 255 / 0.55);
+}
+
+.home__content {
+  min-width: 0;
+}
+
+.home__lead {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-base);
+  color: var(--text-muted);
+}
+
+.home__empty {
+  margin-top: var(--space-4);
+  padding: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-align: center;
+  background: var(--bg-inset);
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 860px) {
+  .home__body {
+    grid-template-columns: 1fr;
+  }
+
+  .home__rail {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+  }
+
+  .home__rail-item {
+    white-space: nowrap;
+  }
 }
 
 /* ---- Banner ---- */
@@ -26,7 +134,7 @@
 .home__banner {
   position: relative;
   overflow: hidden;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
   padding: var(--space-4) var(--space-5) var(--space-6);
   border-radius: var(--radius-xl);
   background:
@@ -224,10 +332,13 @@
 
 /* ---- Start ---- */
 
+/* The two ways in, kept clear of the saved list below so they read as a
+   header for the section rather than two more cards in it. */
 .home__start {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-3);
+  margin-bottom: var(--space-6);
 }
 
 .home__start-card {
@@ -326,9 +437,8 @@
 
 .home__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: var(--space-4);
 }
 
 .home__card {
@@ -338,7 +448,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-4);
+  padding: var(--space-5);
   text-align: left;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
@@ -376,9 +486,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin-bottom: var(--space-2);
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--card-soft);
   color: var(--card-hue);
@@ -394,20 +504,20 @@
 }
 
 .home__card-icon svg {
-  width: 19px;
-  height: 19px;
+  width: 22px;
+  height: 22px;
 }
 
 .home__card-name {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   font-weight: 650;
   line-height: 1.35;
   color: var(--text-primary);
 }
 
 .home__card-meta {
-  font-size: var(--text-xs);
-  line-height: 1.5;
+  font-size: var(--text-sm);
+  line-height: 1.55;
   color: var(--text-muted);
 }
 
@@ -433,9 +543,9 @@
 .home__card-open {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   flex: 1;
-  padding: var(--space-4) var(--space-4) var(--space-2);
+  padding: var(--space-5) var(--space-5) var(--space-2);
   text-align: left;
 }
 
@@ -443,7 +553,7 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 0 var(--space-2) var(--space-2);
+  padding: 0 var(--space-3) var(--space-3);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
@@ -487,4 +597,15 @@
 .home__card-action--confirm {
   color: var(--text-inverse);
   background: var(--danger);
+}
+
+/* Cards in the browsing sections get a floor height, so a grid of them reads
+   as a set rather than a ragged stack. */
+.home__card--tall {
+  min-height: 176px;
+}
+
+.home__card--tall .home__card-meta {
+  margin-top: auto;
+  padding-top: var(--space-2);
 }

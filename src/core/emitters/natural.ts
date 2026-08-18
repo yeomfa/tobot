@@ -162,9 +162,11 @@ function emitStatement(
   switch (statement.kind) {
     case 'comment':
       // A note reads as a note, not as a numbered step of the algorithm.
+      // Prefixed with the same marker the other languages use for comments,
+      // so a student sees one convention across all four views.
       return statement.text
         .split('\n')
-        .map((part) => ({ nodeId: id, indent, text: `— ${part}` }));
+        .map((part) => ({ nodeId: id, indent, text: `// ${part}` }));
 
     case 'declare':
       return [line(phrases.declare(statement.name, expr(statement.value)))];

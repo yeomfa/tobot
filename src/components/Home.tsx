@@ -7,6 +7,8 @@ import {
   Copy,
   Desktop,
   DownloadSimple,
+  FolderOpen,
+  Lightbulb,
   GridFour,
   HandWaving,
   Moon,
@@ -53,6 +55,8 @@ interface HomeProps {
   onBackToEditor: () => void;
 }
 
+type Section = 'mine' | 'challenges' | 'examples' | 'concepts';
+
 const EXAMPLE_ICONS: Record<string, Icon> = {
   greeting: HandWaving,
   average: ChartBar,
@@ -62,6 +66,20 @@ const EXAMPLE_ICONS: Record<string, Icon> = {
   countdown: Timer,
   guess: Target,
 };
+
+const SECTIONS: Array<{ id: Section; icon: Icon }> = [
+  { id: 'mine', icon: FolderOpen },
+  { id: 'challenges', icon: PuzzlePiece },
+  { id: 'examples', icon: Lightbulb },
+  { id: 'concepts', icon: BookOpenText },
+];
+
+function sectionLabel(d: ReturnType<typeof useTranslation>['d'], id: Section): string {
+  if (id === 'mine') return d.library.saved;
+  if (id === 'challenges') return d.library.challenges;
+  if (id === 'examples') return d.library.examples;
+  return d.concepts.title;
+}
 
 /** The product mark, matching the editor header and the app icon. */
 function BrandMark() {
@@ -118,6 +136,8 @@ export const Home = memo(function Home({
   const [saved, setSaved] = useState<Algorithm[]>([]);
   const [importError, setImportError] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
+  /** Which section the rail is showing; the page holds one at a time. */
+  const [section, setSection] = useState<Section>('mine');
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -252,187 +272,214 @@ export const Home = memo(function Home({
           <RobotMark />
         </header>
 
-        {/* Start: the two ways in, given the most weight on the page. */}
-        <section className="home__section">
-          <div className="home__start">
-            <button type="button" className="home__start-card" onClick={onCreate}>
-              <span className="home__start-icon">
-                <Plus weight="bold" />
-              </span>
-              <span className="home__start-text">
-                <span className="home__start-name">{d.actions.newAlgorithm}</span>
-                <span className="home__start-hint">{d.home.newHint}</span>
-              </span>
-              <ArrowRight className="home__start-arrow" weight="bold" aria-hidden="true" />
-            </button>
-
-            <button
-              type="button"
-              className="home__start-card home__start-card--quiet"
-              onClick={() => fileInput.current?.click()}
-            >
-              <span className="home__start-icon">
-                <UploadSimple />
-              </span>
-              <span className="home__start-text">
-                <span className="home__start-name">{d.library.import}</span>
-                <span className="home__start-hint">{d.library.importHint}</span>
-              </span>
-            </button>
-
-            <input
-              ref={fileInput}
-              type="file"
-              accept="application/json,.json"
-              className="sr-only"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void importFile(file);
-                event.target.value = '';
-              }}
-            />
-          </div>
-          {importError && <p className="home__error">{d.library.importError}</p>}
-        </section>
-
-        {saved.length > 0 && (
-          <section className="home__section">
-            <h2 className="home__section-title">{d.library.saved}</h2>
-            <div className="home__grid">
-              {saved.map((algorithm) => (
-                <div key={algorithm.id} className="home__card home__card--saved">
-                  <button
-                    type="button"
-                    className="home__card-open"
-                    onClick={() => onOpen(algorithm)}
-                  >
-                    <span className="home__card-name">{algorithm.name}</span>
-                    <span className="home__card-meta">
-                      {fill(d.library.lastEdited, { date: formatDate(algorithm.updatedAt) })}
-                      {' · '}
-                      {algorithm.body.length === 1
-                        ? d.editor.statementCountOne
-                        : fill(d.editor.statementCount, { count: algorithm.body.length })}
-                    </span>
-                  </button>
-
-                  <div className="home__card-actions">
-                    <button
-                      type="button"
-                      className="home__card-action"
-                      onClick={() => void duplicate(algorithm)}
-                      title={d.actions.duplicate}
-                      aria-label={d.actions.duplicate}
-                    >
-                      <Copy />
-                    </button>
-                    <button
-                      type="button"
-                      className="home__card-action"
-                      onClick={() => exportOne(algorithm)}
-                      title={d.actions.export}
-                      aria-label={d.actions.export}
-                    >
-                      <DownloadSimple />
-                    </button>
-                    {confirming === algorithm.id ? (
-                      <button
-                        type="button"
-                        className="home__card-action home__card-action--confirm"
-                        onClick={() => void remove(algorithm.id)}
-                      >
-                        {d.actions.confirm}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="home__card-action home__card-action--danger"
-                        onClick={() => setConfirming(algorithm.id)}
-                        title={d.actions.delete}
-                        aria-label={d.actions.delete}
-                      >
-                        <Trash />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="home__section">
-          <h2 className="home__section-title">
-            <PuzzlePiece weight="duotone" /> {d.library.challenges}
-          </h2>
-          <p className="home__section-hint">{d.library.challengesHint}</p>
-          <div className="home__grid">
-            {challenges.map((challenge) => (
-              <button
-                key={challenge.id}
-                type="button"
-                className="home__card"
-                data-topic={challenge.topic}
-                onClick={() => onOpen(algorithmFromChallenge(challenge, language))}
-              >
-                <span className="home__card-icon" data-level={challenge.level}>
-                  {challenge.level}
-                </span>
-                <span className="home__card-name">{challenge.title[language]}</span>
-                <span className="home__card-meta">{challenge.goal[language]}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="home__section">
-          <h2 className="home__section-title">{d.library.examples}</h2>
-          <p className="home__section-hint">{d.library.examplesHint}</p>
-          <div className="home__grid">
-            {examples.map((example) => {
-              const Glyph = EXAMPLE_ICONS[example.id] ?? Circle;
+        <div className="home__body">
+          <nav className="home__rail" aria-label={d.home.sections}>
+            {SECTIONS.map((entry) => {
+              const Glyph = entry.icon;
               return (
                 <button
-                  key={example.id}
+                  key={entry.id}
                   type="button"
-                  className="home__card"
-                  data-topic={example.topic}
-                  onClick={() => onOpen(algorithmFromExample(example, language))}
+                  className="home__rail-item"
+                  data-selected={section === entry.id || undefined}
+                  onClick={() => setSection(entry.id)}
                 >
-                  <span className="home__card-icon">
-                    <Glyph weight="duotone" />
-                  </span>
-                  <span className="home__card-name">{example.title[language]}</span>
-                  <span className="home__card-meta">{example.summary[language]}</span>
+                  <Glyph weight={section === entry.id ? 'fill' : 'regular'} />
+                  <span>{sectionLabel(d, entry.id)}</span>
+                  {entry.id === 'mine' && saved.length > 0 && (
+                    <span className="home__rail-count">{saved.length}</span>
+                  )}
                 </button>
               );
             })}
-          </div>
-        </section>
+          </nav>
 
-        <section className="home__section">
-          <h2 className="home__section-title">
-            <BookOpenText weight="duotone" /> {d.concepts.title}
-          </h2>
-          <p className="home__section-hint">{d.concepts.subtitle}</p>
-          <div className="home__grid">
-            {concepts.map((concept) => (
-              <button
-                key={concept.id}
-                type="button"
-                className="home__card"
-                data-topic={concept.category}
-                onClick={() => onOpenConcept(concept.id)}
-              >
-                <span className="home__card-name">{concept.copy[language].title}</span>
-                <span className="home__card-meta">{concept.copy[language].summary}</span>
-                <span className="home__card-tag">
-                  {fill(d.concepts.readingTime, { minutes: concept.readingMinutes })}
-                </span>
-              </button>
-            ))}
+          <div className="home__content">
+            {section === 'mine' && (
+              <>
+                <div className="home__start">
+                  <button type="button" className="home__start-card" onClick={onCreate}>
+                    <span className="home__start-icon">
+                      <Plus weight="bold" />
+                    </span>
+                    <span className="home__start-text">
+                      <span className="home__start-name">{d.actions.newAlgorithm}</span>
+                      <span className="home__start-hint">{d.home.newHint}</span>
+                    </span>
+                    <ArrowRight className="home__start-arrow" weight="bold" aria-hidden="true" />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="home__start-card home__start-card--quiet"
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    <span className="home__start-icon">
+                      <UploadSimple />
+                    </span>
+                    <span className="home__start-text">
+                      <span className="home__start-name">{d.library.import}</span>
+                      <span className="home__start-hint">{d.library.importHint}</span>
+                    </span>
+                  </button>
+
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="application/json,.json"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void importFile(file);
+                      event.target.value = '';
+                    }}
+                  />
+                </div>
+                {importError && <p className="home__error">{d.library.importError}</p>}
+
+                {saved.length === 0 ? (
+                  <p className="home__empty">{d.library.empty}</p>
+                ) : (
+                  <div className="home__grid">
+                    {saved.map((algorithm) => (
+                      <div key={algorithm.id} className="home__card home__card--saved">
+                        <button
+                          type="button"
+                          className="home__card-open"
+                          onClick={() => onOpen(algorithm)}
+                        >
+                          <span className="home__card-name">{algorithm.name}</span>
+                          <span className="home__card-meta">
+                            {fill(d.library.lastEdited, { date: formatDate(algorithm.updatedAt) })}
+                            {' · '}
+                            {algorithm.body.length === 1
+                              ? d.editor.statementCountOne
+                              : fill(d.editor.statementCount, { count: algorithm.body.length })}
+                          </span>
+                        </button>
+
+                        <div className="home__card-actions">
+                          <button
+                            type="button"
+                            className="home__card-action"
+                            onClick={() => void duplicate(algorithm)}
+                            title={d.actions.duplicate}
+                            aria-label={d.actions.duplicate}
+                          >
+                            <Copy />
+                          </button>
+                          <button
+                            type="button"
+                            className="home__card-action"
+                            onClick={() => exportOne(algorithm)}
+                            title={d.actions.export}
+                            aria-label={d.actions.export}
+                          >
+                            <DownloadSimple />
+                          </button>
+                          {confirming === algorithm.id ? (
+                            <button
+                              type="button"
+                              className="home__card-action home__card-action--confirm"
+                              onClick={() => void remove(algorithm.id)}
+                            >
+                              {d.actions.confirm}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="home__card-action home__card-action--danger"
+                              onClick={() => setConfirming(algorithm.id)}
+                              title={d.actions.delete}
+                              aria-label={d.actions.delete}
+                            >
+                              <Trash />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {section === 'challenges' && (
+              <>
+                <p className="home__lead">{d.library.challengesHint}</p>
+                <div className="home__grid">
+                  {challenges.map((challenge) => (
+                    <button
+                      key={challenge.id}
+                      type="button"
+                      className="home__card home__card--tall"
+                      data-topic={challenge.topic}
+                      onClick={() => onOpen(algorithmFromChallenge(challenge, language))}
+                    >
+                      <span className="home__card-icon" data-level={challenge.level}>
+                        {challenge.level}
+                      </span>
+                      <span className="home__card-name">{challenge.title[language]}</span>
+                      <span className="home__card-meta">{challenge.goal[language]}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {section === 'examples' && (
+              <>
+                <p className="home__lead">{d.library.examplesHint}</p>
+                <div className="home__grid">
+                  {examples.map((example) => {
+                    const Glyph = EXAMPLE_ICONS[example.id] ?? Circle;
+                    return (
+                      <button
+                        key={example.id}
+                        type="button"
+                        className="home__card home__card--tall"
+                        data-topic={example.topic}
+                        onClick={() => onOpen(algorithmFromExample(example, language))}
+                      >
+                        <span className="home__card-icon">
+                          <Glyph weight="duotone" />
+                        </span>
+                        <span className="home__card-name">{example.title[language]}</span>
+                        <span className="home__card-meta">{example.summary[language]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {section === 'concepts' && (
+              <>
+                <p className="home__lead">{d.concepts.subtitle}</p>
+                <div className="home__grid">
+                  {concepts.map((concept) => (
+                    <button
+                      key={concept.id}
+                      type="button"
+                      className="home__card home__card--tall"
+                      data-topic={concept.category}
+                      onClick={() => onOpenConcept(concept.id)}
+                    >
+                      <span className="home__card-icon">
+                        <BookOpenText weight="duotone" />
+                      </span>
+                      <span className="home__card-name">{concept.copy[language].title}</span>
+                      <span className="home__card-meta">{concept.copy[language].summary}</span>
+                      <span className="home__card-tag">
+                        {fill(d.concepts.readingTime, { minutes: concept.readingMinutes })}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );

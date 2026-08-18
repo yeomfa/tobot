@@ -137,6 +137,7 @@ export const es = {
       'Empieza uno nuevo, retoma lo que dejaste, o abre un reto o un ejemplo para aprender resolviendo.',
     newHint: 'Empieza con el lienzo en blanco',
     backToEditor: 'Volver al editor',
+    sections: 'Secciones',
     goHome: 'Inicio',
   },
   verbs: {

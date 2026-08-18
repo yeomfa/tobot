@@ -409,6 +409,14 @@ describe('multi-line comments', () => {
     expect(runEmittedJs(multi)).toEqual(['ok']);
   });
 
+  it('uses one comment marker across every view', () => {
+    // Natural language used an em dash, which read as a stray character
+    // beside the // the other views show.
+    const natural = renderLines(emitters.natural.emit(wrap(multi), { locale: 'es' }));
+    expect(natural).toContain('// Primera línea');
+    expect(natural).not.toContain('—');
+  });
+
   it('marks every line in Python too', () => {
     const py = renderLines(emitters.python.emit(wrap(multi), { locale: 'es' }));
     expect(py).toContain('# Primera línea');
