@@ -57,6 +57,10 @@ interface HomeProps {
   /** Name of the algorithm open in the editor, for the way back. */
   currentName: string;
   onBackToEditor: () => void;
+  /** Their name, falling back to the email's local part. */
+  displayName: string | null;
+  /** One or two letters for the avatar. */
+  initials: string | null;
   /** Signed-in email, or `null` when working on this browser only. */
   email: string | null;
   onSignOut: () => void;
@@ -190,6 +194,8 @@ export const Home = memo(function Home({
   currentName,
   onBackToEditor,
   email,
+  displayName,
+  initials,
   onSignOut,
   onSignIn,
 }: HomeProps) {
@@ -343,13 +349,18 @@ export const Home = memo(function Home({
               {accountState === 'in' && (
                 <>
                   <span className="home__account-avatar" aria-hidden="true">
-                    {(email ?? '?').slice(0, 1).toUpperCase()}
+                    {initials ?? '?'}
                   </span>
                   <span className="home__account-text">
-                    <span className="home__account-label">{d.auth.signedInAs}</span>
+                    {/* The name identifies the person; the email is kept as
+                        the quieter second line, since it answers "which
+                        account is this?" rather than "who am I?". */}
                     <span className="home__account-who" title={email ?? ''}>
-                      {email}
+                      {displayName ?? email}
                     </span>
+                    {displayName && email && (
+                      <span className="home__account-mail">{email}</span>
+                    )}
                   </span>
                   <button
                     type="button"

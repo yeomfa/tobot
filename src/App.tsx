@@ -135,6 +135,8 @@ export default function App() {
     <I18nProvider language={language}>
       <Workbench
         email={auth.email}
+        displayName={auth.displayName}
+        initials={auth.initials}
         onSignOut={() => void auth.signOut()}
         onSignIn={() => {
           window.localStorage.removeItem(SKIP_AUTH_KEY);
@@ -154,6 +156,10 @@ export default function App() {
 interface WorkbenchProps {
   /** Signed-in student's email, or `null` when working locally. */
   email: string | null;
+  /** Their name, falling back to the email's local part. */
+  displayName: string | null;
+  /** One or two letters for the avatar. */
+  initials: string | null;
   onSignOut: () => void;
   onSignIn: () => void;
   /** True until the student has opened the app once. */
@@ -176,6 +182,8 @@ interface WorkbenchProps {
  */
 function Workbench({
   email,
+  displayName,
+  initials,
   onSignOut,
   onSignIn,
   firstVisit,
@@ -547,6 +555,20 @@ function Workbench({
             />
           </span>
 
+          {/* Who is working, at the end of the bar where an account belongs.
+              Only when signed in: locally there is no one to name. */}
+          {displayName && (
+            <>
+              <span className="app__divider" aria-hidden="true" />
+              <span className="app__user" title={email ?? displayName}>
+                <span className="app__user-avatar" aria-hidden="true">
+                  {initials ?? '?'}
+                </span>
+                <span className="app__user-name">{displayName}</span>
+              </span>
+            </>
+          )}
+
           <button type="button" className="app__run" onClick={startRun}>
             <Play weight="fill" /> {d.actions.run}
           </button>
@@ -569,6 +591,8 @@ function Workbench({
             currentName={algorithm.name}
             onBackToEditor={() => setScreen('editor')}
             email={email}
+            displayName={displayName}
+            initials={initials}
             onSignOut={onSignOut}
             onSignIn={onSignIn}
           />

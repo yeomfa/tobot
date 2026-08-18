@@ -42,8 +42,20 @@ navegador. `.env.local` está en `.gitignore` de todos modos.
 
 Después de editarlo, reinicia `pnpm dev`: Vite lee las variables al arrancar.
 
-Para el sitio publicado, añade las dos como *repository secrets* en GitHub
-(**Settings > Secrets and variables > Actions**) y pásalas al paso de build
+Para el sitio publicado, ve a **Settings > Secrets and variables > Actions**:
+
+- En la pestaña **Secrets**, añade `VITE_SUPABASE_URL` y
+  `VITE_SUPABASE_PUBLISHABLE_KEY`.
+- En la pestaña **Variables**, añade `VITE_SUPABASE_GOOGLE` con valor `true`
+  o `false`. No es un secreto, solo un interruptor, y por eso va como
+  *variable*. Si no la creas, el botón de Google simplemente no aparece.
+
+Ninguno de los tres valores es realmente secreto: Vite los incrusta en el
+JavaScript que descarga el navegador, así que cualquiera puede leerlos en el
+sitio publicado. Van como *secrets* solo para no dejarlos escritos en el
+repositorio. Lo que protege los datos son las políticas de la base de datos.
+
+El workflow ya los pasa al paso de build
 del workflow.
 
 ## 4. Correo de confirmación

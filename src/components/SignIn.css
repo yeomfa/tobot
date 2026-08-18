@@ -238,3 +238,25 @@
   color: var(--text-secondary);
   text-decoration: underline;
 }
+
+/* Name and surname sit side by side: together they are one idea, and stacking
+   them made the sign-up form noticeably longer than the sign-in one. */
+.signin__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+/* A grid item will not shrink below the intrinsic width of its content, and
+   an input's default size is around 20 characters, so without this the two
+   fields overflow the card rather than sharing the row. */
+.signin__row > .signin__field,
+.signin__row input {
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  .signin__row {
+    grid-template-columns: 1fr;
+  }
+}

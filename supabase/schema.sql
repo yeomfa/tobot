@@ -66,3 +66,73 @@ drop trigger if exists algorithms_touch_updated_at on public.algorithms;
 create trigger algorithms_touch_updated_at
   before update on public.algorithms
   for each row execute function public.touch_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- Profiles: the display name behind an account.
+--
+-- Auth stores the email and nothing else, so a name lives here. A row per
+-- user, created automatically on sign-up, readable and writable only by its
+-- owner: the same ownership rule as algorithms.
+create table if not exists public.profiles (
+  -- Same id as the auth user, which makes the join trivial and the row
+  -- disappear with the account.
+  id          uuid primary key references auth.users (id) on delete cascade,
+  first_name  text,
+  last_name   text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.profiles enable row level security;
+
+drop policy if exists "read own profile" on public.profiles;
+create policy "read own profile"
+  on public.profiles for select
+  using (auth.uid() = id);
+
+drop policy if exists "insert own profile" on public.profiles;
+create policy "insert own profile"
+  on public.profiles for insert
+  with check (auth.uid() = id);
+
+drop policy if exists "update own profile" on public.profiles;
+create policy "update own profile"
+  on public.profiles for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+drop trigger if exists profiles_touch_updated_at on public.profiles;
+create trigger profiles_touch_updated_at
+  before update on public.profiles
+  for each row execute function public.touch_updated_at();
+
+-- Creating the row here rather than from the client means a profile always
+-- exists, including for accounts created through Google, where the app never
+-- sees a sign-up form. `security definer` lets it write past the policies
+-- above, which is safe because it only ever inserts the id being created.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, first_name, last_name)
+  values (
+    new.id,
+    -- Password sign-up passes these through `options.data`; Google supplies
+    -- `given_name` and `family_name` from the account itself.
+    nullif(coalesce(new.raw_user_meta_data ->> 'first_name',
+                    new.raw_user_meta_data ->> 'given_name', ''), ''),
+    nullif(coalesce(new.raw_user_meta_data ->> 'last_name',
+                    new.raw_user_meta_data ->> 'family_name', ''), '')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();

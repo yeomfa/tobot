@@ -24,6 +24,8 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -38,7 +40,13 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
 
     try {
       if (mode === 'signUp') {
-        const { error: signUpError } = await supabase.auth.signUp({ email, password });
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          // The database trigger reads these into the profile row, so the
+          // name exists from the very first sign-in.
+          options: { data: { first_name: firstName.trim(), last_name: lastName.trim() } },
+        });
         if (signUpError) throw signUpError;
         // Projects that require confirmation return no session, so say what
         // happens next rather than appearing to do nothing.
@@ -92,6 +100,33 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
         </p>
 
         <form className="signin__form" onSubmit={(event) => void submit(event)}>
+          {mode === 'signUp' && (
+            <div className="signin__row">
+              <label className="signin__field">
+                <span>{d.auth.firstName}</span>
+                <input
+                  type="text"
+                  required
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(event) => setFirstName(event.target.value)}
+                  placeholder={d.auth.firstNameHint}
+                />
+              </label>
+              <label className="signin__field">
+                <span>{d.auth.lastName}</span>
+                <input
+                  type="text"
+                  required
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(event) => setLastName(event.target.value)}
+                  placeholder={d.auth.lastNameHint}
+                />
+              </label>
+            </div>
+          )}
+
           <label className="signin__field">
             <span>{d.auth.email}</span>
             <input

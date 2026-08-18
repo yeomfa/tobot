@@ -41,6 +41,15 @@ jobs:
         env:
           # Project pages live at /<repo>/; this yields e.g. "/tobot/".
           BASE_PATH: /${{ github.event.repository.name }}/
+          # Vite inlines these at build time, so they have to be present here
+          # rather than at runtime. All three are public by design: they end up
+          # in the shipped bundle, and access control lives in the database's
+          # row-level security policies. Left unset, the site falls back to
+          # localStorage and simply shows no account screen.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          # Not a secret, just a switch: set it as a repository *variable*.
+          VITE_SUPABASE_GOOGLE: ${{ vars.VITE_SUPABASE_GOOGLE }}
         run: pnpm build
 
       # Reads the Pages configuration set under Settings > Pages, which has to
