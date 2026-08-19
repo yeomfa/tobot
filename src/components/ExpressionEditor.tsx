@@ -4,6 +4,8 @@ import { memo } from 'react';
 import { emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
+import { Picker } from './Picker';
+import type { PickerGroup } from './Picker';
 import './ExpressionEditor.css';
 
 interface ExpressionEditorProps {
@@ -123,8 +125,32 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 }: ExpressionEditorProps) {
   const { d } = useTranslation();
 
-  const operators =
-    mode === 'condition' ? [...COMPARISON, ...LOGICAL, ...ARITHMETIC] : [...ARITHMETIC, ...COMPARISON];
+  /**
+   * Grouped rather than flat. Thirteen operators in one column was a list
+   * taller than the block, with `≠` sitting next to `×` as though they were
+   * the same kind of thing. The order still follows the slot: a condition
+   * leads with comparison, a value with arithmetic.
+   */
+  const operatorGroups: PickerGroup<BinaryOperator>[] = (
+    mode === 'condition'
+      ? [
+          [d.operators.groupComparison, COMPARISON] as const,
+          [d.operators.groupLogical, LOGICAL] as const,
+          [d.operators.groupArithmetic, ARITHMETIC] as const,
+        ]
+      : [
+          [d.operators.groupArithmetic, ARITHMETIC] as const,
+          [d.operators.groupComparison, COMPARISON] as const,
+        ]
+  ).map(([label, list]) => ({
+    label,
+    dense: true,
+    options: list.map((operator) => ({
+      value: operator,
+      label: OPERATOR_GLYPH[operator],
+      hint: d.operators[operator],
+    })),
+  }));
 
   // Chains of one associative operator render as a flat row of values.
   const isChain = value.kind === 'binary' && ASSOCIATIVE.has(value.operator);
@@ -172,20 +198,24 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       )}
 
       {value.kind === 'variable' && (
-        <select
-          className="expr__var"
+        <Picker
           value={value.name}
-          onChange={(event) => onChange({ kind: 'variable', name: event.target.value })}
-          aria-label={d.fields.name}
-        >
-          {/* A dangling reference stays selectable so it can be fixed. */}
-          {!variables.includes(value.name) && <option value={value.name}>{value.name || '···'}</option>}
-          {variables.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
+          groups={[
+            {
+              options: [
+                // A dangling reference stays listed so it can be fixed rather
+                // than silently swapped for something else.
+                ...(variables.includes(value.name)
+                  ? []
+                  : [{ value: value.name, label: value.name || '···' }]),
+                ...variables.map((name) => ({ value: name, label: name })),
+              ],
+            },
+          ]}
+          onChange={(name) => onChange({ kind: 'variable', name })}
+          label={d.fields.name}
+          variant="reference"
+        />
       )}
 
       {value.kind === 'unary' && (
@@ -207,20 +237,13 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           {chain.map((part, index) => (
             <span key={index} className="expr__chain-item">
               {index > 0 && (
-                <select
-                  className="expr__op expr__op--select"
+                <Picker
                   value={value.operator}
-                  onChange={(event) =>
-                    onChange(rewriteOperator(value, event.target.value as BinaryOperator))
-                  }
-                  aria-label={d.fields.condition}
-                >
-                  {operators.map((operator) => (
-                    <option key={operator} value={operator}>
-                      {OPERATOR_GLYPH[operator]}
-                    </option>
-                  ))}
-                </select>
+                  groups={operatorGroups}
+                  onChange={(operator) => onChange(rewriteOperator(value, operator))}
+                  label={d.fields.operator}
+                  variant="operator"
+                />
               )}
               <ExpressionEditor
                 value={part.node}
@@ -243,20 +266,13 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             mode={mode === 'condition' ? 'value' : mode}
             nested
           />
-          <select
-            className="expr__op expr__op--select"
+          <Picker
             value={value.operator}
-            onChange={(event) =>
-              onChange({ ...value, operator: event.target.value as BinaryOperator })
-            }
-            aria-label={d.fields.condition}
-          >
-            {operators.map((operator) => (
-              <option key={operator} value={operator}>
-                {OPERATOR_GLYPH[operator]}
-              </option>
-            ))}
-          </select>
+            groups={operatorGroups}
+            onChange={(operator) => onChange({ ...value, operator })}
+            label={d.fields.operator}
+            variant="operator"
+          />
           <ExpressionEditor
             value={value.right}
             onChange={(right) => onChange({ ...value, right })}
@@ -277,16 +293,19 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         <span className="expr__tools">
           {/* Only worth showing once a variable exists to point at. */}
           {variables.length > 0 && value.kind !== 'binary' && value.kind !== 'unary' && (
-            <select
-              className="expr__source"
+            <Picker
               value={source}
-              onChange={(event) => setSource(event.target.value as 'literal' | 'variable')}
-              aria-label={d.fields.value}
-              title={d.fields.value}
-            >
-              <option value="literal">{d.fields.aValue}</option>
-              <option value="variable">{d.fields.aVariable}</option>
-            </select>
+              groups={[
+                {
+                  options: [
+                    { value: 'literal', label: d.fields.aValue },
+                    { value: 'variable', label: d.fields.aVariable },
+                  ],
+                },
+              ]}
+              onChange={setSource}
+              label={d.fields.value}
+            />
           )}
           <button
             type="button"

@@ -52,8 +52,7 @@
   min-width: 0;
 }
 
-.expr__literal,
-.expr__var {
+.expr__literal {
   min-width: 2.5ch;
   /* Wide enough for a full sentence prompt; blocks wrap rather than clip. */
   max-width: min(46ch, 100%);
@@ -69,13 +68,11 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.expr__literal:hover,
-.expr__var:hover {
+.expr__literal:hover {
   border-color: var(--border-strong);
 }
 
-.expr__literal:focus,
-.expr__var:focus {
+.expr__literal:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: var(--shadow-focus);
@@ -99,13 +96,13 @@
   margin: 0;
 }
 
-.expr__var {
+/* A variable reference keeps its own colour wherever it appears, which is
+   what lets a student pick one out of a sentence at a glance. */
+.expr .picker[data-variant='reference'] .picker__trigger {
   color: var(--hue-variable);
   font-weight: 600;
   background: var(--hue-variable-soft);
   border-color: var(--hue-variable-border);
-  appearance: none;
-  padding-right: 6px;
 }
 
 .expr__literal--bool {
@@ -122,21 +119,6 @@
   font-weight: 600;
   color: var(--text-secondary);
   padding: 0 1px;
-}
-
-.expr__op--select {
-  appearance: none;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: var(--radius-xs);
-  padding: 2px 4px;
-  text-align: center;
-}
-
-.expr__op--select:hover {
-  background: var(--bg-sunken);
-  color: var(--text-primary);
 }
 
 /* ---- Inline tools ---- */
@@ -222,21 +204,3 @@
   letter-spacing: 0.01em;
 }
 
-/* Says what the value is, rather than cycling to find out. */
-.expr__source {
-  height: 16px;
-  padding: 0 2px;
-  font-family: var(--font-sans);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-}
-
-.expr__source:hover {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-}
