@@ -160,25 +160,14 @@
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-/**
- * Only the value under the pointer shows its tools. Revealing every set on
- * block hover put three toolbars into a two-part expression, which read as
- * clutter competing with the sentence itself.
+/*
+ * One toolbar per expression now, so the nesting rules that used to hide the
+ * inner ones are gone with them. What is left is a single reveal: the whole
+ * statement is the hover target, since the controls act on the expression as
+ * a whole rather than on whichever operand the pointer happens to be over.
  */
-.expr:hover > .expr__tools,
-.expr:focus-within > .expr__tools {
-  opacity: 1;
-}
-
-/* An ancestor is "hovered" whenever a descendant is, so a parent whose subtree
-   contains the real target keeps its own tools hidden. Only the innermost
-   expression under the pointer shows them. */
-.expr:has(.expr:hover) > .expr__tools {
-  opacity: 0;
-}
-
-/* Focus still wins: tabbing to a value must reveal its controls. */
-.expr:focus-within:not(:has(.expr:focus-within)) > .expr__tools {
+.statement-block:hover .expr__tools,
+.statement-block:focus-within .expr__tools {
   opacity: 1;
 }
 
@@ -214,4 +203,40 @@
 .expr__tool--remove:hover {
   background: var(--danger-soft);
   color: var(--danger);
+}
+
+/*
+ * The add button carries a word. A bare "+" sat next to the "+" that means
+ * addition and read as the same thing, which is what made extending an
+ * expression guesswork.
+ */
+.expr__tool--add {
+  gap: 2px;
+  padding: 0 5px 0 3px;
+}
+
+.expr__tool-label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Says what the value is, rather than cycling to find out. */
+.expr__source {
+  height: 16px;
+  padding: 0 2px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.expr__source:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }

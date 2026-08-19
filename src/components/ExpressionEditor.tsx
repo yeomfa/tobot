@@ -1,7 +1,7 @@
-import { Minus, Plus, Textbox } from '@phosphor-icons/react';
+import { Minus, Plus } from '@phosphor-icons/react';
 import { memo } from 'react';
 
-import { literal } from '../core/ast/factory';
+import { emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import './ExpressionEditor.css';
@@ -16,6 +16,11 @@ interface ExpressionEditorProps {
   /** Conditions get comparison operators; values get arithmetic. */
   mode?: 'value' | 'condition';
   placeholder?: string;
+  /**
+   * Set on operands drawn inside a larger expression. They render their value
+   * without the editing bar, which belongs to the expression as a whole.
+   */
+  nested?: boolean;
 }
 
 /**
@@ -114,6 +119,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   expect = 'any',
   mode = 'value',
   placeholder,
+  nested = false,
 }: ExpressionEditorProps) {
   const { d } = useTranslation();
 
@@ -125,26 +131,21 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   const chain = isChain ? flattenChain(value, value.operator) : [];
 
   /**
-   * Steps a value between text, number and variable. One control covers the
-   * whole choice, and it only offers variables when some exist.
+   * Switches between typing a value and using a variable.
+   *
+   * This used to be one button that cycled blindly: you pressed it and found
+   * out afterwards what it had turned into. A select says up front what the
+   * choices are, which matters most for the students who do not yet know that
+   * "a value" and "a variable" are different things.
    */
-  const cycleKind = (): void => {
-    if (value.kind === 'literal') {
-      // Variables come first in the cycle: using one is the far more common
-      // next step than switching a literal's own type.
-      if (variables.length > 0) {
-        onChange({ kind: 'variable', name: variables[0] });
-      } else {
-        onChange(literal(value.valueKind === 'text' ? 0 : '', value.valueKind === 'text' ? 'number' : 'text'));
-      }
-      return;
+  const source: 'literal' | 'variable' = value.kind === 'variable' ? 'variable' : 'literal';
+  const setSource = (next: 'literal' | 'variable'): void => {
+    if (next === source) return;
+    if (next === 'variable') {
+      onChange({ kind: 'variable', name: variables[0] ?? '' });
+    } else {
+      onChange(expect === 'any' ? literal('', 'text') : emptyValue(expect));
     }
-    if (value.kind === 'variable') {
-      onChange(literal('', 'text'));
-      return;
-    }
-    // A binary node collapses to its left operand, which is the usual intent.
-    if (value.kind === 'binary') onChange(value.left);
   };
 
   /** Appends another operand, continuing the current chain where there is one. */
@@ -196,6 +197,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             variables={variables}
             expect={expect}
             mode={mode}
+            nested
           />
         </>
       )}
@@ -225,6 +227,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                 onChange={(next) => onChange(part.replace(next))}
                 variables={variables}
                 mode={mode === 'condition' ? 'value' : mode}
+                nested
               />
             </span>
           ))}
@@ -238,6 +241,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             onChange={(left) => onChange({ ...value, left })}
             variables={variables}
             mode={mode === 'condition' ? 'value' : mode}
+            nested
           />
           <select
             className="expr__op expr__op--select"
@@ -258,44 +262,54 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             onChange={(right) => onChange({ ...value, right })}
             variables={variables}
             mode={mode === 'condition' ? 'value' : mode}
+            nested
           />
         </>
       )}
 
-      {/* Two direct affordances instead of a menu: a type switch on the value
-          itself, and a "+" that extends the expression. Reaching a
-          concatenation used to take a menu round-trip per operand. */}
-      <span className="expr__tools">
-        <button
-          type="button"
-          className="expr__tool"
-          onClick={cycleKind}
-          title={d.fields.value}
-          aria-label={d.fields.value}
-        >
-          <Textbox weight="bold" />
-        </button>
-        <button
-          type="button"
-          className="expr__tool"
-          onClick={extend}
-          title={d.actions.addValue}
-          aria-label={d.actions.addValue}
-        >
-          <Plus weight="bold" />
-        </button>
-        {(value.kind === 'binary' || value.kind === 'unary') && (
+      {/*
+        The controls sit on the whole expression, never on each operand: a
+        nested editor renders its own value and nothing else. Repeating this
+        bar inside every part turned "a + b" into six buttons, most of which
+        acted on something other than what the student had clicked.
+      */}
+      {!nested && (
+        <span className="expr__tools">
+          {/* Only worth showing once a variable exists to point at. */}
+          {variables.length > 0 && value.kind !== 'binary' && value.kind !== 'unary' && (
+            <select
+              className="expr__source"
+              value={source}
+              onChange={(event) => setSource(event.target.value as 'literal' | 'variable')}
+              aria-label={d.fields.value}
+              title={d.fields.value}
+            >
+              <option value="literal">{d.fields.aValue}</option>
+              <option value="variable">{d.fields.aVariable}</option>
+            </select>
+          )}
           <button
             type="button"
-            className="expr__tool expr__tool--remove"
-            onClick={() => onChange(value.kind === 'binary' ? value.left : value.operand)}
-            title={d.actions.delete}
-            aria-label={d.actions.delete}
+            className="expr__tool expr__tool--add"
+            onClick={extend}
+            title={d.actions.addValue}
           >
-            <Minus weight="bold" />
+            <Plus weight="bold" />
+            <span className="expr__tool-label">{d.actions.addOperand}</span>
           </button>
-        )}
-      </span>
+          {(value.kind === 'binary' || value.kind === 'unary') && (
+            <button
+              type="button"
+              className="expr__tool expr__tool--remove"
+              onClick={() => onChange(value.kind === 'binary' ? value.left : value.operand)}
+              title={d.actions.removeOperand}
+              aria-label={d.actions.removeOperand}
+            >
+              <Minus weight="bold" />
+            </button>
+          )}
+        </span>
+      )}
     </span>
   );
 });

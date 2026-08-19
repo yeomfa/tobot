@@ -28,6 +28,8 @@ export const es = {
     moveUp: 'Subir',
     moveDown: 'Bajar',
     addValue: 'Agregar valor',
+    addOperand: 'y…',
+    removeOperand: 'Quitar la última parte',
     addStatement: 'Agregar instrucción',
     addElse: 'Agregar «si no»',
     removeElse: 'Quitar «si no»',
@@ -223,6 +225,8 @@ export const es = {
     step: 'de a',
     saveIn: 'guardar en',
     expect: 'tipo de dato',
+    aValue: 'un valor',
+    aVariable: 'una variable',
   },
   kinds: {
     number: 'número',

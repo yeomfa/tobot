@@ -29,6 +29,8 @@ export const en: Dictionary = {
     moveUp: 'Move up',
     moveDown: 'Move down',
     addValue: 'Add value',
+    addOperand: 'and…',
+    removeOperand: 'Remove the last part',
     addStatement: 'Add statement',
     addElse: 'Add "otherwise"',
     removeElse: 'Remove "otherwise"',
@@ -214,6 +216,8 @@ export const en: Dictionary = {
     step: 'step',
     saveIn: 'save in',
     expect: 'data type',
+    aValue: 'a value',
+    aVariable: 'a variable',
   },
   kinds: {
     number: 'number',
