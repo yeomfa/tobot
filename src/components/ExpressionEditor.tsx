@@ -1,9 +1,10 @@
-import { Minus, Plus } from '@phosphor-icons/react';
+import { Plus } from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
+import { flattenChain, removeAt } from './chain';
 import { Picker } from './Picker';
 import type { PickerGroup } from './Picker';
 import './ExpressionEditor.css';
@@ -20,9 +21,14 @@ interface ExpressionEditorProps {
   placeholder?: string;
   /**
    * Set on operands drawn inside a larger expression. They render their value
-   * without the editing bar, which belongs to the expression as a whole.
+   * without the bar that extends the expression, which belongs to the whole.
    */
   nested?: boolean;
+  /**
+   * Drops this operand from the expression containing it. Absent when there is
+   * nothing to drop back to, which is what hides the option on a lone value.
+   */
+  onRemove?: () => void;
 }
 
 /**
@@ -61,59 +67,6 @@ const OPERATOR_GLYPH: Record<BinaryOperator, string> = {
  * invalid expression unrepresentable, which is the whole reason the app can
  * guarantee the three language views always agree.
  */
-/**
- * Collects the operands of a left-leaning chain of one associative operator,
- * along with the setter that rebuilds the tree when one of them changes.
- *
- * The AST stays a binary tree — the emitters and interpreter rely on that —
- * but a student reading `"x " + i + " = " + total` should see four values in a
- * row, not four boxes inside each other.
- */
-interface ChainPart {
-  node: Expression;
-  replace: (next: Expression) => Expression;
-}
-
-function flattenChain(expression: Expression, operator: BinaryOperator): ChainPart[] {
-  if (expression.kind !== 'binary' || expression.operator !== operator) {
-    return [{ node: expression, replace: (next) => next }];
-  }
-
-  const left = flattenChain(expression.left, operator).map((part) => ({
-    node: part.node,
-    replace: (next: Expression): Expression => ({
-      ...expression,
-      left: part.replace(next),
-    }),
-  }));
-
-  return [
-    ...left,
-    {
-      node: expression.right,
-      replace: (next: Expression): Expression => ({ ...expression, right: next }),
-    },
-  ];
-}
-
-/**
- * Retargets every node of a chain to a new operator. Changing one connector in
- * a flat row changes the whole chain, which is the only reading that keeps the
- * row honest: `a + b × c` cannot be drawn as one flat row without implying the
- * wrong precedence.
- */
-function rewriteOperator(expression: Expression, operator: BinaryOperator): Expression {
-  if (expression.kind !== 'binary') return expression;
-  const from = expression.operator;
-  const rewrite = (node: Expression): Expression =>
-    // Only nodes belonging to this chain are retargeted; a nested expression
-    // using a different operator keeps its own.
-    node.kind === 'binary' && node.operator === from
-      ? { ...node, operator, left: rewrite(node.left) }
-      : node;
-  return rewrite(expression);
-}
-
 export const ExpressionEditor = memo(function ExpressionEditor({
   value,
   onChange,
@@ -122,14 +75,17 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   mode = 'value',
   placeholder,
   nested = false,
+  onRemove,
 }: ExpressionEditorProps) {
   const { d } = useTranslation();
 
   /**
-   * Grouped rather than flat. Thirteen operators in one column was a list
-   * taller than the block, with `≠` sitting next to `×` as though they were
-   * the same kind of thing. The order still follows the slot: a condition
-   * leads with comparison, a value with arithmetic.
+   * Grouped rather than flat, and narrowed to what the slot is for.
+   *
+   * Thirteen operators in one column was a list taller than the block, with
+   * `≠` sitting next to `×` as though they were the same kind of thing. A
+   * condition leads with comparison; a slot declared as text offers neither
+   * arithmetic nor ordering, since neither means anything there.
    */
   const operatorGroups: PickerGroup<BinaryOperator>[] = (
     mode === 'condition'
@@ -138,10 +94,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           [d.operators.groupLogical, LOGICAL] as const,
           [d.operators.groupArithmetic, ARITHMETIC] as const,
         ]
-      : [
-          [d.operators.groupArithmetic, ARITHMETIC] as const,
-          [d.operators.groupComparison, COMPARISON] as const,
-        ]
+      : expect === 'text'
+        ? // Joining text is the one arithmetic operator that applies.
+          [[d.operators.groupArithmetic, ['+'] as BinaryOperator[]] as const]
+        : expect === 'boolean'
+          ? [[d.operators.groupLogical, LOGICAL] as const]
+          : [
+              [d.operators.groupArithmetic, ARITHMETIC] as const,
+              [d.operators.groupComparison, COMPARISON] as const,
+            ]
   ).map(([label, list]) => ({
     label,
     dense: true,
@@ -173,6 +134,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       onChange(expect === 'any' ? literal('', 'text') : emptyValue(expect));
     }
   };
+
+  /**
+   * A single value, rather than something built out of other values. Only
+   * these can be swapped for a variable or dropped, so only these carry the
+   * options caret.
+   */
+  const isOperand = value.kind === 'literal' || value.kind === 'variable';
+  /** Pointless to offer a variable when none is in scope yet. */
+  const canReference = variables.length > 0;
 
   /** Appends another operand, continuing the current chain where there is one. */
   const extend = (): void => {
@@ -236,11 +206,11 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         <>
           {chain.map((part, index) => (
             <span key={index} className="expr__chain-item">
-              {index > 0 && (
+              {index > 0 && part.setOperator && (
                 <Picker
                   value={value.operator}
                   groups={operatorGroups}
-                  onChange={(operator) => onChange(rewriteOperator(value, operator))}
+                  onChange={(operator) => onChange(part.setOperator?.(operator) ?? value)}
                   label={d.fields.operator}
                   variant="operator"
                 />
@@ -249,8 +219,14 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                 value={part.node}
                 onChange={(next) => onChange(part.replace(next))}
                 variables={variables}
+                expect={expect}
                 mode={mode === 'condition' ? 'value' : mode}
                 nested
+                onRemove={
+                  chain.length > 1
+                    ? () => onChange(removeAt(chain, index, value.operator))
+                    : undefined
+                }
               />
             </span>
           ))}
@@ -284,29 +260,41 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       )}
 
       {/*
-        The controls sit on the whole expression, never on each operand: a
-        nested editor renders its own value and nothing else. Repeating this
-        bar inside every part turned "a + b" into six buttons, most of which
-        acted on something other than what the student had clicked.
+        Options for *this* value, reached by clicking the caret beside it.
+        Each operand owns its own, so in "a + b + c" the middle part can be
+        turned into a variable or dropped. One bar for the whole expression
+        meant only the last operand could be touched at all.
       */}
+      {isOperand && (canReference || onRemove) && (
+        <Picker
+          value={source}
+          groups={[
+            ...(canReference
+              ? [
+                  {
+                    options: [
+                      { value: 'literal' as const, label: d.fields.aValue },
+                      { value: 'variable' as const, label: d.fields.aVariable },
+                    ],
+                  },
+                ]
+              : []),
+            ...(onRemove
+              ? [{ options: [{ value: 'remove' as const, label: d.actions.removeOperand }] }]
+              : []),
+          ]}
+          onChange={(choice) => {
+            if (choice === 'remove') onRemove?.();
+            else setSource(choice);
+          }}
+          label={d.fields.value}
+          variant="options"
+        />
+      )}
+
+      {/* Extending belongs to the expression as a whole, so it appears once. */}
       {!nested && (
         <span className="expr__tools">
-          {/* Only worth showing once a variable exists to point at. */}
-          {variables.length > 0 && value.kind !== 'binary' && value.kind !== 'unary' && (
-            <Picker
-              value={source}
-              groups={[
-                {
-                  options: [
-                    { value: 'literal', label: d.fields.aValue },
-                    { value: 'variable', label: d.fields.aVariable },
-                  ],
-                },
-              ]}
-              onChange={setSource}
-              label={d.fields.value}
-            />
-          )}
           <button
             type="button"
             className="expr__tool expr__tool--add"
@@ -316,17 +304,6 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             <Plus weight="bold" />
             <span className="expr__tool-label">{d.actions.addOperand}</span>
           </button>
-          {(value.kind === 'binary' || value.kind === 'unary') && (
-            <button
-              type="button"
-              className="expr__tool expr__tool--remove"
-              onClick={() => onChange(value.kind === 'binary' ? value.left : value.operand)}
-              title={d.actions.removeOperand}
-              aria-label={d.actions.removeOperand}
-            >
-              <Minus weight="bold" />
-            </button>
-          )}
         </span>
       )}
     </span>

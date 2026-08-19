@@ -124,12 +124,15 @@
 /* ---- Inline tools ---- */
 
 /**
- * Two small controls per value: switch its kind, or extend the expression.
- * They stay hidden until the block is hovered so a finished algorithm still
- * reads as a sentence.
+ * The button that extends an expression. Hidden until the block is reached
+ * for, so a finished algorithm still reads as a sentence.
+ *
+ * Hidden here means removed from the layout, not merely transparent: an
+ * invisible bar still reserved its width, which pushed the type chip far
+ * enough from the value that they stopped reading as one thing.
  */
 .expr__tools {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 1px;
   /* Set apart from the expression and tinted, so the controls never read as
@@ -138,19 +141,13 @@
   padding: 1px;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--block-hue, var(--slate-400)) 10%, transparent);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-/*
- * One toolbar per expression now, so the nesting rules that used to hide the
- * inner ones are gone with them. What is left is a single reveal: the whole
- * statement is the hover target, since the controls act on the expression as
- * a whole rather than on whichever operand the pointer happens to be over.
- */
+/* The whole statement is the hover target: extending acts on the expression
+   as a whole, not on whichever operand the pointer happens to be over. */
 .statement-block:hover .expr__tools,
 .statement-block:focus-within .expr__tools {
-  opacity: 1;
+  display: inline-flex;
 }
 
 .expr__tool svg {
@@ -199,7 +196,8 @@
 
 .expr__tool-label {
   font-family: var(--font-sans);
-  font-size: 10px;
+  /* 10px was small enough that the word read as a smudge rather than a label. */
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.01em;
 }

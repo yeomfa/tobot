@@ -73,15 +73,36 @@
   color: var(--text-muted);
 }
 
-/* The caret is noise on an operator until the pointer is on it. */
-.picker[data-variant='operator'] .picker__caret {
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
+/*
+ * The per-operand options caret: a hairline affordance beside a value, which
+ * appears only while the block is being worked on. This is how a single part
+ * of "a + b + c" is reached — before it, the one bar on the whole expression
+ * could only ever act on the last operand.
+ */
+.picker[data-variant='options'] {
+  display: none;
 }
 
-.picker[data-variant='operator'] .picker__trigger:hover .picker__caret,
-.picker[data-variant='operator'] .picker__trigger[data-open] .picker__caret {
-  opacity: 1;
+.statement-block:hover .picker[data-variant='options'],
+.statement-block:focus-within .picker[data-variant='options'] {
+  display: inline-flex;
+}
+
+.picker[data-variant='options'] .picker__trigger {
+  min-width: 0;
+  padding: 0 1px;
+  background: transparent;
+  border-color: transparent;
+}
+
+.picker[data-variant='options'] .picker__caret {
+  width: 9px;
+  height: 9px;
+}
+
+.picker[data-variant='options'] .picker__trigger:hover .picker__caret,
+.picker[data-variant='options'] .picker__trigger[data-open] .picker__caret {
+  color: var(--text-primary);
 }
 
 .picker__list {

@@ -25,7 +25,7 @@ interface PickerProps<T extends string> {
   onChange: (value: T) => void;
   label: string;
   /** Styling hook, so an operator reads differently from a variable name. */
-  variant?: 'operator' | 'value' | 'reference';
+  variant?: 'operator' | 'value' | 'reference' | 'options';
 }
 
 /**
@@ -96,8 +96,12 @@ export function Picker<T extends string>({
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
       >
-        <span className="picker__current">{current?.label ?? '···'}</span>
-        <CaretDown className="picker__caret" weight="bold" aria-hidden="true" />
+        {/* An operator is punctuation: the glyph alone, no caret beside it.
+            The options variant is the reverse — a caret is all it is. */}
+        {variant !== 'options' && <span className="picker__current">{current?.label ?? '···'}</span>}
+        {variant !== 'operator' && (
+          <CaretDown className="picker__caret" weight="bold" aria-hidden="true" />
+        )}
       </button>
 
       {open && (
