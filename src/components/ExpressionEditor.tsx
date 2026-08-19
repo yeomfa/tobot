@@ -1,7 +1,7 @@
 import { Plus } from '@phosphor-icons/react';
 import { memo } from 'react';
 
-import { emptyValue, literal } from '../core/ast/factory';
+import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { flattenChain, removeAt } from './chain';
@@ -41,6 +41,9 @@ const ASSOCIATIVE = new Set<BinaryOperator>(['+', '*', '&&', '||']);
 const ARITHMETIC: BinaryOperator[] = ['+', '-', '*', '/', '%'];
 const COMPARISON: BinaryOperator[] = ['==', '!=', '<', '<=', '>', '>='];
 const LOGICAL: BinaryOperator[] = ['&&', '||'];
+
+/** The three types a written value can have, in the order the palette uses. */
+const KINDS: LiteralKind[] = ['number', 'text', 'boolean'];
 
 /** Symbols students recognise from maths, rather than programming spellings. */
 const OPERATOR_GLYPH: Record<BinaryOperator, string> = {
@@ -141,6 +144,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
    * options caret.
    */
   const isOperand = value.kind === 'literal' || value.kind === 'variable';
+
+  /**
+   * What the parts *inside* this expression hold, which is not what the
+   * expression itself produces. `edad >= 18` yields a boolean, but its two
+   * operands are numbers — so a condition must not pass its own boolean
+   * expectation down, or every side of a comparison would offer only
+   * "verdadero / falso".
+   */
+  const operandExpect: LiteralKind | 'any' = mode === 'condition' ? 'any' : expect;
   /** Pointless to offer a variable when none is in scope yet. */
   const canReference = variables.length > 0;
 
@@ -152,12 +164,19 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         : mode === 'condition'
           ? '=='
           : '+';
-    const seed: LiteralKind = expect === 'number' ? 'number' : 'text';
+    /*
+      The new operand matches what it is being joined to, rather than always
+      starting as text: comparing a number against an empty string is never
+      what was meant, and made the student fix the type of every part they
+      added. The slot's own expectation wins when it has one.
+    */
+    const seed: LiteralKind =
+      expect !== 'any' ? expect : value.kind === 'literal' ? value.valueKind : 'number';
     onChange({
       kind: 'binary',
       operator,
       left: value,
-      right: literal(seed === 'number' ? 0 : '', seed),
+      right: emptyValue(seed),
     });
   };
 
@@ -219,7 +238,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                 value={part.node}
                 onChange={(next) => onChange(part.replace(next))}
                 variables={variables}
-                expect={expect}
+                expect={operandExpect}
                 mode={mode === 'condition' ? 'value' : mode}
                 nested
                 onRemove={
@@ -235,12 +254,21 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 
       {value.kind === 'binary' && !isChain && (
         <>
+          {/*
+            A comparison is the common case here — `edad >= 18` — and it never
+            flattens, since `a > b > c` has no meaning. Both sides still need
+            their own remove: dropping one collapses the expression to the
+            other, which is how a student backs out of a comparison they did
+            not mean to start.
+          */}
           <ExpressionEditor
             value={value.left}
             onChange={(left) => onChange({ ...value, left })}
             variables={variables}
+            expect={operandExpect}
             mode={mode === 'condition' ? 'value' : mode}
             nested
+            onRemove={() => onChange(value.right)}
           />
           <Picker
             value={value.operator}
@@ -253,8 +281,10 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             value={value.right}
             onChange={(right) => onChange({ ...value, right })}
             variables={variables}
+            expect={operandExpect}
             mode={mode === 'condition' ? 'value' : mode}
             nested
+            onRemove={() => onChange(value.left)}
           />
         </>
       )}
@@ -265,13 +295,32 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         turned into a variable or dropped. One bar for the whole expression
         meant only the last operand could be touched at all.
       */}
-      {isOperand && (canReference || onRemove) && (
+      {isOperand && (
         <Picker
-          value={source}
+          value={value.kind === 'variable' ? 'variable' : `kind:${value.valueKind}`}
           groups={[
+            /*
+              The type of the value itself. Only `declare` used to offer this,
+              via its own chip, so a number typed into a condition or a
+              `decir` was stuck as whatever it started as. Hidden when the
+              slot dictates the type — a `repetir N veces` is always a number,
+              and offering to make it text would be offering a mistake.
+            */
+            ...(expect === 'any'
+              ? [
+                  {
+                    label: d.fields.expect,
+                    options: KINDS.map((kind) => ({
+                      value: `kind:${kind}` as const,
+                      label: d.kinds[kind],
+                    })),
+                  },
+                ]
+              : []),
             ...(canReference
               ? [
                   {
+                    label: expect === 'any' ? d.fields.value : undefined,
                     options: [
                       { value: 'literal' as const, label: d.fields.aValue },
                       { value: 'variable' as const, label: d.fields.aVariable },
@@ -285,7 +334,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           ]}
           onChange={(choice) => {
             if (choice === 'remove') onRemove?.();
-            else setSource(choice);
+            else if (choice === 'literal' || choice === 'variable') setSource(choice);
+            else onChange(castExpression(value, choice.slice('kind:'.length) as LiteralKind));
           }}
           label={d.fields.value}
           variant="options"
