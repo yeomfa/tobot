@@ -194,6 +194,28 @@
   background: var(--accent-soft);
 }
 
+/* Removing something is the one option that cannot be undone by picking
+   again, so it carries the danger colour rather than looking like a value. */
+.picker__option[data-danger] {
+  color: var(--danger);
+}
+
+.picker__option[data-danger]:hover {
+  background: var(--danger-soft);
+}
+
+.picker__option-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.picker__option[data-selected] .picker__option-icon,
+.picker__option[data-danger] .picker__option-icon {
+  color: inherit;
+}
+
 .picker__option-label {
   font-family: var(--font-mono);
   font-weight: 600;

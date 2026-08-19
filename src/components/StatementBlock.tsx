@@ -1,14 +1,10 @@
 import {
   DotsSixVertical,
-  Hash,
   Question,
-  TextAa,
-  ToggleLeft,
   Trash,
   Warning,
   WarningCircle,
 } from '@phosphor-icons/react';
-import type { Icon } from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { castExpression, createStatement } from '../core/ast/factory';
@@ -18,7 +14,7 @@ import type { Problem } from '../core/ast/validate';
 import { conceptForStatement } from '../content/concepts';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
-import { statementCategory, statementIcon } from './statementMeta';
+import { statementCategory, statementIcon, typeIcon } from './statementMeta';
 import './StatementBlock.css';
 
 export interface BlockCallbacks {
@@ -507,12 +503,6 @@ function Keyword({ children, muted }: { children: React.ReactNode; muted?: boole
  * placeholder text — something unfilled. A chip with the type's own icon and
  * colour reads as a property of the variable, which is what it is.
  */
-const TYPE_ICON: Record<LiteralKind, Icon> = {
-  number: Hash,
-  text: TextAa,
-  boolean: ToggleLeft,
-};
-
 function TypeSelect({
   value,
   onChange,
@@ -521,7 +511,7 @@ function TypeSelect({
   onChange: (kind: LiteralKind) => void;
 }) {
   const { d } = useTranslation();
-  const Glyph = TYPE_ICON[value];
+  const Glyph = typeIcon[value];
   const label =
     value === 'number' ? d.kinds.number : value === 'text' ? d.kinds.text : d.kinds.boolean;
 

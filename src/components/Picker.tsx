@@ -1,4 +1,5 @@
 import { CaretDown, Check } from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 
 import './Picker.css';
@@ -9,6 +10,14 @@ export interface PickerOption<T extends string> {
   label: string;
   /** Spelled-out meaning, shown beside the glyph in the list. */
   hint?: string;
+  /** Shown before the label, carrying the option's meaning at a glance. */
+  icon?: Icon;
+  /**
+   * Marks an option that destroys something. It takes the danger colour and
+   * stops pretending to be a value the picker can hold: removing a part is an
+   * action, not a state the caret could be showing.
+   */
+  danger?: boolean;
 }
 
 export interface PickerGroup<T extends string> {
@@ -97,9 +106,11 @@ export function Picker<T extends string>({
         aria-controls={open ? listId : undefined}
       >
         {/* An operator is punctuation: the glyph alone, no caret beside it.
-            The options variant is the reverse — a caret is all it is. */}
+            The options variant is the reverse — a caret is all it is.
+            A reference already sits under an options caret of its own, so a
+            second one beside it read as a stuttered "⌄⌄". */}
         {variant !== 'options' && <span className="picker__current">{current?.label ?? '···'}</span>}
-        {variant !== 'operator' && (
+        {variant !== 'operator' && variant !== 'reference' && (
           <CaretDown className="picker__caret" weight="bold" aria-hidden="true" />
         )}
       </button>
@@ -110,29 +121,39 @@ export function Picker<T extends string>({
             <div className="picker__group" key={group.label ?? index} data-dense={group.dense || undefined}>
               {group.label && <span className="picker__group-label">{group.label}</span>}
               <div className="picker__options">
-                {group.options.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="option"
-                    aria-selected={option.value === value}
-                    className="picker__option"
-                    data-selected={option.value === value || undefined}
-                    onClick={() => {
-                      onChange(option.value);
-                      setOpen(false);
-                    }}
-                    title={option.hint}
-                  >
-                    <span className="picker__option-label">{option.label}</span>
-                    {option.hint && !group.dense && (
-                      <span className="picker__option-hint">{option.hint}</span>
-                    )}
-                    {option.value === value && !group.dense && (
-                      <Check className="picker__check" weight="bold" aria-hidden="true" />
-                    )}
-                  </button>
-                ))}
+                {group.options.map((option) => {
+                  const OptionIcon = option.icon;
+                  // A destructive option is never "the current value", so it
+                  // takes no tick and no selected styling.
+                  const selected = !option.danger && option.value === value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      className="picker__option"
+                      data-selected={selected || undefined}
+                      data-danger={option.danger || undefined}
+                      onClick={() => {
+                        onChange(option.value);
+                        setOpen(false);
+                      }}
+                      title={option.hint}
+                    >
+                      {OptionIcon && (
+                        <OptionIcon className="picker__option-icon" weight="bold" aria-hidden="true" />
+                      )}
+                      <span className="picker__option-label">{option.label}</span>
+                      {option.hint && !group.dense && (
+                        <span className="picker__option-hint">{option.hint}</span>
+                      )}
+                      {selected && !group.dense && (
+                        <Check className="picker__check" weight="bold" aria-hidden="true" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}

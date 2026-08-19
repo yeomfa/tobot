@@ -1,10 +1,11 @@
-import { Plus } from '@phosphor-icons/react';
+import { Keyboard, Plus, Tag, Trash } from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { flattenChain, removeAt } from './chain';
+import { typeIcon } from './statementMeta';
 import { Picker } from './Picker';
 import type { PickerGroup } from './Picker';
 import './ExpressionEditor.css';
@@ -313,6 +314,9 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                     options: KINDS.map((kind) => ({
                       value: `kind:${kind}` as const,
                       label: d.kinds[kind],
+                      // The same icon the declaration chip uses, so a type is
+                      // recognisable wherever it appears.
+                      icon: typeIcon[kind],
                     })),
                   },
                 ]
@@ -322,14 +326,25 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   {
                     label: expect === 'any' ? d.fields.value : undefined,
                     options: [
-                      { value: 'literal' as const, label: d.fields.aValue },
-                      { value: 'variable' as const, label: d.fields.aVariable },
+                      { value: 'literal' as const, label: d.fields.aValue, icon: Keyboard },
+                      { value: 'variable' as const, label: d.fields.aVariable, icon: Tag },
                     ],
                   },
                 ]
               : []),
             ...(onRemove
-              ? [{ options: [{ value: 'remove' as const, label: d.actions.removeOperand }] }]
+              ? [
+                  {
+                    options: [
+                      {
+                        value: 'remove' as const,
+                        label: d.actions.removeOperand,
+                        icon: Trash,
+                        danger: true,
+                      },
+                    ],
+                  },
+                ]
               : []),
           ]}
           onChange={(choice) => {
@@ -394,8 +409,9 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
           const parsed = Number(event.target.value);
           onChange(literal(Number.isNaN(parsed) ? 0 : parsed, 'number'));
         }}
-        // Sized to content, with room for the 6px side padding on each side.
-        style={{ width: `${Math.max(String(value.value).length, 2) + 2.5}ch` }}
+        // Sized to content, with room for the side padding and for the options
+        // caret, which is drawn over the field's right edge.
+        style={{ width: `${Math.max(String(value.value).length, 2) + 4}ch` }}
       />
     );
   }
@@ -407,9 +423,10 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
       value={String(value.value)}
       placeholder={placeholder}
       onChange={(event) => onChange(literal(event.target.value, 'text'))}
-      // The leading quote glyph and padding both consume room, so the width
-      // allows for them; without the slack the last characters get clipped.
-      style={{ width: `${Math.max(String(value.value).length, 6) + 3}ch` }}
+      // The leading quote glyph, the padding and the options caret drawn over
+      // the right edge all consume room, so the width allows for them; without
+      // the slack the last characters get clipped.
+      style={{ width: `${Math.max(String(value.value).length, 6) + 4.5}ch` }}
     />
   );
 }

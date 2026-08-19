@@ -2,16 +2,19 @@ import {
   ArrowsClockwise,
   ArrowsSplit,
   ChatCircleText,
+  Hash,
   ListNumbers,
   NoteBlank,
   PencilSimple,
   Question,
   Repeat,
   Tag,
+  TextAa,
+  ToggleLeft,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 
-import type { Statement } from '../core/ast/types';
+import type { LiteralKind, Statement } from '../core/ast/types';
 
 export type Category = 'variables' | 'io' | 'conditionals' | 'loops' | 'notes';
 
@@ -60,4 +63,14 @@ export const statementIcon: Record<StatementKind, Icon> = {
   while: ArrowsClockwise,
   repeat: Repeat,
   forEach: ListNumbers,
+};
+
+/**
+ * One icon per data type, shared by the chip on a declaration and the menu on
+ * a value so that "number" looks the same wherever a student meets it.
+ */
+export const typeIcon: Record<LiteralKind, Icon> = {
+  number: Hash,
+  text: TextAa,
+  boolean: ToggleLeft,
 };

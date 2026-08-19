@@ -19,6 +19,26 @@
   vertical-align: middle;
 }
 
+/*
+ * The options caret is drawn *onto* the value it belongs to, overlapping its
+ * right edge, rather than sitting in the gap beside it. Spaced evenly it read
+ * as a stray character of its own — "0 ⌄ +" looked like three unrelated marks
+ * instead of one value with a menu — and no amount of nudging fixed that while
+ * it still floated free. Anchoring it to the value's own box does.
+ */
+.expr > .picker[data-variant='options'] {
+  margin-left: -14px;
+  /* Above the input's border so the two read as one control. */
+  z-index: 1;
+}
+
+/* Literals size themselves in `ch` from their own content, and that width
+   already allows for the caret. Only the variable trigger needs the room
+   added here. */
+.expr > .picker[data-variant='reference'] .picker__trigger {
+  padding-right: 16px;
+}
+
 /**
  * Only genuinely nested groupings get a bracket. A flat associative chain
  * (`a + b + c`) is drawn as a plain row: boxing each step made a four-part
