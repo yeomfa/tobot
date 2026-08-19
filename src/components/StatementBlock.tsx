@@ -11,7 +11,7 @@ import {
 import type { Icon } from '@phosphor-icons/react';
 import { memo } from 'react';
 
-import { createStatement } from '../core/ast/factory';
+import { castExpression, createStatement } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
 import type { LiteralKind, NodeId, Statement } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
@@ -323,7 +323,12 @@ function StatementBody({
             value={statement.valueKind}
             onChange={(valueKind) =>
               callbacks.update(statement.id, (current) =>
-                current.kind === 'declare' ? { ...current, valueKind } : current,
+                // The value has to follow the type: leaving a text literal in
+                // place after switching to number left the field editing the
+                // old kind, so picking "number" appeared to do nothing.
+                current.kind === 'declare'
+                  ? { ...current, valueKind, value: castExpression(current.value, valueKind) }
+                  : current,
               )
             }
           />

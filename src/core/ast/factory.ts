@@ -36,6 +36,46 @@ export function emptyValue(kind: LiteralKind): LiteralExpression {
   return literal('', 'text');
 }
 
+/**
+ * Re-reads an expression as another type, after the student changes the
+ * declared type of a variable.
+ *
+ * Whatever they already typed is kept whenever it survives the move: "42"
+ * becomes the number 42, and a number becomes its own digits back. Only a
+ * value with no sensible reading is replaced, so changing the type by mistake
+ * does not silently discard the work of typing a value in.
+ *
+ * Anything that is not a literal — a variable reference, a sum — is left
+ * alone. Those carry no type of their own to rewrite, and validation is what
+ * reports the mismatch.
+ */
+export function castExpression(expression: Expression, kind: LiteralKind): Expression {
+  if (expression.kind !== 'literal') return expression;
+  if (expression.valueKind === kind) return expression;
+
+  const current = expression.value;
+
+  if (kind === 'number') {
+    const parsed = typeof current === 'boolean' ? NaN : Number(current);
+    // An empty string parses as 0, which would look like an invented value.
+    const usable = String(current).trim() !== '' && !Number.isNaN(parsed);
+    return literal(usable ? parsed : 0, 'number');
+  }
+
+  if (kind === 'boolean') {
+    if (typeof current === 'boolean') return literal(current, 'boolean');
+    if (typeof current === 'number') return literal(current !== 0, 'boolean');
+    const text = current.trim().toLowerCase();
+    // Accepts what the interface itself shows in either language.
+    if (['true', 'verdadero', 'si', 'sí', '1'].includes(text)) return literal(true, 'boolean');
+    if (['false', 'falso', 'no', '0'].includes(text)) return literal(false, 'boolean');
+    return emptyValue('boolean');
+  }
+
+  // Text can hold any of them, so this direction never loses anything.
+  return literal(String(current), 'text');
+}
+
 type StatementKind = Statement['kind'];
 
 /**
