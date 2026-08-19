@@ -100,7 +100,45 @@ it is talking to. With no credentials configured the account layer does not
 exist at all: no sign-in screen, no network calls, and the app behaves exactly
 as it did before.
 
-See [SUPABASE.md](SUPABASE.md) for the setup, which takes about ten minutes.
+### Enabling accounts
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. In **SQL Editor → New query**, run [`supabase/schema.sql`](supabase/schema.sql).
+   It creates the `algorithms` and `profiles` tables with row-level security:
+   the browser key is public, so the *database* is what stops one student
+   reading another's work, not the client code.
+3. From **Project Settings → API Keys**, copy the project URL and the
+   publishable key into `.env.local`:
+
+   ```
+   VITE_SUPABASE_URL=https://yourproject.supabase.co
+   VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   VITE_SUPABASE_GOOGLE=false
+   ```
+
+   Never use the `sb_secret_` key: it bypasses those policies and must not
+   reach a browser. Restart `pnpm dev` afterwards — Vite reads env at startup.
+
+4. Optionally turn off *Confirm email* under **Authentication → Sign In /
+   Providers → Email**. The built-in mail service is rate-limited for testing,
+   so thirty students signing up at once will not all receive a message.
+
+### Google sign-in (optional)
+
+Skip this and students sign in with email and password.
+
+1. In Supabase, open **Authentication → Sign In / Providers → Google** and
+   copy the **Callback URL** it shows.
+2. In [Google Cloud Console](https://console.cloud.google.com), pick or create
+   a project, then under **APIs & Services → OAuth consent screen** choose
+   *External*, fill in the app name and support email, and save.
+3. Under **APIs & Services → Credentials → Create credentials → OAuth client
+   ID**, choose *Web application*. Paste the callback URL from step 1 into
+   **Authorised redirect URIs**.
+4. Copy the resulting *Client ID* and *Client Secret* back into the Supabase
+   Google provider page and enable it.
+5. Set `VITE_SUPABASE_GOOGLE=true`. Until then the button is hidden rather
+   than failing when pressed.
 
 ## Deployment
 
@@ -113,3 +151,25 @@ The workflow passes the repository name as `BASE_PATH` so assets resolve under
 that environment variable from the workflow.
 
 Tests gate the deploy: a failing interpreter never ships.
+
+For accounts on the published site, add the same values under **Settings →
+Secrets and variables → Actions**: `VITE_SUPABASE_URL` and
+`VITE_SUPABASE_PUBLISHABLE_KEY` as *secrets*, and `VITE_SUPABASE_GOOGLE` as a
+*variable* — it is a switch, not a credential. None of the three is truly
+secret, since Vite inlines them into the JavaScript the browser downloads;
+they live there only to stay out of the repository. Row-level security is what
+protects the data.
+
+### Free-tier limits
+
+| Limit | Free |
+| --- | --- |
+| Monthly active users | 50,000 |
+| Pooler connections | 200 |
+| Database | 500 MB |
+| Egress | 5 GB / month |
+
+Ample for ninety students. The constraint that does bite is different: **a free
+project pauses after a week without use**, so after a holiday the first student
+to arrive finds the app down until you wake it from the dashboard. The Pro plan
+or a scheduled query every few days avoids it.

@@ -177,7 +177,7 @@ export const en: Dictionary = {
     signedOut: 'Signed out',
     localMode: 'Local mode',
     notConfigured: 'Your algorithms live in this browser',
-    notConfiguredHint: 'Signing in needs Supabase connected. See SUPABASE.md.',
+    notConfiguredHint: 'Signing in needs Supabase connected. See the README.',
   },
   verbs: {
     declare: 'variable',

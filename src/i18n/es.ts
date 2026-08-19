@@ -186,7 +186,7 @@ export const es = {
     localMode: 'Modo local',
     notConfigured: 'Tus algoritmos viven en este navegador',
     notConfiguredHint:
-      'Para entrar con una cuenta hay que conectar Supabase. Mira SUPABASE.md.',
+      'Para entrar con una cuenta hay que conectar Supabase. Mira el README.',
   },
   verbs: {
     declare: 'variable',
