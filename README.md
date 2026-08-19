@@ -130,21 +130,26 @@ Skip this and students sign in with email and password.
 1. In Supabase, open **Authentication → Sign In / Providers → Google** and
    copy the **Callback URL** it shows.
 2. In [Google Cloud Console](https://console.cloud.google.com), pick or create
-   a project and open **APIs & Services → Google Auth Platform**. (This was
-   called *OAuth consent screen* until Google reorganised it; the old
-   single-page form is now the tabs **Branding**, **Audience**, **Data
-   Access** and **Clients**.) Press **Get started**, fill in the app name and
-   support email under *Branding*, and choose **External** when it asks for
-   the audience — that is the tab holding the user type now, so nothing on
-   the first screen offers it.
-3. On the **Clients** tab, press **Create client** and choose *Web
-   application*. Paste the callback URL from step 1 into **Authorised
-   redirect URIs**; it has to match exactly, or sign-in fails with
-   `redirect_uri_mismatch`.
+   a project and open **APIs & Services**. Google is midway through renaming
+   this screen, so the sidebar shows one of two things:
 
-   While the app is in *Testing*, only accounts listed under **Audience →
-   Test users** can sign in. Add your own, or publish the app, before asking
-   a class to try it.
+   - **OAuth consent screen** — the older form. Click it and pick **External**
+     right there, then fill in the app name and support email.
+   - **Google Auth Platform** — the newer version, split into the tabs
+     *Branding*, *Audience*, *Data Access* and *Clients*. Press **Get
+     started**, enter the app name and support email, and choose **External**
+     when it asks for the audience. The user type lives on the *Audience* tab
+     here, which is why the first screen never offers it.
+
+3. Create the client: **Credentials → Create credentials → OAuth client ID**
+   on the older console, or the **Clients → Create client** tab on the newer
+   one. Either way choose *Web application* and paste the callback URL from
+   step 1 into **Authorised redirect URIs**. It has to match exactly, or
+   sign-in fails with `redirect_uri_mismatch`.
+
+   While the app is unpublished, only the accounts listed as **test users**
+   can sign in. Add your own, or publish the app, before asking a class to
+   try it.
 4. Copy the resulting *Client ID* and *Client Secret* back into the Supabase
    Google provider page and enable it.
 5. Set `VITE_SUPABASE_GOOGLE=true`. Until then the button is hidden rather
