@@ -130,11 +130,21 @@ Skip this and students sign in with email and password.
 1. In Supabase, open **Authentication → Sign In / Providers → Google** and
    copy the **Callback URL** it shows.
 2. In [Google Cloud Console](https://console.cloud.google.com), pick or create
-   a project, then under **APIs & Services → OAuth consent screen** choose
-   *External*, fill in the app name and support email, and save.
-3. Under **APIs & Services → Credentials → Create credentials → OAuth client
-   ID**, choose *Web application*. Paste the callback URL from step 1 into
-   **Authorised redirect URIs**.
+   a project and open **APIs & Services → Google Auth Platform**. (This was
+   called *OAuth consent screen* until Google reorganised it; the old
+   single-page form is now the tabs **Branding**, **Audience**, **Data
+   Access** and **Clients**.) Press **Get started**, fill in the app name and
+   support email under *Branding*, and choose **External** when it asks for
+   the audience — that is the tab holding the user type now, so nothing on
+   the first screen offers it.
+3. On the **Clients** tab, press **Create client** and choose *Web
+   application*. Paste the callback URL from step 1 into **Authorised
+   redirect URIs**; it has to match exactly, or sign-in fails with
+   `redirect_uri_mismatch`.
+
+   While the app is in *Testing*, only accounts listed under **Audience →
+   Test users** can sign in. Add your own, or publish the app, before asking
+   a class to try it.
 4. Copy the resulting *Client ID* and *Client Secret* back into the Supabase
    Google provider page and enable it.
 5. Set `VITE_SUPABASE_GOOGLE=true`. Until then the button is hidden rather
