@@ -433,8 +433,12 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
       onChange={(event) => onChange(literal(event.target.value, 'text'))}
       // The leading quote glyph, the padding and the options caret drawn over
       // the right edge all consume room, so the width allows for them; without
-      // the slack the last characters get clipped.
-      style={{ width: `${Math.max(String(value.value).length, 6) + 4.5}ch` }}
+      // the slack the last characters get clipped. An empty field is sized to
+      // its placeholder, which is text the student still has to read: measuring
+      // only the value left "pregunta" running under the caret.
+      style={{
+        width: `${Math.max(String(value.value).length, placeholder?.length ?? 0, 6) + 4.5}ch`,
+      }}
     />
   );
 }

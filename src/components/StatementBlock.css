@@ -274,7 +274,11 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px var(--space-2) 2px 5px;
+  /* Matches the 26px of the name field and the value beside it. At 23px the
+     chip sat visibly shorter than the rest of the row, which read as the
+     caret being cramped rather than the pill being short. */
+  min-height: 26px;
+  padding: 2px 9px 2px 7px;
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--type-hue);
