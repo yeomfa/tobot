@@ -125,12 +125,14 @@
   border-color: var(--hue-variable-border);
 }
 
-.expr__literal--bool {
+/* A boolean keeps the conditional hue it had as a native select, since that
+   is what marks it out as the thing a `si` branches on. */
+.expr .picker[data-variant='boolean'] .picker__trigger {
   color: var(--hue-conditional);
   background: var(--hue-conditional-soft);
   border-color: var(--hue-conditional-border);
   font-weight: 600;
-  appearance: none;
+  padding-right: 16px;
 }
 
 .expr__op {

@@ -34,7 +34,7 @@ interface PickerProps<T extends string> {
   onChange: (value: T) => void;
   label: string;
   /** Styling hook, so an operator reads differently from a variable name. */
-  variant?: 'operator' | 'value' | 'reference' | 'options';
+  variant?: 'operator' | 'value' | 'reference' | 'options' | 'boolean' | 'chip';
 }
 
 /**
@@ -110,7 +110,7 @@ export function Picker<T extends string>({
             A reference already sits under an options caret of its own, so a
             second one beside it read as a stuttered "⌄⌄". */}
         {variant !== 'options' && <span className="picker__current">{current?.label ?? '···'}</span>}
-        {variant !== 'operator' && variant !== 'reference' && (
+        {variant !== 'operator' && variant !== 'reference' && variant !== 'boolean' && (
           <CaretDown className="picker__caret" weight="bold" aria-hidden="true" />
         )}
       </button>

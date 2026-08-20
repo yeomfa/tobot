@@ -14,6 +14,7 @@ import type { Problem } from '../core/ast/validate';
 import { conceptForStatement } from '../content/concepts';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
+import { Picker } from './Picker';
 import { statementCategory, statementIcon, typeIcon } from './statementMeta';
 import './StatementBlock.css';
 
@@ -515,19 +516,27 @@ function TypeSelect({
   const label =
     value === 'number' ? d.kinds.number : value === 'text' ? d.kinds.text : d.kinds.boolean;
 
+  // The chip used to be a styled span with an invisible native select laid over
+  // it: it looked right until clicked, when the operating system drew its own
+  // list and its own arrow. The Picker keeps the chip and owns the list too.
   return (
     <span className="statement-block__type" data-kind={value} title={`${d.fields.expect}: ${label}`}>
       <Glyph weight="bold" aria-hidden="true" />
-      <span className="statement-block__type-label">{label}</span>
-      <select
+      <Picker
         value={value}
-        onChange={(event) => onChange(event.target.value as LiteralKind)}
-        aria-label={d.fields.expect}
-      >
-        <option value="number">{d.kinds.number}</option>
-        <option value="text">{d.kinds.text}</option>
-        <option value="boolean">{d.kinds.boolean}</option>
-      </select>
+        groups={[
+          {
+            options: (['number', 'text', 'boolean'] as LiteralKind[]).map((kind) => ({
+              value: kind,
+              label: d.kinds[kind],
+              icon: typeIcon[kind],
+            })),
+          },
+        ]}
+        onChange={onChange}
+        label={d.fields.expect}
+        variant="chip"
+      />
     </span>
   );
 }

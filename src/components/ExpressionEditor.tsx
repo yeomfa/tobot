@@ -1,4 +1,4 @@
-import { Keyboard, Plus, Tag, Trash } from '@phosphor-icons/react';
+import { CheckCircle, Keyboard, Plus, Tag, Trash, XCircle } from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
@@ -385,15 +385,23 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
   const { d } = useTranslation();
 
   if (value.valueKind === 'boolean') {
+    // A native select here drew the operating system's own arrow, which sat
+    // beside the options caret as a second, differently-shaped one.
     return (
-      <select
-        className="expr__literal expr__literal--bool"
-        value={String(value.value)}
-        onChange={(event) => onChange(literal(event.target.value === 'true', 'boolean'))}
-      >
-        <option value="true">{d.booleans.true}</option>
-        <option value="false">{d.booleans.false}</option>
-      </select>
+      <Picker
+        value={String(value.value) as 'true' | 'false'}
+        groups={[
+          {
+            options: [
+              { value: 'true', label: d.booleans.true, icon: CheckCircle },
+              { value: 'false', label: d.booleans.false, icon: XCircle },
+            ],
+          },
+        ]}
+        onChange={(next) => onChange(literal(next === 'true', 'boolean'))}
+        label={d.fields.value}
+        variant="boolean"
+      />
     );
   }
 

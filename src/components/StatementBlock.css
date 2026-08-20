@@ -309,18 +309,31 @@
 
 /* "verdadero o falso" is too long to sit inline; the chip clamps it and the
    full wording stays in the title attribute. */
-.statement-block__type-label {
+
+/* The chip is now the Picker's trigger rather than a span with a hidden
+   select over it, so it inherits the chip's colour instead of imposing its
+   own surface. */
+.statement-block__type .picker__trigger {
+  height: auto;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: inherit;
+  background: transparent;
+  border: 0;
+}
+
+.statement-block__type .picker__current {
   max-width: 11ch;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.statement-block__type select {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  opacity: 0;
-  cursor: pointer;
+/* The chip's own icon already sits to its left. */
+.statement-block__type .picker__caret {
+  color: currentColor;
+  opacity: 0.65;
 }
 
 .statement-block__type:focus-within {
