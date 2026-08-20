@@ -1,10 +1,10 @@
 /**
  * The mark's colours.
  *
- * The head keys off `currentColor`, so a caller can tint it by setting
- * `color`, and the stem carries the teal that pairs with it. Setting
- * `--brand-mark-stem` collapses the mark to a single colour where the context
- * needs it, such as a monochrome print.
+ * The head and antenna key off `currentColor`, so a caller can tint them by
+ * setting `color`, while the statement bars carry the teal and amber that pair
+ * with the orange. Setting `--brand-mark-bars` collapses them to one colour
+ * where the context needs it, such as a monochrome print.
  */
 .brand-mark {
   display: block;
@@ -14,7 +14,9 @@
 }
 
 .brand-mark__head {
-  fill: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 
 .brand-mark__antenna {
@@ -22,17 +24,18 @@
   stroke: currentColor;
 }
 
-.brand-mark__spark {
+.brand-mark__spark,
+.brand-mark__eye {
   fill: currentColor;
 }
 
-/* Cut out of the head rather than drawn on it: at 16px a filled eye on a
-   filled head closes up and the face disappears. The surface colour keeps the
-   holes reading as holes in both themes. */
-.brand-mark__pupil {
-  fill: var(--bg-surface, #ffffff);
+/* Teal is the orange's complement, so the two bars carry the contrast the
+   mark needs without either colour fighting the head for attention. */
+.brand-mark__bar--1 {
+  fill: var(--brand-mark-bars, #0d9488);
 }
 
-.brand-mark__stem {
-  fill: var(--brand-mark-stem, #0d9488);
+.brand-mark__bar--2 {
+  fill: var(--brand-mark-bars, #f59e0b);
+  opacity: 0.85;
 }

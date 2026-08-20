@@ -1,21 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!--
-    The same mark the app draws from src/components/BrandMark.tsx: the T of
-    the name read as a robot, its crossbar the head and its stem the body.
-    Kept in step with that component by hand — the geometry below is its
-    32-unit grid, nudged to sit inside the rounded tile with even margins.
+    The same mark the app draws from src/components/BrandMark.tsx: a robot
+    whose body is the statements of an algorithm. Kept in step with that
+    component by hand.
+
+    No background tile: the mark sits directly on whatever the browser puts
+    behind it. That means the strokes have to carry on both a light and a dark
+    tab strip, which orange and teal both do — neither is close enough to white
+    or to near-black to disappear against one.
   -->
-  <rect width="32" height="32" rx="7" fill="#171d2e"/>
-
-  <g transform="translate(2.2 3) scale(0.86)">
-    <path d="M16 1.7v2.6" fill="none" stroke="#e8873a" stroke-width="2.2" stroke-linecap="round"/>
-    <circle cx="16" cy="1.9" r="1.8" fill="#e8873a"/>
-
-    <rect x="3.5" y="5.2" width="25" height="12.4" rx="4.4" fill="#e8873a"/>
-    <!-- The eyes carry the tile's own colour, so they read as holes. -->
-    <circle cx="11.4" cy="11.4" r="2.15" fill="#171d2e"/>
-    <circle cx="20.6" cy="11.4" r="2.15" fill="#171d2e"/>
-
-    <rect x="12.1" y="17.6" width="7.8" height="12.5" rx="2.4" fill="#0d9488"/>
+  <g fill="none" stroke="#e8873a" stroke-width="2" stroke-linecap="round">
+    <path d="M16 2.5v3.5"/>
+    <rect x="5" y="6" width="22" height="13" rx="5"/>
   </g>
+
+  <circle cx="16" cy="2.6" r="1.9" fill="#e8873a"/>
+  <circle cx="11.6" cy="12.5" r="2" fill="#e8873a"/>
+  <circle cx="20.4" cy="12.5" r="2" fill="#e8873a"/>
+
+  <rect x="5" y="21.4" width="22" height="3.1" rx="1.55" fill="#0d9488"/>
+  <rect x="8.6" y="26" width="18.4" height="3.1" rx="1.55" fill="#f59e0b" opacity="0.85"/>
 </svg>
