@@ -726,6 +726,7 @@ function Workbench({
                     output={execution.state.output}
                     variables={execution.state.variables}
                     onSelectNode={setSelectedNode}
+                    onClear={execution.stop}
                   />
                 </div>
               </div>

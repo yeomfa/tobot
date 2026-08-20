@@ -39,6 +39,10 @@ export interface ExecutionController {
   pause: () => void;
   /** Executes exactly one statement. */
   stepOnce: () => void;
+  /** Returns to the state before the last step. */
+  stepBack: () => void;
+  /** Whether there is an earlier step to return to. */
+  canStepBack: boolean;
   stop: () => void;
   answer: (value: string) => void;
 }
@@ -53,6 +57,7 @@ export interface ExecutionController {
 export function useExecution(program: Statement[]): ExecutionController {
   const [state, setState] = useState<ExecutionState>(IDLE_STATE);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [canStepBack, setCanStepBack] = useState(false);
   const [speed, setSpeed] = useState<Speed>('normal');
 
   const machine = useRef<Interpreter | null>(null);
@@ -82,6 +87,8 @@ export function useExecution(program: Statement[]): ExecutionController {
     machine.current = null;
     setIsPlaying(false);
     setState(IDLE_STATE);
+    // The discarded machine took its history with it.
+    setCanStepBack(false);
   }, [program, clearTimer]);
 
   useEffect(() => clearTimer, [clearTimer]);
@@ -97,7 +104,16 @@ export function useExecution(program: Statement[]): ExecutionController {
     setState(next);
     // Input and termination both end continuous playback.
     if (next.status !== 'running') setIsPlaying(false);
+    setCanStepBack(machineRef.canStepBack());
   }, [ensureMachine, state.status]);
+
+  const stepBack = useCallback(() => {
+    wasPlaying.current = false;
+    const machineRef = ensureMachine();
+    setState(machineRef.stepBack());
+    setIsPlaying(false);
+    setCanStepBack(machineRef.canStepBack());
+  }, [ensureMachine]);
 
   // Continuous playback: schedule the next step after each render of state.
   useEffect(() => {
@@ -114,6 +130,8 @@ export function useExecution(program: Statement[]): ExecutionController {
       const next = current.step();
       setState(next);
       if (next.status !== 'running') setIsPlaying(false);
+      // Continuous playback records history too, so pausing mid-run can go back.
+      setCanStepBack(current.canStepBack());
     }, SPEED_DELAY[speed]);
 
     return clearTimer;
@@ -125,6 +143,7 @@ export function useExecution(program: Statement[]): ExecutionController {
     if (state.status === 'finished' || state.status === 'error') {
       current.reset();
       setState(current.getState());
+      setCanStepBack(false);
     }
     wasPlaying.current = true;
     setIsPlaying(true);
@@ -142,6 +161,7 @@ export function useExecution(program: Statement[]): ExecutionController {
     setIsPlaying(false);
     machine.current = null;
     setState(IDLE_STATE);
+    setCanStepBack(false);
   }, [clearTimer]);
 
   const answer = useCallback((value: string) => {
@@ -154,5 +174,17 @@ export function useExecution(program: Statement[]): ExecutionController {
     if (next.status === 'running' && wasPlaying.current) setIsPlaying(true);
   }, []);
 
-  return { state, isPlaying, speed, setSpeed, play, pause, stepOnce, stop, answer };
+  return {
+    state,
+    isPlaying,
+    speed,
+    setSpeed,
+    play,
+    pause,
+    stepOnce,
+    stepBack,
+    canStepBack,
+    stop,
+    answer,
+  };
 }

@@ -18,6 +18,17 @@ import {
  * to drive the flowchart highlight. A recursive evaluator cannot pause.
  */
 
+/** Everything that makes up a moment in the run, for stepping backwards. */
+interface Snapshot {
+  stack: Frame[];
+  variables: Map<string, { value: RuntimeValue; kind: LiteralKind }>;
+  output: OutputEntry[];
+  status: ExecutionState['status'];
+  error: RuntimeError | null;
+  stepCount: number;
+  pendingAsk: { statement: Extract<Statement, { kind: 'ask' }>; prompt: string } | null;
+}
+
 interface Frame {
   statements: Statement[];
   index: number;
@@ -66,6 +77,17 @@ export class Interpreter {
   private pendingAsk: { statement: Extract<Statement, { kind: 'ask' }>; prompt: string } | null = null;
   private readonly program: Statement[];
 
+  /**
+   * One snapshot per completed step, so stepping backwards is possible.
+   *
+   * Restoring a previous state is the only honest way to go back: undoing a
+   * step would mean reversing whatever it did, and a statement that printed a
+   * line or overwrote a variable cannot be un-done from its own effects. The
+   * frames reference the program's own arrays rather than copying them, so a
+   * snapshot costs a shallow clone of the stack and the variable map.
+   */
+  private history: Snapshot[] = [];
+
   constructor(program: Statement[]) {
     this.program = program;
     this.reset();
@@ -79,7 +101,49 @@ export class Interpreter {
     this.error = null;
     this.stepCount = 0;
     this.pendingAsk = null;
+    this.history = [];
     this.status = this.program.length === 0 ? 'finished' : 'idle';
+  }
+
+  /** Captures the current moment, cheaply: frames share the program's arrays. */
+  private capture(): Snapshot {
+    return {
+      stack: this.stack.map((frame) => ({ ...frame, loop: frame.loop ? { ...frame.loop } : undefined })),
+      variables: new Map(this.variables),
+      output: [...this.output],
+      status: this.status,
+      error: this.error,
+      stepCount: this.stepCount,
+      pendingAsk: this.pendingAsk,
+    };
+  }
+
+  /** True when there is an earlier moment to return to. */
+  canStepBack(): boolean {
+    return this.history.length > 0;
+  }
+
+  /**
+   * Returns to the state before the last step.
+   *
+   * Output printed by the undone step disappears with it, which is the point:
+   * the console has to agree with the highlighted statement, or the two tell
+   * the student different stories about where the program is.
+   */
+  stepBack(): ExecutionState {
+    const previous = this.history.pop();
+    if (!previous) return this.getState();
+
+    this.stack = previous.stack;
+    this.variables = previous.variables;
+    this.output = previous.output;
+    this.status = previous.status;
+    this.error = previous.error;
+    this.stepCount = previous.stepCount;
+    this.pendingAsk = previous.pendingAsk;
+    // Nothing changed *now*; the highlight belongs to the restored statement.
+    this.changedNames.clear();
+    return this.getState();
   }
 
   getState(): ExecutionState {
@@ -124,6 +188,9 @@ export class Interpreter {
     if (this.status === 'finished' || this.status === 'error' || this.status === 'awaitingInput') {
       return this.getState();
     }
+
+    // Recorded before the step runs, so it is the state to come back to.
+    this.history.push(this.capture());
 
     this.status = 'running';
     this.changedNames.clear();

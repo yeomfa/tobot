@@ -14,6 +14,8 @@ export const es = {
     stop: 'Detener',
     step: 'Paso a paso',
     next: 'Paso a paso',
+    stepBack: 'Paso atrás',
+    exitStepping: 'Salir del paso a paso',
     stepOne: 'Ejecuta una sola instrucción y espera',
     pause: 'Pausar',
     resume: 'Continuar',

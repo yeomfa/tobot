@@ -15,6 +15,8 @@ export const en: Dictionary = {
     stop: 'Stop',
     step: 'Step through',
     next: 'Step through',
+    stepBack: 'Step back',
+    exitStepping: 'Leave step-by-step',
     stepOne: 'Run one statement and wait',
     pause: 'Pause',
     resume: 'Resume',

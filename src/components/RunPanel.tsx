@@ -1,4 +1,4 @@
-import { Broom, BugBeetle, Pause, Play } from '@phosphor-icons/react';
+import { BugBeetle, Pause, Play, SkipBack, SkipForward, X } from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState } from 'react';
 
 import type { ExecutionState } from '../core/runtime/types';
@@ -33,6 +33,10 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
   const { d, t, fill } = useTranslation();
   const { state, isPlaying } = execution;
   const [draft, setDraft] = useState('');
+  /* Stepping is a mode the student enters, not a state of the interpreter:
+     they are walking the program and want to keep walking it. It ends when
+     they leave it, or when a fresh run takes over. */
+  const [stepping, setStepping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const mood = moodFor(state, isPlaying);
@@ -78,18 +82,6 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
             {fill(d.runtime.stepCount, { count: state.stepCount })}
           </span>
         )}
-        {/* Clearing acts on the run rather than driving it, so it sits with
-            the status instead of among the transport controls. */}
-        <button
-          type="button"
-          className="run-panel__clear"
-          onClick={execution.stop}
-          disabled={state.stepCount === 0}
-          title={d.actions.clearConsole}
-          aria-label={d.actions.clearConsole}
-        >
-          <Broom />
-        </button>
       </header>
 
       <div className="run-panel__robot">
@@ -118,45 +110,91 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
         </form>
       )}
 
-      {/* Icon-only transport: the three actions are universal shapes, and
-          spelling them out crowded a panel this narrow. */}
-      <div className="run-panel__controls">
-        {isPlaying ? (
-          <button
-            type="button"
-            className="run-panel__button run-panel__button--primary"
-            onClick={execution.pause}
-            title={d.actions.pause}
-            aria-label={d.actions.pause}
-          >
-            <Pause weight="fill" />
-          </button>
+      {/*
+        Two modes, one row. Running is a single decision — go or stop — while
+        stepping is a position in the program, so it needs to move both ways.
+        The controls cross-fade rather than swapping instantly: the buttons
+        change meaning under the pointer, and a beat of motion is what says so.
+      */}
+      <div className="run-panel__controls" data-mode={stepping ? 'stepping' : 'running'}>
+        {stepping ? (
+          <>
+            <button
+              type="button"
+              className="run-panel__button"
+              onClick={execution.stepBack}
+              disabled={!execution.canStepBack}
+              title={d.actions.stepBack}
+              aria-label={d.actions.stepBack}
+            >
+              <SkipBack weight="fill" />
+            </button>
+            <button
+              type="button"
+              className="run-panel__button run-panel__button--primary"
+              onClick={execution.stepOnce}
+              disabled={state.status === 'awaitingInput'}
+              title={`${d.actions.next}: ${d.actions.stepOne}`}
+              aria-label={d.actions.next}
+            >
+              <SkipForward weight="fill" />
+            </button>
+            <button
+              type="button"
+              className="run-panel__button run-panel__button--quiet"
+              onClick={() => {
+                execution.stop();
+                setStepping(false);
+              }}
+              title={d.actions.exitStepping}
+              aria-label={d.actions.exitStepping}
+            >
+              <X weight="bold" />
+            </button>
+          </>
         ) : (
-          <button
-            type="button"
-            className="run-panel__button run-panel__button--primary"
-            onClick={execution.play}
-            disabled={state.status === 'awaitingInput'}
-            title={
-              state.stepCount > 0 && state.status !== 'finished' && state.status !== 'error'
-                ? d.actions.resume
-                : d.actions.run
-            }
-            aria-label={d.actions.run}
-          >
-            <Play weight="fill" />
-          </button>
+          <>
+            {isPlaying ? (
+              <button
+                type="button"
+                className="run-panel__button run-panel__button--primary"
+                onClick={execution.pause}
+                title={d.actions.pause}
+                aria-label={d.actions.pause}
+              >
+                <Pause weight="fill" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="run-panel__button run-panel__button--primary"
+                onClick={execution.play}
+                disabled={state.status === 'awaitingInput'}
+                title={
+                  state.stepCount > 0 && state.status !== 'finished' && state.status !== 'error'
+                    ? d.actions.resume
+                    : d.actions.run
+                }
+                aria-label={d.actions.run}
+              >
+                <Play weight="fill" />
+              </button>
+            )}
+            <button
+              type="button"
+              className="run-panel__button"
+              onClick={() => {
+                setStepping(true);
+                execution.stepOnce();
+              }}
+              disabled={isPlaying || state.status === 'awaitingInput'}
+              title={`${d.actions.next}: ${d.actions.stepOne}`}
+              aria-label={d.actions.next}
+            >
+              <BugBeetle weight="fill" />
+            </button>
+          </>
         )}
-        <button
-          type="button"
-          className="run-panel__button"
-          onClick={execution.stepOnce}
-          disabled={isPlaying || state.status === 'awaitingInput'}
-          title={`${d.actions.next}: ${d.actions.stepOne}`}
-          aria-label={d.actions.next}
-        >
-          <BugBeetle weight="fill" />
-        </button>
       </div>
 
       {/* Speed sits on its own line: inside the transport row it pulled the

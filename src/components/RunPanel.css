@@ -205,6 +205,11 @@
 
 /* ---- Controls ---- */
 
+/*
+ * The transport row. Entering step-by-step replaces its contents, so the
+ * buttons animate in rather than appearing already in place: they change
+ * meaning under the pointer, and a beat of motion is what admits it.
+ */
 .run-panel__controls {
   display: flex;
   align-items: center;
@@ -212,6 +217,46 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-3) var(--space-3);
   flex-shrink: 0;
+}
+
+.run-panel__controls > * {
+  animation: run-control-in var(--duration-base) var(--ease-spring) backwards;
+}
+
+/* Each button follows the one before it, so the row assembles left to right
+   instead of arriving as one block. */
+.run-panel__controls > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.run-panel__controls > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+@keyframes run-control-in {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+}
+
+/* Leaving is a way out, not an action to reach for, so it stays quiet until
+   it is wanted. */
+.run-panel__button--quiet {
+  color: var(--text-muted);
+  background: transparent;
+  box-shadow: none;
+}
+
+.run-panel__button--quiet:hover:not(:disabled) {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .run-panel__controls > * {
+    animation: none;
+  }
 }
 
 /**

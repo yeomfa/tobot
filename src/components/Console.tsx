@@ -1,3 +1,4 @@
+import { Broom } from '@phosphor-icons/react';
 import { memo, useEffect, useRef } from 'react';
 
 import type { NodeId } from '../core/ast/types';
@@ -10,6 +11,8 @@ interface ConsoleProps {
   /** Shown above the log; they left the robot panel to keep it uncluttered. */
   variables: VariableSnapshot[];
   onSelectNode: (id: NodeId) => void;
+  /** Discards the run. Lives here because this is what it visibly empties. */
+  onClear: () => void;
 }
 
 /**
@@ -18,7 +21,7 @@ interface ConsoleProps {
  * The robot panel shows only the latest line so it stays calm; everything the
  * program has said lives here, where there is room to read it.
  */
-export const Console = memo(function Console({ output, variables, onSelectNode }: ConsoleProps) {
+export const Console = memo(function Console({ output, variables, onSelectNode, onClear }: ConsoleProps) {
   const { d, t } = useTranslation();
   const listRef = useRef<HTMLOListElement>(null);
 
@@ -38,6 +41,22 @@ export const Console = memo(function Console({ output, variables, onSelectNode }
 
   return (
     <div className="console">
+      {/*
+        Clearing belongs to the console, not to the robot's status bar: this is
+        the thing it empties, and a broom tucked beside a status line gave no
+        clue what it would sweep.
+      */}
+      <button
+        type="button"
+        className="console__clear"
+        onClick={onClear}
+        title={d.actions.clearConsole}
+        aria-label={d.actions.clearConsole}
+      >
+        <Broom weight="bold" />
+        <span>{d.actions.clear}</span>
+      </button>
+
       {variables.length > 0 && (
         <div className="console__vars">
           <span className="console__vars-label">{d.console.variablesTitle}</span>

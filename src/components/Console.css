@@ -141,3 +141,41 @@
 .console__entry[data-kind='error'] .console__text {
   color: var(--danger);
 }
+
+/*
+ * Clearing sits in the console because this is what it empties. It used to be
+ * a bare broom beside the robot's status line, where it was both easy to miss
+ * and unclear about what it would sweep.
+ */
+.console__clear {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-end;
+  margin-left: auto;
+  padding: 3px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.console__clear svg {
+  width: 13px;
+  height: 13px;
+}
+
+.console__clear:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
