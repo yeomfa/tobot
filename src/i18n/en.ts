@@ -73,6 +73,7 @@ export const en: Dictionary = {
     palette: 'Statements panel',
     drawer: 'Code and diagram panel',
     robot: 'Robot panel',
+    canvas: 'Canvas view',
     resize: 'Drag to resize',
   },
   problems: {
@@ -253,6 +254,7 @@ export const en: Dictionary = {
     code: 'Code',
     naturalShort: 'Natural',
     pseudocodeShort: 'Pseudo',
+    blocks: 'Algorithm',
     flowchart: 'Flowchart',
     console: 'Console',
     concepts: 'Concepts',

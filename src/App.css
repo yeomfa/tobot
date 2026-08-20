@@ -301,9 +301,70 @@
   min-height: 0;
 }
 
+/*
+ * Two views of one algorithm, sharing the canvas.
+ *
+ * Both panes stay mounted: the editor keeps its scroll position across a
+ * switch, and the export dialog reaches into the DOM for the diagram's SVG,
+ * which has to be there whether or not it is on screen.
+ */
 .app__canvas {
+  position: relative;
   flex: 1;
   min-height: 0;
+}
+
+.app__canvas-pane {
+  position: absolute;
+  inset: 0;
+  /* Hidden rather than unmounted, and inert so a hidden pane cannot be
+     reached by keyboard or read out by a screen reader. */
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.app__canvas-pane[data-visible] {
+  position: relative;
+  visibility: visible;
+  pointer-events: auto;
+  height: 100%;
+}
+
+.app__canvas-tabs {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3) 0;
+  background: var(--bg-base);
+}
+
+.app__canvas-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.app__canvas-tab svg {
+  width: 15px;
+  height: 15px;
+}
+
+.app__canvas-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+}
+
+.app__canvas-tab[data-active] {
+  color: var(--accent-strong);
+  background: var(--bg-surface);
 }
 
 /* ---- Bottom drawer ---- */

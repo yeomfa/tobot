@@ -297,9 +297,13 @@
 
 /* The three controls spread across the well rather than bunching at its left
    edge, which read as misaligned against the full-width row above them. */
+/* Columns follow however many controls are here, rather than a hard-coded
+   three: removing the tour left its column standing empty, which pushed the
+   two survivors into the left two thirds of the bar. */
 .home__rail-settings {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 2px;
   padding: 3px;
   background: var(--bg-sunken);

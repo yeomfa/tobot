@@ -4,6 +4,8 @@ import {
   ArrowClockwise,
   ArrowCounterClockwise,
   CaretDown,
+  SquaresFour,
+  TreeStructure,
   CaretUp,
   Play,
   SidebarSimple,
@@ -51,15 +53,25 @@ import './App.css';
 type Theme = Preferences['theme'];
 
 /** Views available in the bottom drawer. */
-type DrawerView = 'natural' | 'pseudocode' | 'code' | 'flowchart' | 'console';
+type DrawerView = 'natural' | 'pseudocode' | 'code' | 'console';
 
-const DRAWER_TABS: DrawerView[] = ['natural', 'pseudocode', 'code', 'flowchart', 'console'];
+const DRAWER_TABS: DrawerView[] = ['natural', 'pseudocode', 'code', 'console'];
+
+/**
+ * The canvas shows one of two views of the same algorithm.
+ *
+ * The diagram used to be a fifth tab in the bottom drawer, which is a wide,
+ * short strip — and a flowchart grows downwards. It rendered at 120x180 inside
+ * a 926x212 slot, a thumbnail too small to read. Here it inherits the full
+ * height of the canvas, and since it is the same algorithm drawn differently,
+ * competing for the same space is the honest arrangement.
+ */
+type CanvasView = 'blocks' | 'flowchart';
 
 function drawerTabLabel(d: Dictionary, id: DrawerView): string {
   if (id === 'natural') return d.tabs.natural;
   if (id === 'pseudocode') return d.tabs.pseudocode;
   if (id === 'code') return d.tabs.code;
-  if (id === 'flowchart') return d.tabs.flowchart;
   return d.tabs.console;
 }
 
@@ -238,6 +250,7 @@ function Workbench({
   const [robotOpen, setRobotOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [drawerView, setDrawerView] = useState<DrawerView>('natural');
+  const [canvasView, setCanvasView] = useState<CanvasView>('blocks');
   // The tour opens itself on a first visit and can be replayed from the header.
   const [tourOpen, setTourOpen] = useState(false);
   /**
@@ -607,13 +620,48 @@ function Workbench({
         )}
 
         <div className="app__center">
-          <div className="app__canvas">
-            <Editor
-              algorithm={algorithm}
-              callbacks={callbacks}
-              activeNodeId={activeNodeId}
-              erroredNodeId={erroredNodeId}
-            />
+          <div className="app__canvas-tabs" role="tablist" aria-label={d.panels.canvas}>
+            {(['blocks', 'flowchart'] as CanvasView[]).map((view) => (
+              <button
+                key={view}
+                type="button"
+                role="tab"
+                className="app__canvas-tab"
+                aria-selected={canvasView === view}
+                data-active={canvasView === view || undefined}
+                onClick={() => setCanvasView(view)}
+              >
+                {view === 'blocks' ? <SquaresFour weight="bold" /> : <TreeStructure weight="bold" />}
+                {view === 'blocks' ? d.tabs.blocks : d.tabs.flowchart}
+              </button>
+            ))}
+          </div>
+
+          <div className="app__canvas" data-view={canvasView}>
+            {/*
+              Both stay mounted. The editor keeps its scroll position while the
+              diagram is up, and the diagram's SVG has to exist in the DOM for
+              the export to find it.
+            */}
+            <div className="app__canvas-pane" data-visible={canvasView === 'blocks' || undefined}>
+              <Editor
+                algorithm={algorithm}
+                callbacks={callbacks}
+                activeNodeId={activeNodeId}
+                erroredNodeId={erroredNodeId}
+              />
+            </div>
+            <div
+              className="app__canvas-pane"
+              data-visible={canvasView === 'flowchart' || undefined}
+            >
+              <Flowchart
+                program={algorithm.body}
+                activeNodeId={activeNodeId}
+                erroredNodeId={erroredNodeId}
+                onSelectNode={setSelectedNode}
+              />
+            </div>
           </div>
 
           {/* Bottom drawer: the code and diagram views. */}
@@ -656,20 +704,14 @@ function Workbench({
 
             {drawerOpen && (
               <div className="app__drawer-body">
-                {/* Both stay mounted: the flowchart's SVG must exist for export. */}
+                {/* Both stay mounted so switching tabs keeps scroll position. */}
                 <div
                   className="app__drawer-pane"
-                  data-hidden={
-                    drawerView === 'flowchart' || drawerView === 'console' || undefined
-                  }
+                  data-hidden={drawerView === 'console' || undefined}
                 >
                   <CodePanel
                     algorithm={algorithm}
-                    view={
-                      drawerView === 'flowchart' || drawerView === 'console'
-                        ? 'natural'
-                        : drawerView
-                    }
+                    view={drawerView === 'console' ? 'natural' : drawerView}
                     activeNodeId={activeNodeId}
                     erroredNodeId={erroredNodeId}
                     onSelectNode={setSelectedNode}
@@ -683,17 +725,6 @@ function Workbench({
                   <Console
                     output={execution.state.output}
                     variables={execution.state.variables}
-                    onSelectNode={setSelectedNode}
-                  />
-                </div>
-                <div
-                  className="app__drawer-pane"
-                  data-hidden={drawerView !== 'flowchart' || undefined}
-                >
-                  <Flowchart
-                    program={algorithm.body}
-                    activeNodeId={activeNodeId}
-                    erroredNodeId={erroredNodeId}
                     onSelectNode={setSelectedNode}
                   />
                 </div>
