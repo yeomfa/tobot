@@ -53,7 +53,8 @@ export const en: Dictionary = {
     tryItLong: 'Build my first algorithm',
     signIn: 'Sign in',
     noAccount: 'Free, nothing to install, no account needed.',
-    demoCaption: 'One instruction, written four ways at the same time.',
+    shotAlt: 'The Tobot editor: blocks on the left, the algorithm in the middle and the robot ready to run it.',
+    demoCaption: 'This is Tobot from the inside: blocks on the left, your algorithm in the middle and the robot ready to run it.',
 
     stepsTitle: 'How it works',
     stepsLead: 'Three steps, and the first one takes under a minute.',

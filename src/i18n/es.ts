@@ -52,7 +52,8 @@ export const es = {
     tryItLong: 'Armar mi primer algoritmo',
     signIn: 'Entrar',
     noAccount: 'Gratis, sin instalar nada y sin crear cuenta.',
-    demoCaption: 'Una sola instrucción, escrita de cuatro maneras al mismo tiempo.',
+    shotAlt: 'El editor de Tobot: bloques a la izquierda, el algoritmo en el centro y el robot listo para ejecutarlo.',
+    demoCaption: 'Así se ve Tobot por dentro: bloques a la izquierda, tu algoritmo en el centro y el robot listo para ejecutarlo.',
 
     stepsTitle: 'Así funciona',
     stepsLead: 'Tres pasos, y el primero toma menos de un minuto.',

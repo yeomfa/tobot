@@ -1,0 +1,69 @@
+/**
+ * The window around a product shot. Its chrome is quieter than a real
+ * browser's — it should frame the screenshot, not compete with it.
+ */
+.browser-frame {
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.browser-frame__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 9px var(--space-3);
+  background: var(--bg-inset);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.browser-frame__dots {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.browser-frame__dots i {
+  width: 9px;
+  height: 9px;
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+
+.browser-frame__url {
+  flex: 1;
+  padding: 3px var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.browser-frame__body {
+  display: block;
+  line-height: 0;
+}
+
+.browser-frame__body img,
+.browser-frame__body iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+
+/* A slight tilt reads as a product shot rather than a screenshot pasted flat
+   onto the page. Dropped on small screens, where the perspective costs width
+   the content needs. */
+@media (min-width: 900px) {
+  .browser-frame[data-tilt] {
+    transform: perspective(1600px) rotateX(2.5deg);
+    transform-origin: center top;
+  }
+}

@@ -6,7 +6,22 @@
  * two never drift apart — a landing page that looks like a different product
  * is a promise the app then breaks.
  */
+/*
+ * The page's own scale. Wider measure and far more range than the app: this is
+ * read once, standing back, where the interface is worked in for an hour. The
+ * tokens stay scoped to `.landing` so nothing here can reach the editor.
+ */
 .landing {
+  --landing-max: 1080px;
+  --landing-narrow: 720px;
+  --section-gap: clamp(3.5rem, 8vw, 6.5rem);
+
+  /* The app's largest step is 1.75rem, which reads as timid on a page whose
+     job is to be seen from across a room. */
+  --text-display: clamp(2.5rem, 6.5vw, 4.25rem);
+  --text-headline: clamp(1.75rem, 3.5vw, 2.5rem);
+  --text-body-lg: clamp(1rem, 1.4vw, 1.125rem);
+
   min-height: 100%;
   background: var(--bg-base);
   overflow-y: auto;
@@ -119,11 +134,21 @@
   position: absolute;
   inset: -10% -50% 30%;
   z-index: -1;
-  background: radial-gradient(
-    ellipse at 50% 0%,
-    color-mix(in srgb, var(--accent) 14%, transparent),
-    transparent 62%
-  );
+  /* The warm wash, over the editor's own grid: the page opens on the surface
+     the student is about to work on. */
+  background-image:
+    radial-gradient(
+      ellipse at 50% 0%,
+      color-mix(in srgb, var(--accent) 15%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    32px 32px,
+    32px 32px;
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
   pointer-events: none;
 }
 
@@ -137,7 +162,7 @@
 
 .landing__title {
   margin-top: var(--space-3);
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: var(--text-display);
   font-weight: 750;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -146,9 +171,9 @@
 }
 
 .landing__lead {
-  max-width: 60ch;
+  max-width: 58ch;
   margin: var(--space-4) auto 0;
-  font-size: var(--text-md);
+  font-size: var(--text-body-lg);
   line-height: 1.65;
   color: var(--text-secondary);
   text-wrap: pretty;
@@ -269,14 +294,31 @@
 
 /* ---- Sections ---- */
 
+/*
+ * Alternating grounds, so no two neighbouring sections look alike. Six
+ * identical blocks of centred title over a grid was the reason the page read
+ * as a list rather than an argument.
+ */
 .landing__section {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: var(--space-7) var(--space-5);
+  padding: var(--section-gap) var(--space-5);
+}
+
+.landing__section > * {
+  max-width: var(--landing-max);
+  margin-inline: auto;
+}
+
+.landing__section--raised {
+  background: var(--bg-surface);
+  border-block: 1px solid var(--border-subtle);
+}
+
+.landing__section--narrow > * {
+  max-width: var(--landing-narrow);
 }
 
 .landing__section-title {
-  font-size: var(--text-2xl);
+  font-size: var(--text-headline);
   font-weight: 720;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -390,7 +432,7 @@
 }
 
 .landing__closing h2 {
-  font-size: var(--text-2xl);
+  font-size: var(--text-headline);
   font-weight: 720;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -445,6 +487,18 @@
 
 .landing__section--steps {
   padding-bottom: var(--space-6);
+}
+
+/* Reveal wraps each item in a div, so the wrapper has to become the grid item
+   and pass its own height through to the card inside. */
+.landing__steps > .reveal,
+.landing__cards > .reveal {
+  display: flex;
+}
+
+.landing__steps > .reveal > *,
+.landing__cards > .reveal > * {
+  flex: 1;
 }
 
 .landing__steps {
@@ -554,4 +608,25 @@
 
 .landing__closing .landing__note {
   margin-top: var(--space-3);
+}
+
+/* The product shot sits below the fold's copy, wide enough to be read. */
+.landing__shot {
+  max-width: 1000px;
+  margin: var(--space-7) auto 0;
+}
+
+@media (max-width: 700px) {
+  /* The grid costs legibility at this width and the tilt costs room. */
+  .landing__hero::before {
+    background-image: radial-gradient(
+      ellipse at 50% 0%,
+      color-mix(in srgb, var(--accent) 15%, transparent),
+      transparent 62%
+    );
+  }
+
+  .landing__hero {
+    padding-top: var(--space-5);
+  }
 }

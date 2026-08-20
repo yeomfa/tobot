@@ -18,7 +18,11 @@ import { Link } from 'react-router-dom';
 import { APP_VERSION, MAKER } from '../brand';
 import { useTranslation } from '../i18n/context';
 import { ROUTES } from '../routes';
+import shotDark from '../assets/editor-dark.png';
+import shotLight from '../assets/editor-light.png';
 import { BrandMark } from './BrandMark';
+import { BrowserFrame } from './landing/BrowserFrame';
+import { Reveal } from './landing/Reveal';
 import './Landing.css';
 
 /**
@@ -70,38 +74,41 @@ export function Landing({ onTry }: { onTry: () => void }) {
 
           <p className="landing__note">{d.landing.noAccount}</p>
 
-          {/* One statement, in the four forms the app keeps in step. This is
-              the whole idea of Tobot, so it is shown rather than described. */}
-          <div className="landing__demo" aria-hidden="true">
-            <div className="landing__demo-row landing__demo-row--block">
-              <span className="landing__kw">si</span>
-              <span className="landing__var">nota</span>
-              <span className="landing__op">≥</span>
-              <span className="landing__num">3</span>
-              <span className="landing__kw">entonces</span>
-            </div>
-            <div className="landing__demo-grid">
-              <div className="landing__demo-cell">
-                <span className="landing__demo-label">{d.tabs.natural}</span>
-                <p>
-                  Si <em>nota</em> es mayor o igual que 3, entonces:
-                </p>
-              </div>
-              <div className="landing__demo-cell">
-                <span className="landing__demo-label">{d.tabs.pseudocode}</span>
-                <code>SI nota &gt;= 3 ENTONCES</code>
-              </div>
-              <div className="landing__demo-cell">
-                <span className="landing__demo-label">{d.tabs.code}</span>
-                <code>if (nota &gt;= 3) {'{'}</code>
-              </div>
-              <div className="landing__demo-cell">
-                <span className="landing__demo-label">{d.tabs.flowchart}</span>
-                <span className="landing__demo-diamond">nota ≥ 3</span>
-              </div>
-            </div>
+          {/*
+            The tool itself, not a drawing of it. A landing page for something
+            visual that never shows it is asking to be taken on trust; this is
+            the actual editor, captured from the running app, so the claim and
+            the evidence are the same picture.
+          */}
+          <div className="landing__shot">
+            <BrowserFrame url="tobot.app/app" tilt>
+              <picture>
+                <source srcSet={shotDark} media="(prefers-color-scheme: dark)" />
+                <img src={shotLight} alt={d.landing.shotAlt} width={1440} height={620} />
+              </picture>
+            </BrowserFrame>
           </div>
           <p className="landing__demo-caption">{d.landing.demoCaption}</p>
+        </section>
+
+        <section className="landing__section landing__section--audience landing__section--raised">
+          <h2 className="landing__section-title">{d.landing.forTitle}</h2>
+          <div className="landing__audience">
+            <article className="landing__audience-card">
+              <span className="landing__audience-icon">
+                <Student weight="duotone" />
+              </span>
+              <h3>{d.landing.forStudents.title}</h3>
+              <p>{d.landing.forStudents.body}</p>
+            </article>
+            <article className="landing__audience-card">
+              <span className="landing__audience-icon">
+                <ChalkboardTeacher weight="duotone" />
+              </span>
+              <h3>{d.landing.forTeachers.title}</h3>
+              <p>{d.landing.forTeachers.body}</p>
+            </article>
+          </div>
         </section>
 
         {/* How it works, before what it has: someone who does not yet know what
@@ -111,16 +118,18 @@ export function Landing({ onTry }: { onTry: () => void }) {
           <p className="landing__section-lead">{d.landing.stepsLead}</p>
           <ol className="landing__steps">
             {(['build', 'compare', 'run'] as const).map((key, index) => (
-              <li className="landing__step" key={key}>
-                <span className="landing__step-number">{index + 1}</span>
-                <h3>{d.landing.steps[key].title}</h3>
-                <p>{d.landing.steps[key].body}</p>
-              </li>
+              <Reveal key={key} delay={index * 90}>
+                <li className="landing__step">
+                  <span className="landing__step-number">{index + 1}</span>
+                  <h3>{d.landing.steps[key].title}</h3>
+                  <p>{d.landing.steps[key].body}</p>
+                </li>
+              </Reveal>
             ))}
           </ol>
         </section>
 
-        <section className="landing__section">
+        <section className="landing__section landing__section--raised">
           <h2 className="landing__section-title">{d.landing.featuresTitle}</h2>
           <div className="landing__cards">
             {[
@@ -130,19 +139,21 @@ export function Landing({ onTry }: { onTry: () => void }) {
               { icon: ChatCircleText, key: 'robot' },
               { icon: GraduationCap, key: 'concepts' },
               { icon: Check, key: 'validation' },
-            ].map(({ icon: Icon, key }) => (
-              <article className="landing__card" key={key}>
-                <span className="landing__card-icon">
-                  <Icon weight="duotone" />
-                </span>
-                <h3>{d.landing.features[key as keyof typeof d.landing.features].title}</h3>
-                <p>{d.landing.features[key as keyof typeof d.landing.features].body}</p>
-              </article>
+            ].map(({ icon: Icon, key }, index) => (
+              <Reveal key={key} delay={index * 60}>
+                <article className="landing__card">
+                  <span className="landing__card-icon">
+                    <Icon weight="duotone" />
+                  </span>
+                  <h3>{d.landing.features[key as keyof typeof d.landing.features].title}</h3>
+                  <p>{d.landing.features[key as keyof typeof d.landing.features].body}</p>
+                </article>
+              </Reveal>
             ))}
           </div>
         </section>
 
-        <section className="landing__section landing__section--topics">
+        <section className="landing__section landing__section--topics landing__section--narrow">
           <h2 className="landing__section-title">{d.landing.topicsTitle}</h2>
           <p className="landing__section-lead">{d.landing.topicsLead}</p>
           <ul className="landing__topics">
@@ -162,26 +173,6 @@ export function Landing({ onTry }: { onTry: () => void }) {
               {d.landing.soon}
             </li>
           </ul>
-        </section>
-
-        <section className="landing__section landing__section--audience">
-          <h2 className="landing__section-title">{d.landing.forTitle}</h2>
-          <div className="landing__audience">
-            <article className="landing__audience-card">
-              <span className="landing__audience-icon">
-                <Student weight="duotone" />
-              </span>
-              <h3>{d.landing.forStudents.title}</h3>
-              <p>{d.landing.forStudents.body}</p>
-            </article>
-            <article className="landing__audience-card">
-              <span className="landing__audience-icon">
-                <ChalkboardTeacher weight="duotone" />
-              </span>
-              <h3>{d.landing.forTeachers.title}</h3>
-              <p>{d.landing.forTeachers.body}</p>
-            </article>
-          </div>
         </section>
 
         <section className="landing__closing">

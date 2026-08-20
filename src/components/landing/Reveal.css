@@ -1,0 +1,29 @@
+/**
+ * A short rise into place. Small on purpose: the page should feel assembled
+ * rather than performed, and a long travel makes a reader wait for content
+ * that is already there.
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 420ms var(--ease-out),
+    transform 420ms var(--ease-out);
+}
+
+.reveal[data-shown] {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * Shown outright, with no transition to inherit the delay. Someone who has
+ * asked for less motion should see a finished page, not a slower animation.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
