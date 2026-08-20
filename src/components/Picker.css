@@ -88,16 +88,36 @@
   display: inline-flex;
 }
 
+/* The picker itself is a flex item beside the value; stretching it is what
+   gives the trigger inside a height to fill. Without this the button
+   collapsed to its 10px glyph, leaving almost nothing to click. */
+.picker[data-variant='options'] {
+  align-self: stretch;
+  display: flex;
+}
+
 .picker[data-variant='options'] .picker__trigger {
   min-width: 0;
-  padding: 0 1px;
+  /* Fills the value's height rather than keeping the default 22px, which left
+     the caret sitting low against a 26px field instead of centred in it. */
+  height: auto;
+  align-self: stretch;
+  padding: 0 4px;
   background: transparent;
   border-color: transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .picker[data-variant='options'] .picker__caret {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
+}
+
+/* A bare caret gives nothing to aim at. Hovering tints the strip it lives in,
+   so it reads as a control attached to the value rather than a loose mark. */
+.picker[data-variant='options'] .picker__trigger:hover,
+.picker[data-variant='options'] .picker__trigger[data-open] {
+  background: color-mix(in srgb, var(--block-hue, var(--slate-400)) 14%, transparent);
 }
 
 .picker[data-variant='options'] .picker__trigger:hover .picker__caret,
