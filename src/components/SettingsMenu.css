@@ -39,9 +39,11 @@
   box-shadow: var(--shadow-xs);
 }
 
+/* Fixed, not absolute: the landing page's column clips its overflow, and an
+   absolutely positioned list is clipped by that whatever its z-index. The
+   component measures where this goes. */
 .settings-menu__list {
-  position: absolute;
-  right: 0;
+  position: fixed;
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -53,16 +55,6 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   animation: settings-menu-in var(--duration-fast) var(--ease-out);
-}
-
-/* Opens upwards when there is no room below, which is the case in the landing
-   page's rail: these controls live at the bottom of the column. */
-.settings-menu__list--down {
-  top: calc(100% + 8px);
-}
-
-.settings-menu__list--up {
-  bottom: calc(100% + 8px);
 }
 
 @keyframes settings-menu-in {

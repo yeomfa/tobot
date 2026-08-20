@@ -34,19 +34,52 @@ export function SettingsMenu<T extends string>({
   label,
 }: SettingsMenuProps<T>) {
   const [open, setOpen] = useState(false);
-  const [drop, setDrop] = useState<'down' | 'up'>('down');
+  const [at, setAt] = useState<{ top: number; left: number } | null>(null);
   const root = useRef<HTMLDivElement>(null);
 
   /*
-   * These menus sit at the bottom of the landing page's rail, where a list
-   * opening downwards runs off the screen. Measuring before paint keeps it
-   * from visibly jumping into place.
+   * Positioned in viewport coordinates rather than against the trigger.
+   *
+   * The landing page's main column clips its overflow — it has banner art that
+   * has to stay inside — and an absolutely positioned list is clipped by that
+   * whatever its z-index, which no amount of opening upwards can fix. Fixed
+   * positioning takes the list out of that box entirely.
+   *
+   * Measured before paint so it never appears in the wrong place first.
    */
   useLayoutEffect(() => {
     if (!open || !root.current) return;
-    const { bottom } = root.current.getBoundingClientRect();
-    setDrop(window.innerHeight - bottom < 200 ? 'up' : 'down');
-  }, [open]);
+
+    const measure = (): void => {
+      const trigger = root.current?.getBoundingClientRect();
+      if (!trigger) return;
+
+      const width = 168;
+      const height = options.length * 34 + 8;
+      const gap = 8;
+      const margin = 8;
+
+      // Below the trigger when it fits, above it when it does not.
+      const below = trigger.bottom + gap;
+      const top =
+        below + height + margin <= window.innerHeight ? below : trigger.top - gap - height;
+
+      // Right-aligned with the trigger, kept inside the viewport either way.
+      const right = trigger.right - width;
+      const left = Math.max(margin, Math.min(right, window.innerWidth - width - margin));
+
+      setAt({ top: Math.max(margin, top), left });
+    };
+
+    measure();
+    // A scroll or resize would leave the list stranded where it was drawn.
+    window.addEventListener('scroll', measure, true);
+    window.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('scroll', measure, true);
+      window.removeEventListener('resize', measure);
+    };
+  }, [open, options.length]);
 
   // Close on an outside click or Escape, the two things a menu must always do.
   useEffect(() => {
@@ -81,7 +114,12 @@ export function SettingsMenu<T extends string>({
       </button>
 
       {open && (
-        <div className={`settings-menu__list settings-menu__list--${drop}`} role="menu" aria-label={label}>
+        <div
+          className="settings-menu__list"
+          style={at ? { top: at.top, left: at.left } : undefined}
+          role="menu"
+          aria-label={label}
+        >
           {options.map((option) => {
             const OptionIcon = option.icon;
             return (
