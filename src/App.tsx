@@ -46,7 +46,6 @@ import { useResizable } from './state/useResizable';
 import { welcomeAlgorithm } from './content/examples';
 import { createEmptyAlgorithm } from './state/useAlgorithm';
 import { BrandMark } from './components/BrandMark';
-import { BrandPreview } from './components/BrandPreview';
 import './App.css';
 
 type Theme = Preferences['theme'];
@@ -232,12 +231,6 @@ function Workbench({
   const [showExport, setShowExport] = useState(false);
   /** The app shows one screen at a time: the landing view or the editor. */
   const [screen, setScreen] = useState<'home' | 'editor'>('home');
-  /* Temporary: `#marca` opens the identity comparison while a mark is being
-     chosen. Read once at mount rather than routed, since it is a decision aid
-     that comes out with the options. */
-  const [brandPreview, setBrandPreview] = useState(
-    () => window.location.hash === '#marca',
-  );
   /** Bumped on save so the library list picks up name and size changes. */
   const [libraryRevision, setLibraryRevision] = useState(0);
 
@@ -389,17 +382,6 @@ function Workbench({
     '--robot-size': `${robotSize.size}px`,
     '--drawer-size': `${drawerSize.size}px`,
   } as React.CSSProperties;
-
-  if (brandPreview) {
-    return (
-      <BrandPreview
-        onClose={() => {
-          window.location.hash = '';
-          setBrandPreview(false);
-        }}
-      />
-    );
-  }
 
   return (
     <div
