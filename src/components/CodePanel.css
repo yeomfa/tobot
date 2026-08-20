@@ -239,3 +239,14 @@
 .code-panel__body[data-syntax='natural'] .tok--plain {
   color: var(--text-primary);
 }
+
+/*
+ * A variable in prose takes the same hue it has on the canvas, so a student
+ * reading "guarda la respuesta en nota" can see that `nota` is the thing they
+ * named rather than an ordinary word in the sentence. Tinted rather than
+ * boxed: this view is a paragraph to read, not a row of chips.
+ */
+.code-panel__body[data-syntax='natural'] .tok--variable {
+  color: var(--hue-variable);
+  font-weight: 600;
+}

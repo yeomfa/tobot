@@ -588,8 +588,7 @@ function Workbench({
             onOpen={openAlgorithm}
             onCreate={createNew}
             onOpenConcept={setOpenConcept}
-            onShowTour={() => setTourOpen(true)}
-            currentName={algorithm.name}
+              currentName={algorithm.name}
             onBackToEditor={() => setScreen('editor')}
             email={email}
             displayName={displayName}

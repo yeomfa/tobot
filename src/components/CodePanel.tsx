@@ -1,5 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 
+import { collectVariables } from '../core/ast/operations';
+
 import type { Algorithm, NodeId } from '../core/ast/types';
 import { codeTargets, emitters } from '../core/emitters';
 import type { EmittedLine, TargetId } from '../core/emitters';
@@ -47,6 +49,10 @@ export const CodePanel = memo(function CodePanel({
     () => emitter.emit(algorithm, { locale: language }),
     [emitter, algorithm, language],
   );
+
+  /* Prose has nothing to pattern-match on, so the highlighter is told which
+     names the algorithm actually declares. */
+  const variables = useMemo(() => collectVariables(algorithm.body), [algorithm]);
 
   const copy = async (): Promise<void> => {
     const text = lines
@@ -107,6 +113,7 @@ export const CodePanel = memo(function CodePanel({
                 isErrored={line.nodeId !== null && line.nodeId === erroredNodeId}
                 onSelect={onSelectNode}
                 showNumbers={emitter.syntax !== 'natural'}
+                variables={variables}
               />
             ))}
           </ol>
@@ -124,6 +131,8 @@ interface CodeLineProps {
   isErrored: boolean;
   onSelect: (id: NodeId) => void;
   showNumbers: boolean;
+  /** Names the algorithm declares, so prose can mark where they are used. */
+  variables: string[];
 }
 
 function CodeLine({
@@ -134,8 +143,12 @@ function CodeLine({
   isErrored,
   onSelect,
   showNumbers,
+  variables,
 }: CodeLineProps) {
-  const tokens = useMemo(() => highlight(line.text, syntax), [line.text, syntax]);
+  const tokens = useMemo(
+    () => highlight(line.text, syntax, variables),
+    [line.text, syntax, variables],
+  );
 
   return (
     <li

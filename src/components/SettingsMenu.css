@@ -41,7 +41,6 @@
 
 .settings-menu__list {
   position: absolute;
-  top: calc(100% + 8px);
   right: 0;
   z-index: 60;
   display: flex;
@@ -54,6 +53,16 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   animation: settings-menu-in var(--duration-fast) var(--ease-out);
+}
+
+/* Opens upwards when there is no room below, which is the case in the landing
+   page's rail: these controls live at the bottom of the column. */
+.settings-menu__list--down {
+  top: calc(100% + 8px);
+}
+
+.settings-menu__list--up {
+  bottom: calc(100% + 8px);
 }
 
 @keyframes settings-menu-in {

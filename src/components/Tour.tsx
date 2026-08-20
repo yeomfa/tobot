@@ -143,7 +143,13 @@ export const Tour = memo(function Tour({ open, onClose }: TourProps) {
 
   return (
     <div className="tour" role="dialog" aria-modal="true" aria-label={t('tour.welcomeTitle')}>
-      <div className="tour__scrim" onClick={onClose} role="presentation" />
+      <div
+        className="tour__scrim"
+        /* Shading is the spotlight's job whenever there is one to draw. */
+        data-plain={rect ? undefined : true}
+        onClick={onClose}
+        role="presentation"
+      />
 
       {rect && (
         <div
@@ -158,15 +164,12 @@ export const Tour = memo(function Tour({ open, onClose }: TourProps) {
         data-centred={rect ? undefined : true}
         style={cardStyle}
       >
-        <div className="tour__progress">
-          {STOPS.map((entry, position) => (
-            <span
-              key={entry.titleKey}
-              className="tour__dot"
-              data-done={position <= index || undefined}
-            />
-          ))}
-        </div>
+        {/* A plain count rather than a row of segments: it says exactly the
+            same thing in less ink, and the card is meant to stay out of the
+            way of the interface it is describing. */}
+        <p className="tour__count">
+          {index + 1} / {STOPS.length}
+        </p>
 
         <h2 className="tour__title">{t(`tour.${stop.titleKey}`)}</h2>
         <p className="tour__body">{t(`tour.${stop.bodyKey}`)}</p>

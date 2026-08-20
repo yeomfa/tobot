@@ -3,7 +3,6 @@ import {
   BookOpenText,
   ChartBar,
   Circle,
-  Compass,
   Copy,
   Desktop,
   DownloadSimple,
@@ -54,7 +53,6 @@ interface HomeProps {
   onOpen: (algorithm: Algorithm) => void;
   onCreate: () => void;
   onOpenConcept: (id: ConceptId) => void;
-  onShowTour: () => void;
   /** Name of the algorithm open in the editor, for the way back. */
   currentName: string;
   onBackToEditor: () => void;
@@ -180,7 +178,6 @@ export const Home = memo(function Home({
   onOpen,
   onCreate,
   onOpenConcept,
-  onShowTour,
   currentName,
   onBackToEditor,
   email,
@@ -396,15 +393,6 @@ export const Home = memo(function Home({
             </button>
 
             <div className="home__rail-settings">
-              <button
-                type="button"
-                className="home__rail-icon"
-                onClick={onShowTour}
-                title={d.tour.replay}
-                aria-label={d.tour.replay}
-              >
-                <Compass />
-              </button>
               <SettingsMenu
                 value={language}
                 options={LANGUAGES.map((code) => ({ value: code, label: languageNames[code] }))}

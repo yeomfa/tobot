@@ -10,11 +10,21 @@
   z-index: 200;
 }
 
+/*
+ * Only ever painted when nothing is being highlighted. With a spotlight on
+ * screen the shading is the spotlight's own ring shadow, and this layer stays
+ * transparent: two scrims at 0.4 stacked to 0.64, and the hole in the upper
+ * one still had the lower one showing through it, so the "highlighted"
+ * element was dimmed rather than lit.
+ */
 .tour__scrim {
   position: absolute;
   inset: 0;
-  background: rgb(14 19 32 / 0.4);
   animation: tour-fade var(--duration-base) var(--ease-out);
+}
+
+.tour__scrim[data-plain] {
+  background: rgb(14 19 32 / 0.4);
 }
 
 @keyframes tour-fade {
@@ -54,8 +64,8 @@
   padding: var(--space-5);
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   animation: tour-card-in var(--duration-base) var(--ease-spring);
 }
 
@@ -80,22 +90,12 @@
   animation: none;
 }
 
-.tour__progress {
-  display: flex;
-  gap: 4px;
-  margin-bottom: var(--space-4);
-}
-
-.tour__dot {
-  height: 3px;
-  flex: 1;
-  border-radius: var(--radius-full);
-  background: var(--border-default);
-  transition: background var(--duration-base) var(--ease-out);
-}
-
-.tour__dot[data-done] {
-  background: var(--accent);
+.tour__count {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
 }
 
 .tour__title {

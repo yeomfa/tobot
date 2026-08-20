@@ -3,11 +3,20 @@
  *
  * It only needs to colour the small language the emitters produce, so a regex
  * scanner is enough — pulling in a full highlighter would add far more weight
- * than this earns. Natural language is deliberately left unstyled apart from
- * its quoted values and step numbers.
+ * than this earns. Natural language is prose, so it is marked only where a
+ * word carries meaning: its step numbers, its quoted values, and the names of
+ * the variables the algorithm declares.
  */
 
-export type TokenType = 'plain' | 'keyword' | 'string' | 'number' | 'name' | 'operator' | 'comment';
+export type TokenType =
+  | 'plain'
+  | 'keyword'
+  | 'string'
+  | 'number'
+  | 'name'
+  | 'variable'
+  | 'operator'
+  | 'comment';
 
 export interface Token {
   type: TokenType;
@@ -82,8 +91,8 @@ function keywordsFor(syntax: string): Set<string> {
  * Scans one line. Multi-word pseudocode keywords ("FIN SI") are handled by
  * checking the two-word lookahead before falling back to single words.
  */
-export function highlight(text: string, syntax: string): Token[] {
-  if (syntax === 'natural') return highlightNatural(text);
+export function highlight(text: string, syntax: string, variables: string[] = []): Token[] {
+  if (syntax === 'natural') return highlightNatural(text, variables);
 
   const keywords = keywordsFor(syntax);
   const tokens: Token[] = [];
@@ -171,8 +180,37 @@ export function highlight(text: string, syntax: string): Token[] {
   return tokens;
 }
 
-/** Natural language only marks its step number and quoted values. */
-function highlightNatural(text: string): Token[] {
+/**
+ * Splits a run of prose, marking any variable name it contains.
+ *
+ * The names are passed in rather than guessed at: prose gives nothing to
+ * pattern-match on, and a heuristic would either miss a variable called
+ * `nota` or highlight the ordinary word `nota` in a sentence. Longest first,
+ * so `total` inside `totalGeneral` cannot claim the match, and bounded by
+ * non-word characters so a name is only marked when it stands alone.
+ */
+function splitVariables(text: string, variables: string[]): Token[] {
+  if (variables.length === 0) return [{ type: 'plain', text }];
+
+  const names = [...variables].filter(Boolean).sort((a, b) => b.length - a.length);
+  if (names.length === 0) return [{ type: 'plain', text }];
+
+  const escaped = names.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])(${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'gu');
+
+  const tokens: Token[] = [];
+  let last = 0;
+  for (const match of text.matchAll(pattern)) {
+    const at = match.index ?? 0;
+    if (at > last) tokens.push({ type: 'plain', text: text.slice(last, at) });
+    tokens.push({ type: 'variable', text: match[1] });
+    last = at + match[1].length;
+  }
+  if (last < text.length) tokens.push({ type: 'plain', text: text.slice(last) });
+  return tokens;
+}
+
+function highlightNatural(text: string, variables: string[] = []): Token[] {
   const tokens: Token[] = [];
   const stepMatch = /^(\d+(?:[.b]\d*)*\.)\s/.exec(text);
   let rest = text;
@@ -188,7 +226,9 @@ function highlightNatural(text: string): Token[] {
   for (const part of parts) {
     if (!part) continue;
     const quoted = part.startsWith('«') || part.startsWith('"');
-    tokens.push({ type: quoted ? 'string' : 'plain', text: part });
+    // A name inside a quoted message is part of the message, not a reference.
+    if (quoted) tokens.push({ type: 'string', text: part });
+    else tokens.push(...splitVariables(part, variables));
   }
 
   return tokens;
