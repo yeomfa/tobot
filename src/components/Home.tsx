@@ -40,6 +40,7 @@ import { useTranslation } from '../i18n/context';
 import { createAlgorithmStore } from '../state/storage';
 import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
+import { APP_VERSION, MAKER } from '../brand';
 import { BrandMark } from './BrandMark';
 import './Home.css';
 
@@ -412,6 +413,15 @@ export const Home = memo(function Home({
                 label={d.settings.theme}
               />
             </div>
+
+            {/* Who made it and which version this is: the two things a student
+                needs when reporting that something is wrong. */}
+            <p className="home__credit">
+              <a href={MAKER.url} target="_blank" rel="noreferrer noopener">
+                By {MAKER.name}
+              </a>
+              <span className="home__version">v{APP_VERSION}</span>
+            </p>
           </div>
         </nav>
 

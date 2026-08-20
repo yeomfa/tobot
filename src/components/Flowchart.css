@@ -88,10 +88,17 @@
   color: var(--text-primary);
 }
 
+/*
+ * Hidden, not `auto`. The diagram is moved with a transform, and a scrollbar
+ * beside that meant two mechanisms fighting over the same motion: dragging
+ * left the scroll position untouched, so the bar reported a position the
+ * diagram was no longer at, and scrolling moved a diagram the drag then
+ * yanked back. Dragging is the one way to move it.
+ */
 .flowchart__canvas {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   padding: var(--space-4);

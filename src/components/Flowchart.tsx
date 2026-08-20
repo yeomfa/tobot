@@ -167,6 +167,14 @@ export const Flowchart = memo(function Flowchart({
         onPointerCancel={() => {
           dragging.current = null;
         }}
+        /* The wheel still moves the diagram, since taking the scrollbar away
+           would otherwise have taken the wheel with it. */
+        onWheel={(event) => {
+          setPan((current) => ({
+            x: current.x - event.deltaX,
+            y: current.y - event.deltaY,
+          }));
+        }}
       >
         <svg
           ref={svgRef}

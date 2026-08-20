@@ -44,6 +44,46 @@ export const es = {
     learnMore: 'Saber más',
     save: 'Guardar',
   },
+  landing: {
+    eyebrow: 'Para aprender a programar',
+    title: 'Escribe algoritmos y míralos cobrar vida',
+    lead: 'Tobot convierte lo que armas en lenguaje natural, pseudocódigo, código real y diagrama de flujo — las cuatro a la vez, siempre de acuerdo. Un robot ejecuta tu algoritmo paso a paso para que veas qué hace cada instrucción.',
+    tryIt: 'Probar ahora',
+    signIn: 'Entrar',
+    noAccount: 'Sin cuenta, sin instalar nada. Empiezas en un clic.',
+    featuresTitle: 'Qué trae',
+    features: {
+      views: {
+        title: 'La misma idea, cuatro formas',
+        body: 'Lenguaje natural, pseudocódigo, código real y diagrama. Cambian juntas mientras armas, así que la relación entre ellas se ve, no se explica.',
+      },
+      diagram: {
+        title: 'Diagrama de flujo',
+        body: 'Se dibuja solo desde tu algoritmo, con la notación que se usa en clase. Se puede exportar para un informe o una diapositiva.',
+      },
+      run: {
+        title: 'Ejecución paso a paso',
+        body: 'Avanza y retrocede instrucción por instrucción, con las variables a la vista. Un error deja de ser un misterio.',
+      },
+      robot: {
+        title: 'Un robot que responde',
+        body: 'Habla, pregunta y reacciona a lo que escribiste. Programar deja de ser un texto que no contesta.',
+      },
+      concepts: {
+        title: 'Conceptos con referencias',
+        body: 'Cada tema trae una explicación breve y enlaces a fuentes confiables para ir más a fondo.',
+      },
+      validation: {
+        title: 'Errores que se entienden',
+        body: 'Tobot revisa el algoritmo mientras lo armas y dice qué falta en palabras, no en jerga de compilador.',
+      },
+    },
+    topicsTitle: 'Los temas del curso',
+    topicsLead: 'Todo lo que necesita un primer curso de programación, en bloques que no dejan escribir algo imposible.',
+    soon: 'Funciones y más, en camino',
+    closingTitle: '¿Listo para armar tu primer algoritmo?',
+    closingBody: 'Abre el editor y empieza. Si después quieres guardar tu trabajo y encontrarlo desde cualquier computador, creas una cuenta.',
+  },
   palette: {
     title: 'Instrucciones',
     subtitle: 'Elige una instrucción para agregarla a tu algoritmo',

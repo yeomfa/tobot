@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import {
   ArrowClockwise,
@@ -22,6 +23,8 @@ import {
 import type { NodeId, Statement } from './core/ast/types';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
+import { Landing } from './components/Landing';
+import { ROUTES } from './routes';
 import { CodePanel } from './components/CodePanel';
 import { Console } from './components/Console';
 import { Editor } from './components/Editor';
@@ -97,7 +100,32 @@ function initialPreferences(): Preferences {
 /** Set once a student chooses to work without an account on this browser. */
 const SKIP_AUTH_KEY = 'tobot.skipAuth';
 
+/**
+ * The routing shell.
+ *
+ * Preferences and the session live here rather than inside a route, because
+ * the theme, the language and who is signed in outlive any one screen. Each
+ * route below is an address a student can bookmark, reload or send to someone
+ * else; the app used to hold all of this in a state variable, so a reload
+ * always landed on the same page and the back button did nothing.
+ */
+/** Sends the visitor to sign in, remembering where they were headed. */
+function RedirectToLogin({
+  to,
+  remember,
+}: {
+  to: string;
+  remember: React.MutableRefObject<string | null>;
+}) {
+  remember.current = to;
+  return <Navigate to={ROUTES.login} replace />;
+}
+
 export default function App() {
+  const navigate = useNavigate();
+  /* Where to land once the gate is satisfied, whether by signing in or by
+     choosing to work without an account. */
+  const redirectAfterAuth = useRef<string | null>(null);
   const [preferences, setPreferences] = useState<Preferences>(initialPreferences);
   const language = preferences.language as Language;
   const auth = useSession();
@@ -131,18 +159,91 @@ export default function App() {
     );
   }
 
-  if (needsAuth) {
-    return (
-      <I18nProvider language={language}>
-        <SignIn
-          onSkip={() => {
-            window.localStorage.setItem(SKIP_AUTH_KEY, 'true');
-            setSkippedAuth(true);
-          }}
+  const skipAuth = (): void => {
+    window.localStorage.setItem(SKIP_AUTH_KEY, 'true');
+    setSkippedAuth(true);
+  };
+
+  return (
+    <I18nProvider language={language}>
+      <Routes>
+        <Route
+          path={ROUTES.landing}
+          element={
+            <Landing
+              onTry={() => {
+                /* Trying it is the point of the page, so it opens the editor
+                   rather than the gate: a visitor who has to sign in before
+                   seeing anything mostly leaves. The account is offered once
+                   there is work worth keeping. */
+                skipAuth();
+                navigate(ROUTES.editor);
+              }}
+            />
+          }
         />
-      </I18nProvider>
-    );
-  }
+        <Route
+          path={ROUTES.login}
+          element={
+            // Someone already signed in has no business on the sign-in page.
+            needsAuth ? (
+              <SignIn onSkip={skipAuth} />
+            ) : (
+              // Back to wherever the gate interrupted them, not to a fixed
+              // page: someone sent to sign in from the editor wants the
+              // editor, not the library.
+              <Navigate to={redirectAfterAuth.current ?? ROUTES.library} replace />
+            )
+          }
+        />
+        <Route
+          path={ROUTES.library}
+          element={
+            needsAuth ? (
+              <RedirectToLogin to={ROUTES.library} remember={redirectAfterAuth} />
+            ) : (
+              <Workspace
+                preferences={preferences}
+                setPreferences={setPreferences}
+                auth={auth}
+                onSignOut={() => void auth.signOut()}
+              />
+            )
+          }
+        />
+        <Route
+          path={ROUTES.editor}
+          element={
+            needsAuth ? (
+              <RedirectToLogin to={ROUTES.editor} remember={redirectAfterAuth} />
+            ) : (
+              <Workspace
+                preferences={preferences}
+                setPreferences={setPreferences}
+                auth={auth}
+                onSignOut={() => void auth.signOut()}
+              />
+            )
+          }
+        />
+        {/* An unknown address is a typo, not an error worth a page. */}
+        <Route path="*" element={<Navigate to={ROUTES.landing} replace />} />
+      </Routes>
+    </I18nProvider>
+  );
+}
+
+interface WorkspaceProps {
+  preferences: Preferences;
+  setPreferences: React.Dispatch<React.SetStateAction<Preferences>>;
+  auth: ReturnType<typeof useSession>;
+  onSignOut: () => void;
+}
+
+/** The editor and its library: everything behind the sign-in gate. */
+function Workspace({ preferences, setPreferences, auth, onSignOut }: WorkspaceProps) {
+  const language = preferences.language as Language;
+  const navigate = useNavigate();
 
   return (
     <I18nProvider language={language}>
@@ -150,10 +251,12 @@ export default function App() {
         email={auth.email}
         displayName={auth.displayName}
         initials={auth.initials}
-        onSignOut={() => void auth.signOut()}
+        onSignOut={onSignOut}
         onSignIn={() => {
+          // Clearing the skip is what makes the gate ask again; the route is
+          // where it asks.
           window.localStorage.removeItem(SKIP_AUTH_KEY);
-          setSkippedAuth(false);
+          navigate(ROUTES.login);
         }}
         firstVisit={IS_FIRST_VISIT}
         theme={preferences.theme}
@@ -241,17 +344,19 @@ function Workbench({
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
-  /**
-   * The app shows one screen at a time: the landing view or the editor.
-   *
-   * Kept in the URL hash so a reload lands where the student was, and the
-   * browser's back button walks between the two. The hash rather than a path
-   * because the app is served from GitHub Pages, which has no server to route
-   * unknown paths back to `index.html`; `#/editor` needs no such rewrite and
-   * cannot 404.
+  /*
+   * Which screen shows is the URL's job now, not a piece of state: `/app` is
+   * the editor and `/mis-algoritmos` the library. Every screen has an address
+   * a student can bookmark, reload or share, and the back button walks them.
    */
-  const [screen, setScreen] = useState<'home' | 'editor'>(() =>
-    window.location.hash === '#/editor' ? 'editor' : 'home',
+  const location = useLocation();
+  const navigate = useNavigate();
+  const screen: 'home' | 'editor' = location.pathname === ROUTES.editor ? 'editor' : 'home';
+  const setScreen = useCallback(
+    (next: 'home' | 'editor') => {
+      navigate(next === 'editor' ? ROUTES.editor : ROUTES.library);
+    },
+    [navigate],
   );
   /** Bumped on save so the library list picks up name and size changes. */
   const [libraryRevision, setLibraryRevision] = useState(0);
@@ -268,26 +373,6 @@ function Workbench({
    * actually opens the editor. Starting it over the landing view highlighted
    * elements that were not on screen.
    */
-  /*
-   * Two directions, kept apart. Writing replaces the entry rather than pushing
-   * one, so switching screens does not stack duplicates in the history; the
-   * listener handles the back button, where the URL changed without us.
-   */
-  useEffect(() => {
-    const target = screen === 'editor' ? '#/editor' : '#/';
-    if (window.location.hash !== target) {
-      window.history.replaceState(null, '', target);
-    }
-  }, [screen]);
-
-  useEffect(() => {
-    const onHashChange = (): void => {
-      setScreen(window.location.hash === '#/editor' ? 'editor' : 'home');
-    };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
-
   const tourPending = useRef(firstVisit);
 
   /**
@@ -400,7 +485,7 @@ function Workbench({
   const createNew = useCallback(() => {
     load(createEmptyAlgorithm(d.app.untitled));
     setScreen('editor');
-  }, [load, d.app.untitled]);
+  }, [load, d.app.untitled, setScreen]);
 
   /** Opening anything from the landing view moves to the editor with it. */
   const openAlgorithm = useCallback(
@@ -408,7 +493,7 @@ function Workbench({
       load(next);
       setScreen('editor');
     },
-    [load],
+    [load, setScreen],
   );
 
   /** The header's Run reveals the robot if it was hidden, then starts. */

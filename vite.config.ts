@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -8,8 +9,13 @@ import react from '@vitejs/plugin-react';
  */
 const base = process.env.BASE_PATH ?? '/';
 
+/* The version is read from package.json at build time, so the number shown in
+   the app can never drift from the one that was released. */
+const version = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version;
+
 export default defineConfig({
   base,
+  define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [react()],
   build: {
     outDir: 'dist',

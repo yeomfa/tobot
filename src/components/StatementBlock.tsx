@@ -136,14 +136,29 @@ export const StatementBlock = memo(function StatementBlock({
             <span
               className="statement-block__badge"
               data-severity={worst}
-              /* The full explanation lives in the tooltip so the block stays
-                 readable; the badge only signals that something needs a look. */
-              title={ownProblems
-                .map((problem) => t(`problems.${problem.messageKey}`, problem.vars))
-                .join('\n')}
               role="status"
+              /* Focusable so the explanation is reachable by keyboard too. */
+              tabIndex={0}
             >
               {worst === 'error' ? <WarningCircle weight="fill" /> : <Warning weight="fill" />}
+              {/*
+                A popover of our own rather than the browser's `title`, which
+                takes a second to appear, is styled by the operating system and
+                cannot show more than plain text. This one carries the severity
+                colour and lists every problem on the statement.
+              */}
+              <span className="statement-block__problems" data-severity={worst}>
+                {ownProblems.map((problem, index) => (
+                  <span className="statement-block__problem" key={index}>
+                    {problem.severity === 'error' ? (
+                      <WarningCircle weight="fill" />
+                    ) : (
+                      <Warning weight="fill" />
+                    )}
+                    {t(`problems.${problem.messageKey}`, problem.vars)}
+                  </span>
+                ))}
+              </span>
             </span>
           )}
           {concept && (

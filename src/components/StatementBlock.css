@@ -663,3 +663,102 @@ body[data-dragging] .drop-zone .drop-zone__hint {
   color: var(--accent-strong);
   font-weight: 600;
 }
+
+/*
+ * The problem popover.
+ *
+ * Replaces the browser's `title`, which waits a second before appearing, is
+ * drawn by the operating system in a style nothing else here shares, and can
+ * only ever be plain text. This one appears at once, carries the severity
+ * colour, and gives each problem its own icon and line.
+ */
+.statement-block__badge {
+  position: relative;
+}
+
+.statement-block__problems {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  width: max-content;
+  max-width: 320px;
+  padding: var(--space-3);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  text-align: left;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  animation: problem-in var(--duration-fast) var(--ease-out);
+}
+
+/* The border takes the severity's colour, so the popover says which kind of
+   problem it is before a word of it is read. */
+.statement-block__problems[data-severity='error'] {
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+.statement-block__problems[data-severity='warning'] {
+  border-color: color-mix(in srgb, var(--warning) 55%, transparent);
+}
+
+/* Shown while the pointer is anywhere on the badge — including on the icon
+   inside it — or when it is reached by keyboard. */
+.statement-block__badge:hover > .statement-block__problems,
+.statement-block__badge:focus-within > .statement-block__problems {
+  display: flex;
+}
+
+/* The badge takes focus so the popover is reachable without a pointer: a
+   warning a student cannot read is a warning that does not exist. */
+.statement-block__badge {
+  outline-offset: 2px;
+}
+
+/* The icon inside the badge is decoration, so the pointer passes through it to
+   the badge itself. Without this the hover target was the svg, and the badge
+   never matched `:hover` at all. */
+.statement-block__badge > svg {
+  pointer-events: none;
+}
+
+.statement-block__problem {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.statement-block__problem svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  /* Optical alignment with the first line of text. */
+  margin-top: 1px;
+}
+
+.statement-block__problems[data-severity='error'] .statement-block__problem svg {
+  color: var(--danger);
+}
+
+.statement-block__problems[data-severity='warning'] .statement-block__problem svg {
+  color: var(--warning);
+}
+
+@keyframes problem-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statement-block__problems {
+    animation: none;
+  }
+}

@@ -45,6 +45,46 @@ export const en: Dictionary = {
     learnMore: 'Learn more',
     save: 'Save',
   },
+  landing: {
+    eyebrow: 'For learning to program',
+    title: 'Write algorithms and watch them come alive',
+    lead: 'Tobot turns what you build into natural language, pseudocode, real code and a flowchart — all four at once, always in agreement. A robot runs your algorithm step by step so you can see what each instruction does.',
+    tryIt: 'Try it now',
+    signIn: 'Sign in',
+    noAccount: 'No account, nothing to install. You start in one click.',
+    featuresTitle: "What's inside",
+    features: {
+      views: {
+        title: 'One idea, four forms',
+        body: 'Natural language, pseudocode, real code and a diagram. They change together as you build, so the relationship between them is seen rather than explained.',
+      },
+      diagram: {
+        title: 'Flowchart',
+        body: 'Drawn from your algorithm in the notation used in class, and exportable for a report or a slide.',
+      },
+      run: {
+        title: 'Step-by-step execution',
+        body: 'Move forward and back one instruction at a time with the variables in view. A bug stops being a mystery.',
+      },
+      robot: {
+        title: 'A robot that answers',
+        body: 'It speaks, asks and reacts to what you wrote. Programming stops being text that never replies.',
+      },
+      concepts: {
+        title: 'Concepts with references',
+        body: 'Every topic comes with a short explanation and links to trustworthy sources to go deeper.',
+      },
+      validation: {
+        title: 'Errors you can understand',
+        body: 'Tobot checks the algorithm as you build it and says what is missing in words, not compiler jargon.',
+      },
+    },
+    topicsTitle: 'The topics of the course',
+    topicsLead: 'Everything a first programming course needs, in blocks that will not let you write something impossible.',
+    soon: 'Functions and more, on the way',
+    closingTitle: 'Ready to build your first algorithm?',
+    closingBody: 'Open the editor and start. If you later want your work saved and available from any computer, you create an account.',
+  },
   palette: {
     title: 'Statements',
     subtitle: 'Pick a statement to add it to your algorithm',
