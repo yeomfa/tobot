@@ -351,18 +351,6 @@
   height: 15px;
 }
 
-.statement-block__badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
-  font-size: 12px;
-  font-weight: 800;
-  border-radius: var(--radius-full);
-  cursor: help;
-}
 
 .statement-block__badge[data-severity='error'] {
   color: var(--danger);
@@ -669,91 +657,117 @@ body[data-dragging] .drop-zone .drop-zone__hint {
  *
  * Replaces the browser's `title`, which waits a second before appearing, is
  * drawn by the operating system in a style nothing else here shares, and can
- * only ever be plain text. This one appears at once, carries the severity
- * colour, and gives each problem its own icon and line.
+ * only ever be plain text. This one appears at once and belongs to the app: a
+ * tinted header naming the severity, then one line per problem.
  */
 .statement-block__badge {
   position: relative;
+  outline-offset: 2px;
+}
+
+/* The icon is decoration, so the pointer passes through it to the badge. It
+   was the hover target, which is why the badge never matched `:hover`. */
+.statement-block__badge > svg {
+  pointer-events: none;
 }
 
 .statement-block__problems {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  top: calc(100% + 10px);
+  right: -4px;
   z-index: 50;
   display: none;
   flex-direction: column;
-  gap: 6px;
   width: max-content;
-  max-width: 320px;
-  padding: var(--space-3);
+  min-width: 200px;
+  max-width: 300px;
+  padding: 0;
+  overflow: hidden;
   font-size: var(--text-xs);
-  line-height: 1.5;
+  line-height: 1.55;
   text-align: left;
+  font-weight: 500;
   color: var(--text-primary);
   background: var(--bg-surface);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
+  cursor: default;
   animation: problem-in var(--duration-fast) var(--ease-out);
 }
 
-/* The border takes the severity's colour, so the popover says which kind of
-   problem it is before a word of it is read. */
-.statement-block__problems[data-severity='error'] {
-  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
-}
-
-.statement-block__problems[data-severity='warning'] {
-  border-color: color-mix(in srgb, var(--warning) 55%, transparent);
-}
-
-/* Shown while the pointer is anywhere on the badge — including on the icon
-   inside it — or when it is reached by keyboard. */
 .statement-block__badge:hover > .statement-block__problems,
 .statement-block__badge:focus-within > .statement-block__problems {
   display: flex;
 }
 
-/* The badge takes focus so the popover is reachable without a pointer: a
-   warning a student cannot read is a warning that does not exist. */
-.statement-block__badge {
-  outline-offset: 2px;
-}
-
-/* The icon inside the badge is decoration, so the pointer passes through it to
-   the badge itself. Without this the hover target was the svg, and the badge
-   never matched `:hover` at all. */
-.statement-block__badge > svg {
-  pointer-events: none;
+/* A pointer at the badge, so the popover reads as belonging to it rather than
+   floating loose over the block. */
+.statement-block__problems::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 12px;
+  width: 9px;
+  height: 9px;
+  background: inherit;
+  border-left: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border-subtle);
+  transform: rotate(45deg);
 }
 
 .statement-block__problem {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.statement-block__problem + .statement-block__problem {
+  border-top: 1px solid var(--border-subtle);
 }
 
 .statement-block__problem svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   /* Optical alignment with the first line of text. */
   margin-top: 1px;
 }
 
-.statement-block__problems[data-severity='error'] .statement-block__problem svg {
+/*
+ * Each line carries its own severity colour, not the block's worst: a
+ * statement can hold an error and a warning at once, and colouring both the
+ * same would say they are the same kind of problem.
+ */
+.statement-block__problem[data-severity='error'] svg {
   color: var(--danger);
 }
 
-.statement-block__problems[data-severity='warning'] .statement-block__problem svg {
+.statement-block__problem[data-severity='warning'] svg {
   color: var(--warning);
+}
+
+/* A tinted edge repeats the badge's colour, so the popover is recognisable as
+   this badge's before a word of it is read. */
+.statement-block__problems[data-severity='error'] {
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--border-subtle));
+  box-shadow:
+    inset 3px 0 0 var(--danger),
+    var(--shadow-lg);
+}
+
+.statement-block__problems[data-severity='warning'] {
+  border-color: color-mix(in srgb, var(--warning) 35%, var(--border-subtle));
+  box-shadow:
+    inset 3px 0 0 var(--warning),
+    var(--shadow-lg);
 }
 
 @keyframes problem-in {
   from {
     opacity: 0;
-    transform: translateY(-3px);
+    transform: translateY(-4px);
   }
 }
 

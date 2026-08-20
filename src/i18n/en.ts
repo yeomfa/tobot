@@ -46,44 +46,77 @@ export const en: Dictionary = {
     save: 'Save',
   },
   landing: {
-    eyebrow: 'For learning to program',
-    title: 'Write algorithms and watch them come alive',
-    lead: 'Tobot turns what you build into natural language, pseudocode, real code and a flowchart — all four at once, always in agreement. A robot runs your algorithm step by step so you can see what each instruction does.',
-    tryIt: 'Try it now',
+    eyebrow: 'Programming from scratch',
+    title: 'Learn to program without fighting the syntax',
+    lead: 'Build your algorithm out of blocks and Tobot shows it to you straight away in plain English, in pseudocode, in real code and as a flowchart. Then run it step by step and see exactly what each instruction does.',
+    tryIt: 'Start now',
+    tryItLong: 'Build my first algorithm',
     signIn: 'Sign in',
-    noAccount: 'No account, nothing to install. You start in one click.',
-    featuresTitle: "What's inside",
+    noAccount: 'Free, nothing to install, no account needed.',
+    demoCaption: 'One instruction, written four ways at the same time.',
+
+    stepsTitle: 'How it works',
+    stepsLead: 'Three steps, and the first one takes under a minute.',
+    steps: {
+      build: {
+        title: 'Build your algorithm',
+        body: 'Drag instructions in from the panel. Syntax errors do not exist here: blocks only fit together in ways that mean something.',
+      },
+      compare: {
+        title: 'See it four ways',
+        body: 'The same thing in English, pseudocode, code and a diagram. Change one block and all four change with you.',
+      },
+      run: {
+        title: 'Run it step by step',
+        body: 'The robot goes one instruction at a time. You can step back, watch the variables and see where it went wrong.',
+      },
+    },
+
+    featuresTitle: 'What you get',
     features: {
       views: {
         title: 'One idea, four forms',
-        body: 'Natural language, pseudocode, real code and a diagram. They change together as you build, so the relationship between them is seen rather than explained.',
+        body: 'English, pseudocode, real code and a diagram, always in agreement. The relationship between them shows itself.',
       },
       diagram: {
-        title: 'Flowchart',
-        body: 'Drawn from your algorithm in the notation used in class, and exportable for a report or a slide.',
+        title: 'Flowcharts',
+        body: 'Drawn for you in the notation used in class. Export them for your report or your slides.',
       },
       run: {
-        title: 'Step-by-step execution',
-        body: 'Move forward and back one instruction at a time with the variables in view. A bug stops being a mystery.',
+        title: 'Forwards and back',
+        body: 'Run step by step, go back whenever you like, and watch every variable change.',
       },
       robot: {
         title: 'A robot that answers',
-        body: 'It speaks, asks and reacts to what you wrote. Programming stops being text that never replies.',
+        body: 'It speaks, asks you things and reacts to what you wrote. Programming stops being silent text.',
       },
       concepts: {
-        title: 'Concepts with references',
+        title: 'Concepts explained',
         body: 'Every topic comes with a short explanation and links to trustworthy sources to go deeper.',
       },
       validation: {
-        title: 'Errors you can understand',
-        body: 'Tobot checks the algorithm as you build it and says what is missing in words, not compiler jargon.',
+        title: 'Errors in plain words',
+        body: 'Tobot checks as you build and tells you what is missing in clear language, not compiler jargon.',
       },
     },
+
+    forTitle: 'Who is it for?',
+    forStudents: {
+      title: 'If you are learning',
+      body: 'You understand what your code does before memorising how it is written. When you move to a real language, the logic is already yours.',
+    },
+    forTeachers: {
+      title: 'If you teach',
+      body: 'Hand out exercises as a link, with nothing to install in the lab. Your students see the diagram and the code of the same thing, side by side.',
+    },
+
     topicsTitle: 'The topics of the course',
     topicsLead: 'Everything a first programming course needs, in blocks that will not let you write something impossible.',
     soon: 'Functions and more, on the way',
-    closingTitle: 'Ready to build your first algorithm?',
-    closingBody: 'Open the editor and start. If you later want your work saved and available from any computer, you create an account.',
+
+    closingTitle: 'Shall we build your first algorithm?',
+    closingBody: 'Open the editor and start playing. If you later want your work saved and available from any computer, you make an account.',
+    madeFor: 'Made for programming students',
   },
   palette: {
     title: 'Statements',

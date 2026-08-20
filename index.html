@@ -12,6 +12,21 @@
       name="description"
       content="Escribe algoritmos con instrucciones básicas y compáralos en lenguaje natural, pseudocódigo y código."
     />
+    <!--
+      Restores the path that 404.html parked in a query string, before React
+      mounts, so the router sees the real route and the address bar never shows
+      the redirect. See public/404.html.
+    -->
+    <script>
+      (function () {
+        var match = /[?&]redirect=([^&]*)/.exec(window.location.search);
+        if (!match) return;
+        var target = decodeURIComponent(match[1]);
+        var rest = window.location.search.replace(/[?&]redirect=[^&]*/, '').replace(/^&/, '?');
+        window.history.replaceState(null, '', target + rest + window.location.hash);
+      })();
+    </script>
+
     <!-- Applies the saved theme before first paint to avoid a flash. -->
     <script>
       (function () {

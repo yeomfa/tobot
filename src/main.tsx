@@ -11,7 +11,7 @@ import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/plus-jakarta-sans';
 import '@fontsource-variable/jetbrains-mono';
 
-import { HashRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 
 import App from './App';
 import './styles/base.css';
@@ -22,13 +22,13 @@ if (!container) throw new Error('root element missing');
 createRoot(container).render(
   <StrictMode>
     {/*
-      Hash routing, not browser history. The app is served from GitHub Pages,
-      which has no server to rewrite unknown paths back to index.html, so
-      `/login` would 404 on reload while `#/login` cannot. The routes below
-      are otherwise ordinary paths.
+      Clean paths, no `#`. GitHub Pages cannot route unknown paths itself, so
+      `public/404.html` catches them and hands the path back to index.html in a
+      query string, which is restored before React mounts. The basename is the
+      subdirectory Pages serves the project from.
     */}
-    <HashRouter>
+    <BrowserRouter basename={__BASE_PATH__}>
       <App />
-    </HashRouter>
+    </BrowserRouter>
   </StrictMode>,
 );

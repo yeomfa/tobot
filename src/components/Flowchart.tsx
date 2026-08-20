@@ -94,6 +94,34 @@ export const Flowchart = memo(function Flowchart({
     return () => observer.disconnect();
   }, [autoFit, fitToCanvas]);
 
+  /**
+   * Keeps the diagram reachable.
+   *
+   * An unbounded offset let the student drag it off into empty space and lose
+   * it — which is what the scroll felt like: infinite, with nothing at the end
+   * of it. The travel allowed is exactly the overflow, plus a small margin, so
+   * every edge can be brought into view and nothing beyond them can.
+   */
+  const clampPan = useCallback(
+    (next: { x: number; y: number }) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return next;
+
+      const margin = 48;
+      const overflowX = Math.max(0, layout.width * zoom - canvas.clientWidth);
+      const overflowY = Math.max(0, layout.height * zoom - canvas.clientHeight);
+
+      const limitX = overflowX / 2 + margin;
+      const limitY = overflowY / 2 + margin;
+
+      return {
+        x: Math.max(-limitX, Math.min(limitX, next.x)),
+        y: Math.max(-limitY, Math.min(limitY, next.y)),
+      };
+    },
+    [layout.width, layout.height, zoom],
+  );
+
   const zoomBy = (delta: number): void => {
     setAutoFit(false);
     setZoom((current) => Math.max(0.12, Math.min(2, current + delta)));
@@ -155,10 +183,12 @@ export const Flowchart = memo(function Flowchart({
         onPointerMove={(event) => {
           const start = dragging.current;
           if (!start) return;
-          setPan({
-            x: start.panX + (event.clientX - start.x),
-            y: start.panY + (event.clientY - start.y),
-          });
+          setPan(
+            clampPan({
+              x: start.panX + (event.clientX - start.x),
+              y: start.panY + (event.clientY - start.y),
+            }),
+          );
         }}
         onPointerUp={(event) => {
           dragging.current = null;
@@ -170,10 +200,9 @@ export const Flowchart = memo(function Flowchart({
         /* The wheel still moves the diagram, since taking the scrollbar away
            would otherwise have taken the wheel with it. */
         onWheel={(event) => {
-          setPan((current) => ({
-            x: current.x - event.deltaX,
-            y: current.y - event.deltaY,
-          }));
+          setPan((current) =>
+            clampPan({ x: current.x - event.deltaX, y: current.y - event.deltaY }),
+          );
         }}
       >
         <svg

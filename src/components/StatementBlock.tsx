@@ -149,7 +149,11 @@ export const StatementBlock = memo(function StatementBlock({
               */}
               <span className="statement-block__problems" data-severity={worst}>
                 {ownProblems.map((problem, index) => (
-                  <span className="statement-block__problem" key={index}>
+                  <span
+                    className="statement-block__problem"
+                    data-severity={problem.severity}
+                    key={index}
+                  >
                     {problem.severity === 'error' ? (
                       <WarningCircle weight="fill" />
                     ) : (

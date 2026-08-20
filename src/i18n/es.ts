@@ -45,44 +45,77 @@ export const es = {
     save: 'Guardar',
   },
   landing: {
-    eyebrow: 'Para aprender a programar',
-    title: 'Escribe algoritmos y míralos cobrar vida',
-    lead: 'Tobot convierte lo que armas en lenguaje natural, pseudocódigo, código real y diagrama de flujo — las cuatro a la vez, siempre de acuerdo. Un robot ejecuta tu algoritmo paso a paso para que veas qué hace cada instrucción.',
-    tryIt: 'Probar ahora',
+    eyebrow: 'Programación desde cero',
+    title: 'Aprende a programar sin pelear con la sintaxis',
+    lead: 'Armas tu algoritmo con bloques y Tobot te lo muestra al instante en español, en pseudocódigo, en código real y como diagrama de flujo. Después lo ejecutas paso a paso y ves exactamente qué hace cada instrucción.',
+    tryIt: 'Empezar ahora',
+    tryItLong: 'Armar mi primer algoritmo',
     signIn: 'Entrar',
-    noAccount: 'Sin cuenta, sin instalar nada. Empiezas en un clic.',
-    featuresTitle: 'Qué trae',
+    noAccount: 'Gratis, sin instalar nada y sin crear cuenta.',
+    demoCaption: 'Una sola instrucción, escrita de cuatro maneras al mismo tiempo.',
+
+    stepsTitle: 'Así funciona',
+    stepsLead: 'Tres pasos, y el primero toma menos de un minuto.',
+    steps: {
+      build: {
+        title: 'Arma tu algoritmo',
+        body: 'Arrastra instrucciones desde el panel. No existe el error de sintaxis: los bloques solo encajan de formas que tienen sentido.',
+      },
+      compare: {
+        title: 'Míralo en cuatro formas',
+        body: 'Lo mismo en español, pseudocódigo, código y diagrama. Cambia un bloque y las cuatro cambian contigo.',
+      },
+      run: {
+        title: 'Ejecútalo paso a paso',
+        body: 'El robot va instrucción por instrucción. Puedes devolverte, ver las variables y entender dónde se torció.',
+      },
+    },
+
+    featuresTitle: 'Lo que encuentras adentro',
     features: {
       views: {
         title: 'La misma idea, cuatro formas',
-        body: 'Lenguaje natural, pseudocódigo, código real y diagrama. Cambian juntas mientras armas, así que la relación entre ellas se ve, no se explica.',
+        body: 'Español, pseudocódigo, código real y diagrama, siempre de acuerdo entre sí. La relación entre ellos se ve sola.',
       },
       diagram: {
-        title: 'Diagrama de flujo',
-        body: 'Se dibuja solo desde tu algoritmo, con la notación que se usa en clase. Se puede exportar para un informe o una diapositiva.',
+        title: 'Diagramas de flujo',
+        body: 'Se dibujan solos con la notación de clase. Los exportas para tu informe o tu presentación.',
       },
       run: {
-        title: 'Ejecución paso a paso',
-        body: 'Avanza y retrocede instrucción por instrucción, con las variables a la vista. Un error deja de ser un misterio.',
+        title: 'Adelante y atrás',
+        body: 'Ejecuta paso a paso, devuélvete cuando quieras y observa cómo cambia cada variable.',
       },
       robot: {
-        title: 'Un robot que responde',
-        body: 'Habla, pregunta y reacciona a lo que escribiste. Programar deja de ser un texto que no contesta.',
+        title: 'Un robot que te responde',
+        body: 'Habla, te pregunta y reacciona a lo que escribiste. Programar deja de ser un texto mudo.',
       },
       concepts: {
-        title: 'Conceptos con referencias',
-        body: 'Cada tema trae una explicación breve y enlaces a fuentes confiables para ir más a fondo.',
+        title: 'Conceptos explicados',
+        body: 'Cada tema trae una explicación corta y enlaces a fuentes confiables para profundizar.',
       },
       validation: {
-        title: 'Errores que se entienden',
-        body: 'Tobot revisa el algoritmo mientras lo armas y dice qué falta en palabras, no en jerga de compilador.',
+        title: 'Errores en español',
+        body: 'Tobot revisa mientras armas y te dice qué falta con palabras claras, no con jerga de compilador.',
       },
     },
+
+    forTitle: '¿Para quién es?',
+    forStudents: {
+      title: 'Si estás aprendiendo',
+      body: 'Entiendes qué hace tu código antes de memorizar cómo se escribe. Cuando pases a un lenguaje real, la lógica ya la tienes.',
+    },
+    forTeachers: {
+      title: 'Si enseñas',
+      body: 'Reparte ejercicios como un enlace, sin instalar nada en la sala. Tus estudiantes ven el diagrama y el código de lo mismo, lado a lado.',
+    },
+
     topicsTitle: 'Los temas del curso',
-    topicsLead: 'Todo lo que necesita un primer curso de programación, en bloques que no dejan escribir algo imposible.',
+    topicsLead: 'Todo lo de un primer curso de programación, en bloques que no te dejan escribir algo imposible.',
     soon: 'Funciones y más, en camino',
-    closingTitle: '¿Listo para armar tu primer algoritmo?',
-    closingBody: 'Abre el editor y empieza. Si después quieres guardar tu trabajo y encontrarlo desde cualquier computador, creas una cuenta.',
+
+    closingTitle: '¿Armamos tu primer algoritmo?',
+    closingBody: 'Abre el editor y empieza a jugar. Si más adelante quieres guardar tu trabajo y encontrarlo desde cualquier computador, creas tu cuenta.',
+    madeFor: 'Hecho para estudiantes de programación',
   },
   palette: {
     title: 'Instrucciones',

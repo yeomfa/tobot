@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   ArrowsSplit,
+  ChalkboardTeacher,
   ChatCircleText,
   Check,
   Code,
@@ -8,6 +9,7 @@ import {
   GraduationCap,
   Lightning,
   Repeat,
+  Student,
   Tag,
   TreeStructure,
 } from '@phosphor-icons/react';
@@ -99,6 +101,23 @@ export function Landing({ onTry }: { onTry: () => void }) {
               </div>
             </div>
           </div>
+          <p className="landing__demo-caption">{d.landing.demoCaption}</p>
+        </section>
+
+        {/* How it works, before what it has: someone who does not yet know what
+            this is needs the shape of the thing before a list of parts. */}
+        <section className="landing__section landing__section--steps">
+          <h2 className="landing__section-title">{d.landing.stepsTitle}</h2>
+          <p className="landing__section-lead">{d.landing.stepsLead}</p>
+          <ol className="landing__steps">
+            {(['build', 'compare', 'run'] as const).map((key, index) => (
+              <li className="landing__step" key={key}>
+                <span className="landing__step-number">{index + 1}</span>
+                <h3>{d.landing.steps[key].title}</h3>
+                <p>{d.landing.steps[key].body}</p>
+              </li>
+            ))}
+          </ol>
         </section>
 
         <section className="landing__section">
@@ -145,13 +164,34 @@ export function Landing({ onTry }: { onTry: () => void }) {
           </ul>
         </section>
 
+        <section className="landing__section landing__section--audience">
+          <h2 className="landing__section-title">{d.landing.forTitle}</h2>
+          <div className="landing__audience">
+            <article className="landing__audience-card">
+              <span className="landing__audience-icon">
+                <Student weight="duotone" />
+              </span>
+              <h3>{d.landing.forStudents.title}</h3>
+              <p>{d.landing.forStudents.body}</p>
+            </article>
+            <article className="landing__audience-card">
+              <span className="landing__audience-icon">
+                <ChalkboardTeacher weight="duotone" />
+              </span>
+              <h3>{d.landing.forTeachers.title}</h3>
+              <p>{d.landing.forTeachers.body}</p>
+            </article>
+          </div>
+        </section>
+
         <section className="landing__closing">
           <h2>{d.landing.closingTitle}</h2>
           <p>{d.landing.closingBody}</p>
-          <button type="button" className="landing__cta" onClick={onTry}>
-            {d.landing.tryIt}
+          <button type="button" className="landing__cta landing__cta--large" onClick={onTry}>
+            {d.landing.tryItLong}
             <ArrowRight weight="bold" />
           </button>
+          <p className="landing__note">{d.landing.noAccount}</p>
         </section>
       </main>
 

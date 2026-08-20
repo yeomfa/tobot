@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -15,8 +15,26 @@ const version = JSON.parse(readFileSync(new URL('./package.json', import.meta.ur
 
 export default defineConfig({
   base,
-  define: { __APP_VERSION__: JSON.stringify(version) },
-  plugins: [react()],
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+    __BASE_PATH__: JSON.stringify(base),
+  },
+  plugins: [
+    react(),
+    {
+      // 404.html is served verbatim by GitHub Pages, so the base path has to
+      // be baked into it at build time rather than read from a module.
+      name: 'tobot-404-base',
+      closeBundle() {
+        const file = new URL('./dist/404.html', import.meta.url);
+        try {
+          writeFileSync(file, readFileSync(file, 'utf8').replaceAll('__BASE_PATH__', base));
+        } catch {
+          /* No 404.html in this build; nothing to rewrite. */
+        }
+      },
+    },
+  ],
   build: {
     outDir: 'dist',
     // The app is small enough that a source map costs little and makes
