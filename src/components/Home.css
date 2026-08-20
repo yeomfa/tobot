@@ -41,21 +41,6 @@
   color: var(--text-primary);
 }
 
-.home__mark {
-  width: 28px;
-  height: 28px;
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.home__mark-dot,
-.home__mark-eye {
-  fill: var(--accent);
-  stroke: none;
-}
-
 .home__rail-list {
   display: flex;
   flex-direction: column;

@@ -227,7 +227,14 @@ export const StatementBlock = memo(function StatementBlock({
             statements={statement.body}
             parentId={statement.id}
             slot="body"
-            variables={variables}
+            /* Inside a loop the counter is what a student reaches for, so it
+               leads the dropdown instead of sorting wherever it was declared —
+               usually last, under every other name in the program. */
+            variables={
+              statement.kind === 'forEach'
+                ? [statement.variable, ...variables.filter((n) => n !== statement.variable)]
+                : variables
+            }
             problems={problems}
             callbacks={callbacks}
             activeNodeId={activeNodeId}

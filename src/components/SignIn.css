@@ -39,21 +39,6 @@
   color: var(--text-primary);
 }
 
-.signin__mark {
-  width: 28px;
-  height: 28px;
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.signin__mark-dot,
-.signin__mark-eye {
-  fill: var(--accent);
-  stroke: none;
-}
-
 .signin__title {
   font-size: var(--text-xl);
   font-weight: 680;

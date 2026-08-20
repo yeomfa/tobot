@@ -172,7 +172,17 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       added. The slot's own expectation wins when it has one.
     */
     const seed: LiteralKind =
-      expect !== 'any' ? expect : value.kind === 'literal' ? value.valueKind : 'number';
+      expect !== 'any'
+        ? expect
+        : value.kind === 'literal'
+          ? value.valueKind
+          : // Nothing to copy a type from — a variable carries none, and a
+            // sum of them says only what the operator says. Joining with `+`
+            // in a slot that takes anything is far more often building a
+            // message than adding, so text is the better guess than number.
+            mode === 'condition'
+            ? 'number'
+            : 'text';
     onChange({
       kind: 'binary',
       operator,

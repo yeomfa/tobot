@@ -30,7 +30,7 @@
   /* Pulled fully inside the value's box. At -14px the caret overhung the
      rounded right edge by a couple of pixels, which is what made it look
      broken rather than attached. */
-  margin-left: -23px;
+  margin-left: -26px;
   /* Above the input's border so the two read as one control. */
   z-index: 1;
 }

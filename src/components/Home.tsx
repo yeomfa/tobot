@@ -41,6 +41,7 @@ import { useTranslation } from '../i18n/context';
 import { createAlgorithmStore } from '../state/storage';
 import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
+import { BrandMark } from './BrandMark';
 import './Home.css';
 
 interface HomeProps {
@@ -94,17 +95,6 @@ function sectionLabel(d: ReturnType<typeof useTranslation>['d'], id: Section): s
 }
 
 /** The product mark, matching the editor header and the app icon. */
-function BrandMark() {
-  return (
-    <svg className="home__mark" viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="5" y="9" width="22" height="17" rx="6" />
-      <line x1="16" y1="4" x2="16" y2="9" />
-      <circle cx="16" cy="3" r="2.2" className="home__mark-dot" />
-      <circle cx="12" cy="17" r="2.4" className="home__mark-eye" />
-      <circle cx="20" cy="17" r="2.4" className="home__mark-eye" />
-    </svg>
-  );
-}
 
 /**
  * A watermark per section, drawn in the banner's own colour.
@@ -312,7 +302,7 @@ export const Home = memo(function Home({
       <div className="home__body">
         <nav className="home__rail" aria-label={d.home.sections}>
           <div className="home__rail-brand">
-            <BrandMark />
+            <BrandMark size={30} className="home__mark" />
             <span>{d.app.name}</span>
           </div>
 

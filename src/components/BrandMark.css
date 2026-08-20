@@ -1,0 +1,50 @@
+/**
+ * The mark's own colours.
+ *
+ * Everything keys off `currentColor` so a caller can tint the whole thing by
+ * setting `color`, while the statement bars keep the editor's category hues:
+ * seeing the same three colours in the logo and on the canvas is what ties the
+ * two together. `--brand-mark-bars` lets a caller collapse them to one colour
+ * where the context calls for it, such as a monochrome print.
+ */
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+  color: var(--accent);
+  overflow: visible;
+}
+
+.brand-mark__head {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.brand-mark__antenna {
+  fill: none;
+  stroke: currentColor;
+}
+
+.brand-mark__spark {
+  fill: currentColor;
+}
+
+/* Left as holes in the head rather than filled dots: at 16px a filled eye
+   closes into a blob, while a knocked-out one still reads as an eye. */
+.brand-mark__eye {
+  fill: currentColor;
+}
+
+.brand-mark__bar {
+  fill: var(--brand-mark-bars, currentColor);
+}
+
+/* The editor's own category hues, so the mark and the canvas match. */
+.brand-mark__bar--1 {
+  fill: var(--brand-mark-bars, var(--hue-variable, currentColor));
+}
+
+.brand-mark__bar--2 {
+  fill: var(--brand-mark-bars, var(--hue-loop, currentColor));
+  opacity: 0.85;
+}

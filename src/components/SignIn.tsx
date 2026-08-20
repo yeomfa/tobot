@@ -3,6 +3,7 @@ import { memo, useState } from 'react';
 
 import { useTranslation } from '../i18n/context';
 import { isGoogleEnabled, supabase } from '../state/supabase';
+import { BrandMark } from './BrandMark';
 import './SignIn.css';
 
 interface SignInProps {
@@ -88,7 +89,7 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
     <div className="signin">
       <div className="signin__panel">
         <div className="signin__brand">
-          <BrandMark />
+          <BrandMark size={26} className="signin__mark" />
           <span>{d.app.name}</span>
         </div>
 
@@ -200,14 +201,3 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
   );
 });
 
-function BrandMark() {
-  return (
-    <svg className="signin__mark" viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="5" y="9" width="22" height="17" rx="6" />
-      <line x1="16" y1="4" x2="16" y2="9" />
-      <circle cx="16" cy="3" r="2.2" className="signin__mark-dot" />
-      <circle cx="12" cy="17" r="2.4" className="signin__mark-eye" />
-      <circle cx="20" cy="17" r="2.4" className="signin__mark-eye" />
-    </svg>
-  );
-}

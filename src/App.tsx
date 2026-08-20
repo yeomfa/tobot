@@ -45,6 +45,7 @@ import { isSupabaseConfigured } from './state/supabase';
 import { useResizable } from './state/useResizable';
 import { welcomeAlgorithm } from './content/examples';
 import { createEmptyAlgorithm } from './state/useAlgorithm';
+import { BrandMark } from './components/BrandMark';
 import './App.css';
 
 type Theme = Preferences['theme'];
@@ -401,7 +402,7 @@ function Workbench({
             onClick={() => setScreen('home')}
             title={d.home.goHome}
           >
-            <BrandMark />
+            <BrandMark size={26} className="app__mark" />
             <span className="app__name">{d.app.name}</span>
           </button>
         </h1>
@@ -724,14 +725,3 @@ function Workbench({
   );
 }
 
-function BrandMark() {
-  return (
-    <svg className="app__mark" viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="5" y="9" width="22" height="17" rx="6" />
-      <line x1="16" y1="4" x2="16" y2="9" />
-      <circle cx="16" cy="3" r="2.2" className="app__mark-dot" />
-      <circle cx="12" cy="17" r="2.4" className="app__mark-eye" />
-      <circle cx="20" cy="17" r="2.4" className="app__mark-eye" />
-    </svg>
-  );
-}
