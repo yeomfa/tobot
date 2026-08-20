@@ -427,9 +427,8 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
           const parsed = Number(event.target.value);
           onChange(literal(Number.isNaN(parsed) ? 0 : parsed, 'number'));
         }}
-        // Sized to content, with room for the side padding and for the options
-        // caret, which is drawn over the field's right edge.
-        style={{ width: `${Math.max(String(value.value).length, 2) + 4}ch` }}
+        // Sized to content, with room for the 6px side padding on each side.
+        style={{ width: `${Math.max(String(value.value).length, 2) + 2.5}ch` }}
       />
     );
   }
@@ -441,13 +440,12 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
       value={String(value.value)}
       placeholder={placeholder}
       onChange={(event) => onChange(literal(event.target.value, 'text'))}
-      // The leading quote glyph, the padding and the options caret drawn over
-      // the right edge all consume room, so the width allows for them; without
-      // the slack the last characters get clipped. An empty field is sized to
-      // its placeholder, which is text the student still has to read: measuring
-      // only the value left "pregunta" running under the caret.
+      // The leading quote glyph and padding both consume room, so the width
+      // allows for them; without the slack the last characters get clipped. An
+      // empty field is sized to its placeholder, which is text the student
+      // still has to read rather than a value that happens to be absent.
       style={{
-        width: `${Math.max(String(value.value).length, placeholder?.length ?? 0, 6) + 4.5}ch`,
+        width: `${Math.max(String(value.value).length, placeholder?.length ?? 0, 6) + 3}ch`,
       }}
     />
   );

@@ -102,12 +102,10 @@
      the caret sitting low against a 26px field instead of centred in it. */
   height: auto;
   align-self: stretch;
-  /* More room on the right than the left: the glyph is sitting against the
-     value's rounded corner, and 4px left it touching the curve. */
-  padding: 0 7px 0 4px;
+  padding: 0 3px;
   background: transparent;
   border-color: transparent;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-radius: var(--radius-sm);
 }
 
 .picker[data-variant='options'] .picker__caret {

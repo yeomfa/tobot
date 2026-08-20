@@ -1,17 +1,45 @@
 /**
  * The mark's own colours.
  *
- * Everything keys off `currentColor` so a caller can tint the whole thing by
- * setting `color`, while the statement bars keep the editor's category hues:
- * seeing the same three colours in the logo and on the canvas is what ties the
- * two together. `--brand-mark-bars` lets a caller collapse them to one colour
- * where the context calls for it, such as a monochrome print.
+ * The orange is the constant; what changes between palettes is the accent
+ * paired with it. Everything keys off `currentColor` so a caller can tint the
+ * whole thing by setting `color`, and `--brand-mark-bars` collapses the accent
+ * to one colour where the context calls for it, such as a monochrome print.
  */
 .brand-mark {
   display: block;
   flex-shrink: 0;
   color: var(--accent);
   overflow: visible;
+
+  /* Overridden per palette below. */
+  --mark-1: var(--hue-variable, #6366f1);
+  --mark-2: var(--hue-loop, #0ea5e9);
+}
+
+/* Purple and blue: two cool colours competing with the orange. */
+.brand-mark--cool {
+  --mark-1: #6366f1;
+  --mark-2: #0ea5e9;
+}
+
+/* One warm family, so the orange leads without contest. */
+.brand-mark--warm {
+  --mark-1: #c2410c;
+  --mark-2: #f59e0b;
+}
+
+/* Teal is orange's actual complement: the strongest contrast on offer, and
+   the one that survives best at favicon size. */
+.brand-mark--teal {
+  --mark-1: #0d9488;
+  --mark-2: #f59e0b;
+}
+
+/* Orange as the only colour in the mark. */
+.brand-mark--neutral {
+  --mark-1: #475569;
+  --mark-2: #94a3b8;
 }
 
 .brand-mark__head {
@@ -20,31 +48,37 @@
   stroke-width: 2;
 }
 
+/* The letter shape fills its crossbar, so the eyes are knocked out of it. */
+.brand-mark__head--solid {
+  fill: currentColor;
+  stroke: none;
+}
+
 .brand-mark__antenna {
   fill: none;
   stroke: currentColor;
 }
 
-.brand-mark__spark {
-  fill: currentColor;
-}
-
-/* Left as holes in the head rather than filled dots: at 16px a filled eye
-   closes into a blob, while a knocked-out one still reads as an eye. */
+.brand-mark__spark,
 .brand-mark__eye {
   fill: currentColor;
 }
 
-.brand-mark__bar {
-  fill: var(--brand-mark-bars, currentColor);
+/* Cut out of the solid head rather than drawn on it: at 16px a filled eye on
+   a filled head disappears entirely. */
+.brand-mark__pupil {
+  fill: var(--bg-surface, #ffffff);
 }
 
-/* The editor's own category hues, so the mark and the canvas match. */
+.brand-mark__stem {
+  fill: var(--brand-mark-bars, var(--mark-1));
+}
+
 .brand-mark__bar--1 {
-  fill: var(--brand-mark-bars, var(--hue-variable, currentColor));
+  fill: var(--brand-mark-bars, var(--mark-1));
 }
 
 .brand-mark__bar--2 {
-  fill: var(--brand-mark-bars, var(--hue-loop, currentColor));
+  fill: var(--brand-mark-bars, var(--mark-2));
   opacity: 0.85;
 }

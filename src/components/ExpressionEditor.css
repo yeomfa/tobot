@@ -20,27 +20,20 @@
 }
 
 /*
- * The options caret is drawn *onto* the value it belongs to, overlapping its
- * right edge, rather than sitting in the gap beside it. Spaced evenly it read
- * as a stray character of its own — "0 ⌄ +" looked like three unrelated marks
- * instead of one value with a menu — and no amount of nudging fixed that while
- * it still floated free. Anchoring it to the value's own box does.
+ * The options caret sits *beside* the value, in the row's own gap.
+ *
+ * It used to be drawn on top of the value's right edge, which looked tidy
+ * while a field was short and collided with the text as soon as it was not:
+ * "nombre" and "Hola mundo" both ran straight under the glyph. Overlapping a
+ * box whose width follows its content can only ever work by luck, so it does
+ * not overlap any more — the caret is a sibling with its own space, and the
+ * value keeps every pixel of its own.
  */
 .expr > .picker[data-variant='options'] {
-  /* Pulled fully inside the value's box. At -14px the caret overhung the
-     rounded right edge by a couple of pixels, which is what made it look
-     broken rather than attached. */
-  margin-left: -26px;
-  /* Above the input's border so the two read as one control. */
-  z-index: 1;
+  margin-left: -2px;
 }
 
-/* Literals size themselves in `ch` from their own content, and that width
-   already allows for the caret. Only the variable trigger needs the room
-   added here. */
-.expr > .picker[data-variant='reference'] .picker__trigger {
-  padding-right: 16px;
-}
+
 
 /**
  * Only genuinely nested groupings get a bracket. A flat associative chain
@@ -137,7 +130,6 @@
   background: var(--hue-conditional-soft);
   border-color: var(--hue-conditional-border);
   font-weight: 600;
-  padding-right: 16px;
 }
 
 .expr__op {
