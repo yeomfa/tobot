@@ -241,8 +241,18 @@ function Workbench({
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const [showExport, setShowExport] = useState(false);
-  /** The app shows one screen at a time: the landing view or the editor. */
-  const [screen, setScreen] = useState<'home' | 'editor'>('home');
+  /**
+   * The app shows one screen at a time: the landing view or the editor.
+   *
+   * Kept in the URL hash so a reload lands where the student was, and the
+   * browser's back button walks between the two. The hash rather than a path
+   * because the app is served from GitHub Pages, which has no server to route
+   * unknown paths back to `index.html`; `#/editor` needs no such rewrite and
+   * cannot 404.
+   */
+  const [screen, setScreen] = useState<'home' | 'editor'>(() =>
+    window.location.hash === '#/editor' ? 'editor' : 'home',
+  );
   /** Bumped on save so the library list picks up name and size changes. */
   const [libraryRevision, setLibraryRevision] = useState(0);
 
@@ -258,6 +268,26 @@ function Workbench({
    * actually opens the editor. Starting it over the landing view highlighted
    * elements that were not on screen.
    */
+  /*
+   * Two directions, kept apart. Writing replaces the entry rather than pushing
+   * one, so switching screens does not stack duplicates in the history; the
+   * listener handles the back button, where the URL changed without us.
+   */
+  useEffect(() => {
+    const target = screen === 'editor' ? '#/editor' : '#/';
+    if (window.location.hash !== target) {
+      window.history.replaceState(null, '', target);
+    }
+  }, [screen]);
+
+  useEffect(() => {
+    const onHashChange = (): void => {
+      setScreen(window.location.hash === '#/editor' ? 'editor' : 'home');
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
   const tourPending = useRef(firstVisit);
 
   /**

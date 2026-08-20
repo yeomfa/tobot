@@ -1,4 +1,5 @@
 import type { Algorithm } from '../core/ast/types';
+import { sanitizeStatements } from '../core/ast/validateShape';
 import { isSupabaseConfigured } from './supabase';
 import { SupabaseAlgorithmStore } from './supabaseStore';
 
@@ -58,14 +59,25 @@ function safeWrite(key: string, value: string): boolean {
 }
 
 /** Rejects anything that is not a plausible algorithm record. */
-function isAlgorithm(value: unknown): value is Algorithm {
-  if (!value || typeof value !== 'object') return false;
+/**
+ * `localStorage` is a file the student can edit, so what comes back is input
+ * rather than state: the id and name are checked, and the body is walked
+ * statement by statement. `Array.isArray` alone let anything inside the array
+ * through to the interpreter and the emitters, which all assume a well-formed
+ * tree.
+ */
+function reviveAlgorithm(value: unknown): Algorithm | null {
+  if (!value || typeof value !== 'object') return null;
   const record = value as Record<string, unknown>;
-  return (
-    typeof record.id === 'string' &&
-    typeof record.name === 'string' &&
-    Array.isArray(record.body)
-  );
+  if (typeof record.id !== 'string' || typeof record.name !== 'string') return null;
+
+  return {
+    id: record.id,
+    name: record.name,
+    body: sanitizeStatements(record.body),
+    createdAt: typeof record.createdAt === 'string' ? record.createdAt : new Date().toISOString(),
+    updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : new Date().toISOString(),
+  };
 }
 
 export class LocalAlgorithmStore implements AlgorithmStore {
@@ -75,7 +87,10 @@ export class LocalAlgorithmStore implements AlgorithmStore {
     try {
       const parsed: unknown = JSON.parse(raw);
       // Corrupt or hand-edited storage must not crash the app on boot.
-      return Array.isArray(parsed) ? parsed.filter(isAlgorithm) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map(reviveAlgorithm)
+        .filter((algorithm): algorithm is Algorithm => algorithm !== null);
     } catch {
       return [];
     }

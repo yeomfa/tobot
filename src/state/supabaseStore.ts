@@ -1,4 +1,5 @@
 import type { Algorithm } from '../core/ast/types';
+import { sanitizeStatements } from '../core/ast/validateShape';
 import type { AlgorithmStore } from './storage';
 import { supabase } from './supabase';
 
@@ -11,13 +12,24 @@ interface Row {
   updated_at: string;
 }
 
+/**
+ * Builds an algorithm from a database row, keeping nothing it cannot vouch
+ * for.
+ *
+ * Row-level security decides *whose* rows arrive; it says nothing about their
+ * shape. A row is a `jsonb` column that some other client wrote, so the body
+ * is checked statement by statement rather than asserted with a cast — a
+ * malformed one is dropped instead of reaching the interpreter or an emitter.
+ * The local store has always validated what it reads; this is the same
+ * standard applied to the remote one.
+ */
 function toAlgorithm(row: Row): Algorithm {
   return {
-    id: row.id,
-    name: row.name,
-    body: Array.isArray(row.body) ? (row.body as Algorithm['body']) : [],
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    id: String(row.id),
+    name: typeof row.name === 'string' ? row.name : '',
+    body: sanitizeStatements(row.body),
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
   };
 }
 

@@ -209,3 +209,20 @@
     animation: none;
   }
 }
+
+/* The canvas is draggable, so it says so with the cursor and refuses to start
+   a text selection halfway through a drag. */
+.flowchart__canvas {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.flowchart__canvas[data-dragging] {
+  cursor: grabbing;
+}
+
+/* A node is still a click target, so it keeps the pointer that says so. */
+.flowchart__node {
+  cursor: pointer;
+}

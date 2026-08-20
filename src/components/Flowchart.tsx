@@ -47,6 +47,9 @@ export const Flowchart = memo(function Flowchart({
   const svgRef = useRef<SVGSVGElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
+  /** Offset applied by dragging, in screen pixels. */
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const dragging = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   /** `true` while the zoom is being kept in sync with the canvas size. */
   const [autoFit, setAutoFit] = useState(true);
 
@@ -62,15 +65,20 @@ export const Flowchart = memo(function Flowchart({
    */
   const fitToCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || layout.width === 0 || layout.height === 0) return;
+    if (!canvas || layout.width === 0) return;
     const padding = 32;
-    const scale = Math.min(
-      (canvas.clientWidth - padding) / layout.width,
-      (canvas.clientHeight - padding) / layout.height,
-    );
+    /*
+      Fits the width and lets the height overflow into a scroll.
+      Fitting both shrank a tall diagram until it fitted vertically — a
+      40-statement program became an unreadable strip — when a flowchart is
+      meant to be read top to bottom anyway. Sized to the width, the nodes
+      stay legible and the student scrolls or drags through the rest.
+    */
+    const scale = (canvas.clientWidth - padding) / layout.width;
     // Never magnify past 1: a two-node diagram should not fill the panel.
     setZoom(Math.max(0.12, Math.min(1, scale)));
-  }, [layout.width, layout.height]);
+    setPan({ x: 0, y: 0 });
+  }, [layout.width]);
 
   useEffect(() => {
     if (!autoFit) return;
@@ -127,10 +135,43 @@ export const Flowchart = memo(function Flowchart({
         </div>
       </div>
 
-      <div className="flowchart__canvas" ref={canvasRef}>
+      {/*
+        Dragging moves the diagram, which is how a student follows a branch
+        that runs off the side. Pointer events rather than mouse ones, so a
+        trackpad, a pen and a touchscreen all work; capture keeps the drag
+        alive when the pointer leaves the canvas mid-move.
+      */}
+      <div
+        className="flowchart__canvas"
+        ref={canvasRef}
+        data-dragging={dragging.current ? true : undefined}
+        onPointerDown={(event) => {
+          // Left button only, and never when starting on a node the student
+          // means to click.
+          if (event.button !== 0) return;
+          dragging.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const start = dragging.current;
+          if (!start) return;
+          setPan({
+            x: start.panX + (event.clientX - start.x),
+            y: start.panY + (event.clientY - start.y),
+          });
+        }}
+        onPointerUp={(event) => {
+          dragging.current = null;
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }}
+        onPointerCancel={() => {
+          dragging.current = null;
+        }}
+      >
         <svg
           ref={svgRef}
           className="flowchart__svg"
+          style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
           data-flowchart-svg
           viewBox={`0 0 ${layout.width} ${layout.height}`}
           width={layout.width * zoom}
