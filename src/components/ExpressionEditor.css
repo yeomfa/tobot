@@ -133,7 +133,9 @@
 }
 
 .expr__op {
-  font-family: var(--font-mono);
+  /* Maths symbols, not code: × ÷ ≥ ≠ are drawn better by the interface face
+     than by a mono designed to align columns of text. */
+  font-family: var(--font-ui);
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-secondary);
@@ -214,7 +216,7 @@
 }
 
 .expr__tool-label {
-  font-family: var(--font-sans);
+  font-family: var(--font-ui);
   /* 10px was small enough that the word read as a smudge rather than a label. */
   font-size: var(--text-xs);
   font-weight: 600;
