@@ -1,18 +1,19 @@
 /**
  * Every address the app answers to, in one place.
  *
- * Written out rather than assembled from fragments so that searching for a
- * path finds it, and so a rename is one edit. The router mounts these under a
- * hash — GitHub Pages has no server to rewrite unknown paths back to
- * `index.html` — but nothing else in the app needs to know that.
+ * In English, like the rest of the source: the interface is translated, the
+ * code is not, and a URL is code. Written out rather than assembled from
+ * fragments so that searching for a path finds it, and so a rename is one
+ * edit. They are served as real paths; how GitHub Pages is persuaded to route
+ * them is `public/404.html`'s problem, not anything here.
  */
 export const ROUTES = {
   /** The public page: what Tobot is, for someone who has never seen it. */
   landing: '/',
   /** Signing in and registering. */
-  login: '/entrar',
+  login: '/login',
   /** The student's saved work, examples and concepts. */
-  library: '/mis-algoritmos',
+  library: '/library',
   /** The editor itself. */
   editor: '/app',
 } as const;
