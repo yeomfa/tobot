@@ -1,15 +1,18 @@
 import {
   ArrowRight,
+  BookOpenText,
   ChalkboardTeacher,
   ChatCircleText,
   Check,
+  Clock,
   Code,
   GraduationCap,
   Lightning,
-  Sparkle,
+  LinkSimple,
   Student,
   Translate,
   TreeStructure,
+  TrendUp,
 } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 
@@ -36,6 +39,14 @@ const FEATURES = [
   { key: 'robot', icon: ChatCircleText, hue: 'accent', wide: false },
   { key: 'concepts', icon: GraduationCap, hue: 'loop', wide: false },
   { key: 'validation', icon: Check, hue: 'success', wide: false },
+] as const;
+
+/** The four promises about learning, each in a hue of its own. */
+const LEARN = [
+  { key: 'explained', icon: BookOpenText, hue: 'io' },
+  { key: 'sources', icon: LinkSimple, hue: 'variable' },
+  { key: 'pace', icon: Clock, hue: 'conditional' },
+  { key: 'growing', icon: TrendUp, hue: 'loop' },
 ] as const;
 
 interface LandingProps {
@@ -196,7 +207,10 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
           <div className="landing__inner landing__audience-inner">
             <h2 className="landing__headline">{d.landing.forTitle}</h2>
 
-            <article className="landing__audience-card">
+            <article
+              className="landing__audience-card"
+              style={{ '--card-hue': 'var(--hue-io)' } as React.CSSProperties}
+            >
               <span className="landing__audience-icon" data-hue="io">
                 <Student weight="duotone" />
               </span>
@@ -204,7 +218,10 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
               <p>{d.landing.forStudents.body}</p>
             </article>
 
-            <article className="landing__audience-card landing__audience-card--offset">
+            <article
+              className="landing__audience-card landing__audience-card--offset"
+              style={{ '--card-hue': 'var(--hue-loop)' } as React.CSSProperties}
+            >
               <span className="landing__audience-icon" data-hue="loop">
                 <ChalkboardTeacher weight="duotone" />
               </span>
@@ -242,9 +259,11 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
             <h2 className="landing__headline">{d.landing.learnTitle}</h2>
             <p className="landing__lead">{d.landing.learnLead}</p>
             <ul className="landing__learn-list">
-              {(['explained', 'sources', 'pace', 'growing'] as const).map((key) => (
-                <li className="landing__learn-item" key={key}>
-                  <Sparkle weight="fill" />
+              {LEARN.map(({ key, icon: Icon, hue }) => (
+                <li className="landing__learn-item" key={key} data-hue={hue}>
+                  <span className="landing__learn-icon">
+                    <Icon weight="duotone" />
+                  </span>
                   {d.landing.learn[key]}
                 </li>
               ))}

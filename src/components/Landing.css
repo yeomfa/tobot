@@ -424,11 +424,14 @@
    3 — How it works
    --------------------------------------------------------------------------- */
 
+/* The guide sits against the steps rather than the top of the section: aligned
+   to the start it floated a hundred pixels above their centre, which read as a
+   mistake rather than as a companion. */
 .landing__how-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) 240px;
   gap: var(--space-6);
-  align-items: start;
+  align-items: center;
 }
 
 .landing__steps {
@@ -496,13 +499,13 @@
   text-wrap: pretty;
 }
 
-/* The guide stays beside the reader for all three steps rather than scrolling
-   away after the first. */
 .landing__guide {
-  position: sticky;
-  top: 22vh;
   display: flex;
   justify-content: center;
+  align-self: end;
+  /* Cropped at the panel's edge, so it reads as leaning in from outside. */
+  margin-bottom: calc(var(--band) * -1);
+  pointer-events: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -517,14 +520,27 @@
    5 — Who it is for
    --------------------------------------------------------------------------- */
 
+/* The title sits above rather than in a column of its own, which left a third
+   of the row empty and the cards squeezed into the rest. */
 .landing__audience-inner {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-4);
-  align-items: start;
 }
 
+.landing__audience-inner > .landing__headline {
+  grid-column: 1 / -1;
+  margin-bottom: var(--space-3);
+}
+
+/*
+ * Each card carries a wash of its own hue, so the two are told apart by colour
+ * before a word is read — and the hue is the same one the editor gives that
+ * part of the language.
+ */
 .landing__audience-card {
+  position: relative;
+  overflow: hidden;
   padding: var(--space-5);
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -532,7 +548,24 @@
   border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-sm);
   transition:
     border-color var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.landing__audience-card::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, var(--card-hue, var(--accent)), transparent 70%);
+  opacity: 0.09;
+  pointer-events: none;
+}
+
+.landing__audience-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .landing__audience-card--offset {
@@ -543,17 +576,19 @@
 }
 
 .landing__audience-card:hover {
-  border-color: var(--border-strong);
+  border-color: var(--card-hue, var(--border-strong));
   transform: translateY(-2px);
 }
 
+/* Always above the words, never beside them: an icon in the left margin
+   competes with the first line for where the eye starts. */
 .landing__audience-icon,
 .landing__card-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: var(--radius-md);
 }
 
@@ -675,31 +710,73 @@
   margin-inline: auto;
 }
 
+/*
+ * Four cards rather than four bullets. A list of sentences with identical
+ * ticks says "here are four more things"; giving each its own colour and icon
+ * says they are four different kinds of thing, which is what they are.
+ */
 .landing__learn-list {
   display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-6);
   text-align: left;
 }
 
 .landing__learn-item {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4);
   font-size: var(--text-base);
+  line-height: 1.5;
   color: var(--text-primary);
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  text-wrap: pretty;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.landing__learn-item:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.landing__learn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
 }
 
-.landing__learn-item svg {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  margin-top: 4px;
-  color: var(--accent);
+.landing__learn-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.landing__learn-item[data-hue='io'] .landing__learn-icon {
+  color: var(--hue-io);
+  background: var(--hue-io-soft);
+}
+
+.landing__learn-item[data-hue='variable'] .landing__learn-icon {
+  color: var(--hue-variable);
+  background: var(--hue-variable-soft);
+}
+
+.landing__learn-item[data-hue='conditional'] .landing__learn-icon {
+  color: var(--hue-conditional);
+  background: var(--hue-conditional-soft);
+}
+
+.landing__learn-item[data-hue='loop'] .landing__learn-icon {
+  color: var(--hue-loop);
+  background: var(--hue-loop-soft);
 }
 
 .landing__closing {
@@ -858,7 +935,8 @@
 }
 
 @media (max-width: 700px) {
-  .landing__audience-inner {
+  .landing__audience-inner,
+  .landing__learn-list {
     grid-template-columns: minmax(0, 1fr);
   }
 
