@@ -19,11 +19,13 @@
   opacity: 0.42;
 }
 
+/* Pulled up and out, so it reads as light spilling in over the top edge
+   rather than as a cloud parked halfway down the hero. */
 .decor-blobs__a {
-  width: 420px;
-  height: 420px;
-  top: -120px;
-  right: -60px;
+  width: 520px;
+  height: 520px;
+  top: -280px;
+  right: -80px;
   background: radial-gradient(circle, var(--hue-variable), transparent 68%);
 }
 

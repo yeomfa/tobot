@@ -55,9 +55,28 @@
   overflow: hidden;
 }
 
+/*
+ * Tilted, because upright reads as a robot that happens to be cropped while
+ * leaning says someone put their head round the edge to look.
+ *
+ * The rotation goes on the wrapper, not on `.robot__body`: that element is
+ * already animating `transform` for the breathing, and a second declaration
+ * there would simply lose to the keyframes.
+ */
+.robot-greeting[data-peek='bottom'] {
+  transform: rotate(-7deg);
+  transform-origin: bottom center;
+}
+
 .robot-greeting[data-peek='bottom'] .robot__body {
   /* Cut at the chest, so the head and arms carry the expression. */
-  margin-bottom: -22%;
+  margin-bottom: -20%;
+}
+
+/* The bubble turns back level — a tilted robot is playful, tilted text is
+   broken. */
+.robot-greeting[data-peek='bottom'] .robot__bubble {
+  transform: rotate(7deg);
 }
 
 .robot-greeting[data-peek='right'] {

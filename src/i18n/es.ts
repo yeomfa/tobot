@@ -123,8 +123,14 @@ export const es = {
       chart: 'Diagrama',
     },
 
-    showcaseTitle: 'Un algoritmo, cuatro lenguajes',
-    showcaseBody: 'Cambia un bloque y las cuatro cambian contigo.',
+    showcaseTitle: 'Los bloques y su diagrama, a la vez',
+    showcaseBody: 'Cambia un bloque y el diagrama cambia contigo. Lo mismo pasa con el código.',
+    flow: {
+      start: 'Inicio',
+      count: 'Sumar puntos',
+      check: '¿puntos ≥ 5?',
+      end: 'Fin',
+    },
     showcaseLabels: {
       natural: 'En español',
       code: 'En código',

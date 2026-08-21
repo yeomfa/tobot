@@ -255,7 +255,7 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
         {/* 7 — Learning, then the close. Centring is earned here: it is the
             only centred section left. */}
         <section className="landing__band landing__learn">
-          <div className="landing__inner landing__inner--narrow">
+          <div className="landing__inner">
             <h2 className="landing__headline">{d.landing.learnTitle}</h2>
             <p className="landing__lead">{d.landing.learnLead}</p>
             <ul className="landing__learn-list">

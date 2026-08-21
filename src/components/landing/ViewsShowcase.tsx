@@ -1,29 +1,39 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { showcaseDemo } from '../../content/landingDemo';
-import { heroAlgorithm } from '../../content/heroDemo';
 import { useTranslation } from '../../i18n/context';
-import { Flowchart } from '../Flowchart';
 import { DemoPlayer } from './DemoPlayer';
+import { MiniFlow } from './MiniFlow';
 import { RobotGreeting } from './RobotGreeting';
 import './ViewsShowcase.css';
 
 /**
  * One algorithm, in the forms Tobot keeps in step.
  *
- * The blocks and the running commentary are the landing's own, so they
- * translate and can be sized for reading at a distance. The flowchart is the
- * editor's real one: a diagram has no words to translate beyond the labels it
- * builds itself, and drawing a fake one would be inventing a picture of a
- * feature rather than showing it.
+ * Everything here is drawn for the page. The editor's real `Flowchart` lays
+ * out the whole program at whatever size that takes, which for this algorithm
+ * is a tall column of eleven nodes — right for a canvas you can pan around,
+ * unreadable in a panel beside a paragraph. `MiniFlow` shows four nodes big
+ * enough to look at, in the shapes and colours the app uses.
+ *
+ * The two views advance together, so a visitor watching the blocks can see
+ * which part of the diagram they are in.
  */
 export function ViewsShowcase() {
   const { d, language } = useTranslation();
   const demo = useMemo(() => showcaseDemo(language), [language]);
-  const algorithm = useMemo(() => heroAlgorithm(language), [language]);
   const [says, setSays] = useState<string | null>(null);
+  const [step, setStep] = useState(0);
 
-  const onStep = useCallback((message: string | null) => setSays(message), []);
+  const onStep = useCallback((message: string | null, index: number) => {
+    setSays(message);
+    setStep(index);
+  }, []);
+
+  /* The five block steps map onto the diagram's four nodes: the loop and the
+     statement inside it are one node there, because a diagram shows the shape
+     of a program rather than every line of it. */
+  const flowStep = [0, 1, 1, 2, 3][step] ?? null;
 
   return (
     <div className="views-showcase">
@@ -39,7 +49,7 @@ export function ViewsShowcase() {
           <RobotGreeting
             mood={says ? 'speaking' : 'thinking'}
             message={says}
-            size="sm"
+            size="md"
             peek="bottom"
           />
         </div>
@@ -47,15 +57,8 @@ export function ViewsShowcase() {
 
       <div className="views-showcase__cell views-showcase__cell--chart">
         <span className="views-showcase__label">{d.landing.showcaseLabels.flowchart}</span>
-        {/* The flowchart measures its container to fit itself, so this needs a
-            height of its own or it collapses to nothing. */}
         <div className="views-showcase__chart">
-          <Flowchart
-            program={algorithm.body}
-            activeNodeId={null}
-            erroredNodeId={null}
-            onSelectNode={() => {}}
-          />
+          <MiniFlow activeStep={flowStep} />
         </div>
       </div>
     </div>

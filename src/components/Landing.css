@@ -552,16 +552,16 @@
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
+/* A band of the card's own colour along the top edge, rather than a blurred
+   circle bleeding through the middle: the wash read as a smudge behind the
+   text, and colour on an edge is easier to read as deliberate. */
 .landing__audience-card::before {
   content: '';
   position: absolute;
-  top: -40%;
-  right: -20%;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, var(--card-hue, var(--accent)), transparent 70%);
-  opacity: 0.09;
-  pointer-events: none;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--card-hue, var(--accent));
+  opacity: 0.85;
 }
 
 .landing__audience-card:hover {
@@ -702,61 +702,94 @@
    7 — Learn, and the close
    --------------------------------------------------------------------------- */
 
+/* Left-aligned, heading included: a climb reads along its own direction, and a
+   centred title over indented rungs looks like two decisions that never met. */
 .landing__learn {
-  text-align: center;
+  text-align: left;
 }
 
 .landing__learn .landing__lead {
-  margin-inline: auto;
+  margin-bottom: var(--space-4);
 }
 
 /*
- * Four cards rather than four bullets. A list of sentences with identical
- * ticks says "here are four more things"; giving each its own colour and icon
- * says they are four different kinds of thing, which is what they are.
+ * A path rather than a grid.
+ *
+ * Four cards here made this the third card grid in a row, and the section
+ * directly above it was already one — the page started repeating itself. The
+ * promise being made is that learning goes somewhere, so the four items climb:
+ * a stepped line, each rung further along and further up, with a rule running
+ * through them.
  */
 .landing__learn-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-6);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-7);
   text-align: left;
+}
+
+/* The line they climb, fading in and out so it has no hard ends. */
+.landing__learn-list::before {
+  content: '';
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  left: 27px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--hue-io) 12%,
+    var(--hue-variable) 40%,
+    var(--hue-conditional) 66%,
+    var(--hue-loop) 88%,
+    transparent
+  );
+  opacity: 0.4;
 }
 
 .landing__learn-item {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  font-size: var(--text-base);
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-body-lg);
   line-height: 1.5;
   color: var(--text-primary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
   text-wrap: pretty;
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
 }
 
-.landing__learn-item:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-2px);
+/* Each rung sits a little further right than the last, so the eye climbs. */
+.landing__learn-item:nth-child(2) {
+  margin-left: clamp(0px, 4vw, 40px);
 }
 
+.landing__learn-item:nth-child(3) {
+  margin-left: clamp(0px, 8vw, 80px);
+}
+
+.landing__learn-item:nth-child(4) {
+  margin-left: clamp(0px, 12vw, 120px);
+}
+
+/* Opaque, and above the line, so the rule appears to pass behind each rung. */
 .landing__learn-icon {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 6px var(--bg-app);
 }
 
 .landing__learn-icon svg {
-  width: 21px;
-  height: 21px;
+  width: 25px;
+  height: 25px;
 }
 
 .landing__learn-item[data-hue='io'] .landing__learn-icon {
@@ -935,9 +968,15 @@
 }
 
 @media (max-width: 700px) {
-  .landing__audience-inner,
-  .landing__learn-list {
+  .landing__audience-inner {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The climb costs width the words need more. */
+  .landing__learn-item:nth-child(2),
+  .landing__learn-item:nth-child(3),
+  .landing__learn-item:nth-child(4) {
+    margin-left: 0;
   }
 
   .landing__audience-card--offset {

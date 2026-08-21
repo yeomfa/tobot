@@ -12,23 +12,22 @@
 }
 
 /*
- * The controls are absent until the pointer arrives: at rest the section
- * should be blocks and a robot, not a widget with buttons round it.
+ * The controls take their own room below the blocks rather than floating over
+ * them. Overlapping put them across the last statement — covering the thing
+ * the visitor leaned in to read, in the act of offering to help them read it.
+ *
+ * The space is reserved from the start, so nothing shifts when they appear:
+ * the row is always there, and only its contents fade in.
  */
 .demo-player__controls {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--space-5) * -1);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-md);
+  height: 34px;
+  margin-top: var(--space-3);
   opacity: 0;
-  transform: translate(-50%, 6px);
+  transform: translateY(4px);
   pointer-events: none;
   transition:
     opacity var(--duration-base) var(--ease-out),
@@ -37,7 +36,7 @@
 
 .demo-player[data-engaged] .demo-player__controls {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: none;
   pointer-events: auto;
 }
 

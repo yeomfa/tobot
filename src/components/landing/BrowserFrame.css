@@ -46,9 +46,11 @@
   text-overflow: ellipsis;
 }
 
+/* No `line-height: 0` here. It was closing the gap under a screenshot back
+   when this framed one; now it frames live blocks, and a zero line box left
+   every field inside them flatter than the text it held. */
 .browser-frame__body {
   display: block;
-  line-height: 0;
 }
 
 .browser-frame__body img,

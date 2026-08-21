@@ -124,8 +124,14 @@ export const en: Dictionary = {
       chart: 'Flowchart',
     },
 
-    showcaseTitle: 'One algorithm, four languages',
-    showcaseBody: 'Change one block and all four change with you.',
+    showcaseTitle: 'The blocks and their diagram, together',
+    showcaseBody: 'Change one block and the diagram changes with you. The same goes for the code.',
+    flow: {
+      start: 'Start',
+      count: 'Add points',
+      check: 'points ≥ 5?',
+      end: 'End',
+    },
     showcaseLabels: {
       natural: 'In English',
       code: 'In code',

@@ -10,8 +10,8 @@ interface DemoPlayerProps {
   demo: Demo;
   /** Milliseconds each step holds. Slower where there is more to read. */
   pace?: number;
-  /** Reports the current step, so a robot outside can react to it. */
-  onStep?: (says: string | null) => void;
+  /** Reports the current step, so anything outside can follow along. */
+  onStep?: (says: string | null, index: number) => void;
 }
 
 /**
@@ -39,8 +39,8 @@ export function DemoPlayer({ demo, pace = 1800, onStep }: DemoPlayerProps) {
   const step = demo.steps[index] ?? demo.steps[0];
 
   useEffect(() => {
-    onStep?.(step?.says ?? null);
-  }, [step, onStep]);
+    onStep?.(step?.says ?? null, index);
+  }, [step, index, onStep]);
 
   useEffect(() => {
     const element = rootRef.current;

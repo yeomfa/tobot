@@ -33,16 +33,20 @@
   color: var(--text-muted);
 }
 
+/* The blocks take only the room they need; stretching them to match the
+   diagram's column left a pool of empty card under the last one. */
 .views-showcase__blocks {
-  flex: 1;
+  flex: 0 0 auto;
 }
 
 /* The narrator sits at the bottom edge, cropped, so it belongs to the panel
-   rather than sitting inside it. */
+   rather than sitting inside it. `margin-top: auto` pins it there however
+   tall the blocks turn out to be. */
 .views-showcase__narrator {
   display: flex;
   justify-content: flex-end;
-  margin: var(--space-5) calc(var(--space-4) * -1) calc(var(--space-4) * -1) 0;
+  margin: auto calc(var(--space-4) * -1) calc(var(--space-4) * -1) 0;
+  padding-top: var(--space-5);
   pointer-events: none;
 }
 
