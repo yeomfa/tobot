@@ -1,0 +1,118 @@
+/**
+ * Decorative shapes. All static, all inert — see Decor.tsx for why.
+ */
+
+.decor-blobs,
+.decor-chips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Soft colour fields. Large and heavily blurred, so they read as light in the
+   room rather than as objects on the page. */
+.decor-blobs span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.42;
+}
+
+.decor-blobs__a {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -60px;
+  background: radial-gradient(circle, var(--hue-variable), transparent 68%);
+}
+
+.decor-blobs__b {
+  width: 340px;
+  height: 340px;
+  bottom: -140px;
+  left: -80px;
+  background: radial-gradient(circle, var(--hue-io), transparent 68%);
+}
+
+/* Dimmer against a dark ground, where the same opacity would glare. */
+:root[data-theme='dark'] .decor-blobs span {
+  opacity: 0.24;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .decor-blobs span {
+    opacity: 0.24;
+  }
+}
+
+/* Loose blocks, tilted, in the editor's category colours. */
+.decor-chips__chip {
+  position: absolute;
+  width: 58px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  opacity: 0.7;
+}
+
+.decor-chips__chip[data-hue='variable'] {
+  top: 12%;
+  left: 4%;
+  background: var(--hue-variable-soft);
+  border: 1px solid var(--hue-variable-border);
+  transform: rotate(-8deg);
+}
+
+.decor-chips__chip[data-hue='io'] {
+  top: 30%;
+  right: 6%;
+  background: var(--hue-io-soft);
+  border: 1px solid var(--hue-io-border);
+  transform: rotate(5deg);
+}
+
+.decor-chips__chip[data-hue='conditional'] {
+  bottom: 22%;
+  left: 8%;
+  background: var(--hue-conditional-soft);
+  border: 1px solid var(--hue-conditional-border);
+  transform: rotate(11deg);
+}
+
+.decor-chips__chip[data-hue='loop'] {
+  bottom: 10%;
+  right: 12%;
+  background: var(--hue-loop-soft);
+  border: 1px solid var(--hue-loop-border);
+  transform: rotate(-3deg);
+}
+
+/* The soft fills are built for light grounds; on dark they wash out, so the
+   chips fall back to a tinted outline. */
+:root[data-theme='dark'] .decor-chips__chip {
+  background: transparent;
+  opacity: 0.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .decor-chips__chip {
+    background: transparent;
+    opacity: 0.5;
+  }
+}
+
+.decor-rule {
+  width: 28px;
+  height: 2px;
+  flex-shrink: 0;
+  color: currentColor;
+  opacity: 0.45;
+}
+
+/* Below this width the hero is stacked and every pixel counts; the loose
+   blocks would land on top of the text. */
+@media (max-width: 900px) {
+  .decor-chips {
+    display: none;
+  }
+}

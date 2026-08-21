@@ -52,8 +52,7 @@ export const es = {
     tryItLong: 'Armar mi primer algoritmo',
     signIn: 'Entrar',
     noAccount: 'Gratis, sin instalar nada y sin crear cuenta.',
-    shotAlt: 'El editor de Tobot: bloques a la izquierda, el algoritmo en el centro y el robot listo para ejecutarlo.',
-    demoCaption: 'Así se ve Tobot por dentro: bloques a la izquierda, tu algoritmo en el centro y el robot listo para ejecutarlo.',
+    demoCaption: 'Tobot arma este algoritmo y lo ejecuta, igual que lo harás tú.',
 
     stepsTitle: 'Así funciona',
     stepsLead: 'Tres pasos, y el primero toma menos de un minuto.',
@@ -111,8 +110,27 @@ export const es = {
     },
 
 
-    robotHello: '¡Hola! Soy Tobot. ¿Armamos un algoritmo?',
+    robotHello: '¡Hola! Soy Tobot. Mira lo que puedo hacer.',
+    robotDone: '¡Listo! Eso es un algoritmo.',
+    robotGuide: 'Yo te acompaño en cada paso.',
     robotBye: '¡Te espero adentro!',
+
+    sameTitle: 'Lo mismo, en cuatro formas',
+    views: {
+      natural: 'Español',
+      pseudocode: 'Pseudocódigo',
+      code: 'Código real',
+      chart: 'Diagrama',
+    },
+
+    showcaseTitle: 'Un algoritmo, cuatro lenguajes',
+    showcaseBody:
+      'Este es el mismo programa que armó el robot arriba. Cambia un bloque y las cuatro vistas cambian con él.',
+    showcaseLabels: {
+      natural: 'En español',
+      code: 'En código',
+      flowchart: 'Como diagrama',
+    },
 
     learnTitle: 'Aprende conceptos, no sintaxis',
     learnLead: 'Cada instrucción trae su explicación, sus ejemplos y a dónde ir para profundizar. Empiezas por lo esencial y sigues subiendo: la plataforma crece contigo.',
@@ -124,7 +142,6 @@ export const es = {
     },
     closingTitle: '¿Armamos tu primer algoritmo?',
     closingBody: 'Abre el editor y empieza a jugar. Si más adelante quieres guardar tu trabajo y encontrarlo desde cualquier computador, creas tu cuenta.',
-    madeFor: 'Hecho para estudiantes de programación',
   },
   palette: {
     title: 'Instrucciones',

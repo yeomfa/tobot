@@ -171,6 +171,10 @@ export default function App() {
           path={ROUTES.landing}
           element={
             <Landing
+              language={language}
+              onLanguageChange={(next) =>
+                setPreferences((current) => ({ ...current, language: next }))
+              }
               onTry={() => {
                 /* Trying it is the point of the page, so it opens the editor
                    rather than the gate: a visitor who has to sign in before

@@ -9,7 +9,7 @@ interface RobotGreetingProps {
   message: string | null;
   /** Follows the pointer with its gaze. Only worth it where it is the focus. */
   follow?: boolean;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 /**

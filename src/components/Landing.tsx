@@ -8,99 +8,197 @@ import {
   Lightning,
   Sparkle,
   Student,
+  Translate,
   TreeStructure,
 } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 
 import { APP_VERSION, MAKER } from '../brand';
+import { LANGUAGES, languageNames } from '../i18n';
+import type { Language } from '../i18n';
 import { useTranslation } from '../i18n/context';
 import { ROUTES } from '../routes';
 import { BrandMark } from './BrandMark';
-import { BrowserFrame } from './landing/BrowserFrame';
-import { LiveBlocks } from './landing/LiveBlocks';
-import { RobotGreeting } from './landing/RobotGreeting';
+import { SettingsMenu } from './SettingsMenu';
+import { Blobs, Chips, DashRule } from './landing/Decor';
+import { HeroStage } from './landing/HeroStage';
 import { Reveal } from './landing/Reveal';
+import { RobotGreeting } from './landing/RobotGreeting';
+import { ViewsShowcase } from './landing/ViewsShowcase';
 import './Landing.css';
+
+/** The six things inside, each in the hue of the part of the editor it names. */
+const FEATURES = [
+  { key: 'views', icon: Code, hue: 'variable', wide: true },
+  { key: 'diagram', icon: TreeStructure, hue: 'io', wide: false },
+  { key: 'run', icon: Lightning, hue: 'conditional', wide: true },
+  { key: 'robot', icon: ChatCircleText, hue: 'accent', wide: false },
+  { key: 'concepts', icon: GraduationCap, hue: 'loop', wide: false },
+  { key: 'validation', icon: Check, hue: 'success', wide: false },
+] as const;
+
+interface LandingProps {
+  onTry: () => void;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+}
 
 /**
  * The public page.
  *
- * Its job is to answer "what is this and why would I use it" for a teacher
- * deciding whether to put it in front of a class, and to get a student into
- * the editor without asking for anything first. Trying it is the strongest
- * argument the app has, so the primary action opens the editor rather than a
- * sign-up form: a student who has seen it work is already convinced, and an
- * account only matters once they have work worth keeping.
+ * It answers "what is this, and why would I use it" for a teacher deciding
+ * whether to put it in front of a class, and gets a student into the editor
+ * without asking for anything first — trying it is the strongest argument the
+ * app has, so the primary action opens the editor rather than a sign-up form.
+ *
+ * The page is built out of the editor's own components: the hero runs the real
+ * interpreter over real blocks, and the showcase renders the real code panels
+ * and the real flowchart. A screenshot of a tool that changes weekly starts
+ * lying the week after it is taken; this cannot, because it is the tool.
+ *
+ * No two neighbouring sections share a ground, an alignment and a content
+ * shape. Five identical centred grids was the previous arrangement, and it
+ * read as a list of features rather than as an argument.
  */
-export function Landing({ onTry }: { onTry: () => void }) {
+export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
   const { d } = useTranslation();
 
   return (
     <div className="landing">
       <header className="landing__nav">
-        <span className="landing__brand">
-          <BrandMark size={28} />
-          <span className="landing__brand-name">Tobot</span>
-        </span>
+        <div className="landing__inner landing__nav-inner">
+          <span className="landing__brand">
+            <BrandMark size={28} />
+            <span className="landing__brand-name">Tobot</span>
+          </span>
 
-        <nav className="landing__nav-links">
-          <Link className="landing__nav-link" to={ROUTES.login}>
-            {d.landing.signIn}
-          </Link>
-          <button type="button" className="landing__cta landing__cta--small" onClick={onTry}>
-            {d.landing.tryIt}
-          </button>
-        </nav>
+          <nav className="landing__nav-links">
+            {/* Without this a visitor who reads English lands on a Spanish
+                page with no way out — the editor has the switch, but they
+                would have to get there first to find it. */}
+            <SettingsMenu
+              value={language}
+              options={LANGUAGES.map((code) => ({ value: code, label: languageNames[code] }))}
+              onChange={onLanguageChange}
+              trigger={Translate}
+              label={d.settings.language}
+            />
+            <Link className="landing__nav-link" to={ROUTES.login}>
+              {d.landing.signIn}
+            </Link>
+            <button type="button" className="landing__cta landing__cta--small" onClick={onTry}>
+              {d.landing.tryIt}
+            </button>
+          </nav>
+        </div>
       </header>
 
       <main>
+        {/* 1 — Hero: left-aligned and asymmetric. Centring this was what set
+            the centred tone for every section that followed. */}
         <section className="landing__hero">
-          <p className="landing__eyebrow">{d.landing.eyebrow}</p>
-          <h1 className="landing__title">{d.landing.title}</h1>
-          <p className="landing__lead">{d.landing.lead}</p>
+          <Blobs />
+          <Chips />
 
-          <div className="landing__actions">
-            <button type="button" className="landing__cta" onClick={onTry}>
-              {d.landing.tryIt}
-              <ArrowRight weight="bold" />
-            </button>
-            <Link className="landing__ghost" to={ROUTES.login}>
-              {d.landing.signIn}
-            </Link>
-          </div>
+          <div className="landing__inner landing__hero-inner">
+            <div className="landing__hero-copy">
+              <p className="landing__eyebrow">{d.landing.eyebrow}</p>
+              <h1 className="landing__title">{d.landing.title}</h1>
+              <p className="landing__lead">{d.landing.lead}</p>
 
-          <p className="landing__note">{d.landing.noAccount}</p>
+              <div className="landing__actions">
+                <button type="button" className="landing__cta" onClick={onTry}>
+                  {d.landing.tryIt}
+                  <ArrowRight weight="bold" />
+                </button>
+                <Link className="landing__ghost" to={ROUTES.login}>
+                  {d.landing.signIn}
+                </Link>
+              </div>
 
-          {/*
-            The tool itself, not a picture of it. These are the editor's own
-            blocks, assembling themselves: a screenshot goes stale the moment
-            the editor changes, and this cannot, because it is the editor.
-          */}
-          <div className="landing__stage">
-            <div className="landing__shot">
-              <BrowserFrame url="tobot.app/app" tilt>
-                <LiveBlocks />
-              </BrowserFrame>
+              <p className="landing__note">{d.landing.noAccount}</p>
             </div>
-            <div className="landing__host">
-              <RobotGreeting mood="speaking" message={d.landing.robotHello} follow />
+
+            <div className="landing__hero-stage">
+              <HeroStage />
+              <p className="landing__caption">{d.landing.demoCaption}</p>
             </div>
           </div>
-          <p className="landing__demo-caption">{d.landing.demoCaption}</p>
         </section>
 
-        <section className="landing__section landing__section--audience landing__section--raised">
-          <h2 className="landing__section-title">{d.landing.forTitle}</h2>
-          <div className="landing__audience">
+        {/* 2 — A short dark band. No cards, no icons, no grid: four words and
+            the connectors between them. */}
+        <section className="landing__band landing__band--dark landing__proof">
+          <div className="landing__inner">
+            <p className="landing__proof-title">{d.landing.sameTitle}</p>
+            <p className="landing__proof-row">
+              {(['natural', 'pseudocode', 'code', 'chart'] as const).map((key, index) => (
+                <span className="landing__proof-item" key={key}>
+                  {index > 0 && <DashRule />}
+                  <span className="landing__proof-word" data-view={key}>
+                    {d.landing.views[key]}
+                  </span>
+                </span>
+              ))}
+            </p>
+          </div>
+        </section>
+
+        {/* 3 — How it works: a vertical list beside a robot that stays with
+            the reader, rather than three cards in a row. */}
+        <section className="landing__band landing__how">
+          <div className="landing__inner landing__how-inner">
+            <div>
+              <h2 className="landing__headline">{d.landing.stepsTitle}</h2>
+              <p className="landing__lead">{d.landing.stepsLead}</p>
+
+              <ol className="landing__steps">
+                {(['build', 'compare', 'run'] as const).map((key, index) => (
+                  <Reveal key={key} delay={index * 70}>
+                    <li className="landing__step">
+                      <span className="landing__step-number">{index + 1}</span>
+                      <div>
+                        <h3>{d.landing.steps[key].title}</h3>
+                        <p>{d.landing.steps[key].body}</p>
+                      </div>
+                    </li>
+                  </Reveal>
+                ))}
+              </ol>
+            </div>
+
+            {/* Decorative: what it says is already in the steps beside it. */}
+            <div className="landing__guide" aria-hidden="true">
+              <RobotGreeting mood="thinking" message={d.landing.robotGuide} size="md" />
+            </div>
+          </div>
+        </section>
+
+        {/* 4 — One big object instead of many small ones. */}
+        <section className="landing__band landing__band--raised landing__views">
+          <div className="landing__inner">
+            <h2 className="landing__headline">{d.landing.showcaseTitle}</h2>
+            <p className="landing__lead">{d.landing.showcaseBody}</p>
+            <ViewsShowcase />
+          </div>
+        </section>
+
+        {/* 5 — Two cards, staggered, with mirrored corners: anything but two
+            identical rectangles. */}
+        <section className="landing__band landing__audience">
+          <div className="landing__inner landing__audience-inner">
+            <h2 className="landing__headline">{d.landing.forTitle}</h2>
+
             <article className="landing__audience-card">
-              <span className="landing__audience-icon">
+              <span className="landing__audience-icon" data-hue="io">
                 <Student weight="duotone" />
               </span>
               <h3>{d.landing.forStudents.title}</h3>
               <p>{d.landing.forStudents.body}</p>
             </article>
-            <article className="landing__audience-card">
-              <span className="landing__audience-icon">
+
+            <article className="landing__audience-card landing__audience-card--offset">
+              <span className="landing__audience-icon" data-hue="loop">
                 <ChalkboardTeacher weight="duotone" />
               </span>
               <h3>{d.landing.forTeachers.title}</h3>
@@ -109,92 +207,74 @@ export function Landing({ onTry }: { onTry: () => void }) {
           </div>
         </section>
 
-        {/* How it works, before what it has: someone who does not yet know what
-            this is needs the shape of the thing before a list of parts. */}
-        <section className="landing__section landing__section--steps">
-          <h2 className="landing__section-title">{d.landing.stepsTitle}</h2>
-          <p className="landing__section-lead">{d.landing.stepsLead}</p>
-          <ol className="landing__steps">
-            {(['build', 'compare', 'run'] as const).map((key, index) => (
-              <Reveal key={key} delay={index * 90}>
-                <li className="landing__step">
-                  <span className="landing__step-number">{index + 1}</span>
-                  <h3>{d.landing.steps[key].title}</h3>
-                  <p>{d.landing.steps[key].body}</p>
-                </li>
-              </Reveal>
-            ))}
-          </ol>
-        </section>
-
-        <section className="landing__section landing__section--raised">
-          <h2 className="landing__section-title">{d.landing.featuresTitle}</h2>
-          <div className="landing__cards">
-            {[
-              { icon: Code, key: 'views' },
-              { icon: TreeStructure, key: 'diagram' },
-              { icon: Lightning, key: 'run' },
-              { icon: ChatCircleText, key: 'robot' },
-              { icon: GraduationCap, key: 'concepts' },
-              { icon: Check, key: 'validation' },
-            ].map(({ icon: Icon, key }, index) => (
-              <Reveal key={key} delay={index * 60}>
-                <article className="landing__card">
-                  <span className="landing__card-icon">
+        {/* 6 — Six cards in two shapes, each in the hue of the thing it
+            describes. This is where the palette gets taught. */}
+        <section className="landing__band landing__band--raised landing__features">
+          <div className="landing__inner">
+            <h2 className="landing__headline">{d.landing.featuresTitle}</h2>
+            <div className="landing__cards">
+              {FEATURES.map(({ key, icon: Icon, hue, wide }) => (
+                <article className="landing__card" key={key} data-wide={wide || undefined}>
+                  <span className="landing__card-icon" data-hue={hue}>
                     <Icon weight="duotone" />
                   </span>
-                  <h3>{d.landing.features[key as keyof typeof d.landing.features].title}</h3>
-                  <p>{d.landing.features[key as keyof typeof d.landing.features].body}</p>
+                  <div>
+                    <h3>{d.landing.features[key].title}</h3>
+                    <p>{d.landing.features[key].body}</p>
+                  </div>
                 </article>
-              </Reveal>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
-        {/*
-          Not a syllabus. Four chips and a "coming soon" told a reader that
-          Tobot *is* those four things, putting a ceiling where there is none.
-          What it should promise is somewhere to learn, that keeps growing.
-        */}
-        <section className="landing__section landing__section--learn landing__section--narrow">
-          <h2 className="landing__section-title">{d.landing.learnTitle}</h2>
-          <p className="landing__section-lead">{d.landing.learnLead}</p>
-          <ul className="landing__learn">
-            {(['explained', 'sources', 'pace', 'growing'] as const).map((key) => (
-              <li className="landing__learn-item" key={key}>
-                <Sparkle weight="fill" />
-                {d.landing.learn[key]}
-              </li>
-            ))}
-          </ul>
+        {/* 7 — Learning, then the close. Centring is earned here: it is the
+            only centred section left. */}
+        <section className="landing__band landing__learn">
+          <div className="landing__inner landing__inner--narrow">
+            <h2 className="landing__headline">{d.landing.learnTitle}</h2>
+            <p className="landing__lead">{d.landing.learnLead}</p>
+            <ul className="landing__learn-list">
+              {(['explained', 'sources', 'pace', 'growing'] as const).map((key) => (
+                <li className="landing__learn-item" key={key}>
+                  <Sparkle weight="fill" />
+                  {d.landing.learn[key]}
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
-        <section className="landing__closing">
-          <div className="landing__closing-robot">
-            <RobotGreeting mood="done" message={d.landing.robotBye} size="sm" />
+        <section className="landing__band landing__band--dark landing__closing">
+          <div className="landing__inner landing__inner--narrow">
+            <div className="landing__closing-robot" aria-hidden="true">
+              <RobotGreeting mood="done" message={d.landing.robotBye} size="sm" />
+            </div>
+            <h2 className="landing__headline">{d.landing.closingTitle}</h2>
+            <p className="landing__lead">{d.landing.closingBody}</p>
+            <button type="button" className="landing__cta landing__cta--large" onClick={onTry}>
+              {d.landing.tryItLong}
+              <ArrowRight weight="bold" />
+            </button>
+            <p className="landing__note">{d.landing.noAccount}</p>
           </div>
-          <h2>{d.landing.closingTitle}</h2>
-          <p>{d.landing.closingBody}</p>
-          <button type="button" className="landing__cta landing__cta--large" onClick={onTry}>
-            {d.landing.tryItLong}
-            <ArrowRight weight="bold" />
-          </button>
-          <p className="landing__note">{d.landing.noAccount}</p>
         </section>
       </main>
 
       <footer className="landing__footer">
-        <span className="landing__footer-brand">
-          <BrandMark size={20} />
-          Tobot
-          <span className="landing__version">v{APP_VERSION}</span>
-        </span>
-        <span className="landing__maker">
-          By{' '}
-          <a href={MAKER.url} target="_blank" rel="noreferrer noopener">
-            {MAKER.name}
-          </a>
-        </span>
+        <div className="landing__inner landing__footer-inner">
+          <span className="landing__footer-brand">
+            <BrandMark size={20} />
+            Tobot
+            <span className="landing__version">v{APP_VERSION}</span>
+          </span>
+          <span className="landing__maker">
+            By{' '}
+            <a href={MAKER.url} target="_blank" rel="noreferrer noopener">
+              {MAKER.name}
+            </a>
+          </span>
+        </div>
       </footer>
     </div>
   );

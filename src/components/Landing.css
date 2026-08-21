@@ -1,73 +1,163 @@
 /**
- * The public page.
+ * The landing page.
  *
- * Wider measure and larger type than the app: this is read once, standing
- * back, rather than worked in for an hour. It borrows the app's tokens so the
- * two never drift apart — a landing page that looks like a different product
- * is a promise the app then breaks.
+ * Written as one piece rather than grown by appending, which is how the
+ * previous version reached 707 lines with a duplicated rule, thirteen dead
+ * classes and two undefined tokens. Two conventions keep it that way:
+ *
+ * 1. Every selector begins `.landing__` or `.landing `, and each section's
+ *    rules live in exactly one block, in the same order as the JSX. Appending
+ *    at the bottom is then visibly wrong.
+ * 2. Component-local styling lives in that component's own file. HeroStage,
+ *    ViewsShowcase and Decor style themselves; this file only places them.
+ *
+ * ---------------------------------------------------------------------------
+ * The motion budget
+ * ---------------------------------------------------------------------------
+ * Three robots breathe and blink, always — that is character, and it is the
+ * whole ambient allowance. On top of it:
+ *
+ * - One driven loop on the page: the hero. No other section owns a timer.
+ * - No decorative animation at all. The blobs, chips, grids and rules are
+ *   static. A background that pulses competes with the one thing that should
+ *   be moving.
+ * - Two moving things at any instant, never three.
+ * - Reveal staggers at most three items, 70ms apart.
+ * - Hover moves only what is hovered: a border and two pixels.
+ * - Everything stops under `prefers-reduced-motion`.
  */
-/*
- * The page's own scale. Wider measure and far more range than the app: this is
- * read once, standing back, where the interface is worked in for an hour. The
- * tokens stay scoped to `.landing` so nothing here can reach the editor.
- */
-.landing {
-  --landing-max: 1080px;
-  --landing-narrow: 720px;
-  --section-gap: clamp(3.5rem, 8vw, 6.5rem);
 
-  /* The app's largest step is 1.75rem, which reads as timid on a page whose
-     job is to be seen from across a room. */
-  --text-display: clamp(2.25rem, 5vw, 3.5rem);
-  --text-headline: clamp(1.75rem, 3.5vw, 2.5rem);
+.landing {
+  /* Measures */
+  --landing-max: 1120px;
+  --landing-narrow: 680px;
+  --landing-gutter: clamp(1rem, 4vw, 2rem);
+
+  /* Vertical rhythm. Three steps, used everywhere — `--band-loose` replaces
+     the `--space-8` the old file referenced, which never existed. */
+  --band: clamp(3.5rem, 8vw, 6rem);
+  --band-tight: clamp(2.25rem, 5vw, 3.5rem);
+  --band-loose: clamp(4.5rem, 10vw, 7.5rem);
+
+  /* A page scale. The app's own tops out at 1.75rem, which is right for a
+     workspace and timid for something read from across a room. */
+  --text-display: clamp(2.25rem, 4.6vw, 3.5rem);
+  --text-headline: clamp(1.6rem, 3.2vw, 2.35rem);
   --text-body-lg: clamp(1rem, 1.4vw, 1.125rem);
 
+  /* The one elevation the app lacks. */
+  --shadow-xl: 0 24px 64px rgb(15 20 35 / 0.14), 0 8px 16px rgb(15 20 35 / 0.08);
+
+  /* The dark bands stay dark in both themes — that is the point of them. */
+  --band-dark-bg: var(--slate-950);
+  --band-dark-text: var(--slate-50);
+  --band-dark-mute: var(--slate-400);
+
   min-height: 100%;
-  background: var(--bg-base);
-  overflow-y: auto;
+  /* Was `--bg-base`, a token that does not exist: the page had no ground of
+     its own and inherited one by accident. */
+  background: var(--bg-app);
+  /* The hero's decoration reaches past the viewport; clip it rather than
+     letting the page scroll sideways. `clip` not `hidden`, so the sticky
+     robot in "how it works" still works. */
+  overflow-x: clip;
 }
 
-.landing__nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: var(--space-4) var(--space-5);
+/* The only new token needing a dark value, defined in both the places the app
+   defines dark rather than duplicating the whole set. */
+:root[data-theme='dark'] .landing {
+  --shadow-xl: 0 24px 64px rgb(0 0 0 / 0.55), 0 8px 16px rgb(0 0 0 / 0.35);
 }
 
-.landing__brand,
-.landing__footer-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .landing {
+    --shadow-xl: 0 24px 64px rgb(0 0 0 / 0.55), 0 8px 16px rgb(0 0 0 / 0.35);
+  }
 }
 
-.landing__brand-name {
-  font-size: var(--text-md);
-  font-weight: 700;
+/* ---------------------------------------------------------------------------
+   Shared primitives
+   --------------------------------------------------------------------------- */
+
+.landing__band {
+  padding-block: var(--band);
+}
+
+.landing__band--raised {
+  background: var(--bg-surface);
+  border-block: 1px solid var(--border-subtle);
+}
+
+.landing__band--dark {
+  color: var(--band-dark-text);
+  background: var(--band-dark-bg);
+  /* The editor's dot grid, for texture rather than flat black. */
+  background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.landing__inner {
+  max-width: var(--landing-max);
+  margin-inline: auto;
+  padding-inline: var(--landing-gutter);
+}
+
+.landing__inner--narrow {
+  max-width: var(--landing-narrow);
+}
+
+/* Alignment is a per-section decision, deliberately not baked in here: a
+   shared `text-align: center` on the section title is exactly what made every
+   section look the same before. */
+.landing__headline {
+  font-size: var(--text-headline);
+  font-weight: 720;
   letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.landing__eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.landing__title {
+  margin-top: var(--space-3);
+  font-size: var(--text-display);
+  font-weight: 760;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
   color: var(--text-primary);
+  text-wrap: balance;
 }
 
-.landing__nav-links {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.landing__nav-link {
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: 600;
+.landing__lead {
+  max-width: 58ch;
+  margin-top: var(--space-3);
+  font-size: var(--text-body-lg);
+  line-height: 1.65;
   color: var(--text-secondary);
-  border-radius: var(--radius-md);
+  text-wrap: pretty;
 }
 
-.landing__nav-link:hover {
-  color: var(--text-primary);
-  background: var(--bg-inset);
+.landing__band--dark .landing__lead {
+  color: var(--band-dark-mute);
+}
+
+.landing__note {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.landing__caption {
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .landing__cta {
@@ -76,11 +166,12 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
   font-size: var(--text-base);
-  font-weight: 650;
+  font-weight: 680;
   color: var(--text-inverse);
   background: var(--accent);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  white-space: nowrap;
   transition:
     background var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
@@ -94,496 +185,369 @@
   transform: scale(0.98);
 }
 
-.landing__cta svg {
-  width: 16px;
-  height: 16px;
-}
-
 .landing__cta--small {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
 }
 
+.landing__cta--large {
+  margin-top: var(--space-5);
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-md);
+}
+
+.landing__cta svg {
+  width: 16px;
+  height: 16px;
+}
+
 .landing__ghost {
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: 620;
   color: var(--text-secondary);
   border-radius: var(--radius-md);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .landing__ghost:hover {
   color: var(--text-primary);
-  background: var(--bg-inset);
 }
 
-/* ---- Hero ---- */
+/* ---------------------------------------------------------------------------
+   Nav
+   --------------------------------------------------------------------------- */
 
-/* A warm wash behind the hero, so the page opens with the product's colour
-   instead of the flat grey of a form. */
-/* Tight enough that the demo starts before the fold: the blocks assembling
-   themselves are the argument, and an argument below the fold is not made. */
+.landing__nav {
+  position: relative;
+  z-index: 2;
+  padding-block: var(--space-4);
+}
+
+.landing__nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.landing__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.landing__brand-name {
+  font-size: var(--text-md);
+  font-weight: 720;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.landing__nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.landing__nav-link {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.landing__nav-link:hover {
+  color: var(--text-primary);
+}
+
+/* ---------------------------------------------------------------------------
+   1 — Hero
+   --------------------------------------------------------------------------- */
+
 .landing__hero {
   position: relative;
-  max-width: 780px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5) var(--space-5);
-  text-align: center;
+  padding-block: var(--band-tight) var(--band);
+  /* The decoration sits behind the content but inside the section, so the
+     stacking context is local and nothing above can bury it. */
+  isolation: isolate;
 }
 
+/* The warm wash over the editor's grid, concentrated behind the text so it
+   does not fight the demo beside it. */
 .landing__hero::before {
   content: '';
   position: absolute;
-  inset: -10% -50% 30%;
+  inset: 0;
   z-index: -1;
-  /* The warm wash, over the editor's own grid: the page opens on the surface
-     the student is about to work on. */
   background-image:
-    radial-gradient(
-      ellipse at 50% 0%,
-      color-mix(in srgb, var(--accent) 15%, transparent),
-      transparent 62%
-    ),
     linear-gradient(var(--border-subtle) 1px, transparent 1px),
     linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    32px 32px,
-    32px 32px;
-  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 60% at 25% 30%, #000, transparent 72%);
   pointer-events: none;
 }
 
-.landing__eyebrow {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent-strong);
+/*
+ * The copy takes a fixed measure and the stage takes the rest. The stage needs
+ * the room: it holds seven blocks and a robot, and at anything less they wrap
+ * onto two lines each and the algorithm stops being readable at a glance.
+ */
+.landing__hero-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(300px, 38ch) minmax(0, 1.35fr);
+  align-items: center;
+  gap: clamp(var(--space-4), 3vw, var(--space-6));
 }
 
-.landing__title {
-  margin-top: var(--space-3);
-  font-size: var(--text-display);
-  font-weight: 750;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
-  text-wrap: balance;
-}
-
-.landing__lead {
-  max-width: 58ch;
-  margin: var(--space-4) auto 0;
-  font-size: var(--text-body-lg);
-  line-height: 1.65;
-  color: var(--text-secondary);
-  text-wrap: pretty;
+.landing__hero-copy {
+  min-width: 0;
 }
 
 .landing__actions {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: var(--space-2);
   margin-top: var(--space-5);
-  flex-wrap: wrap;
 }
 
-.landing__note {
-  margin-top: var(--space-3);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+.landing__hero-stage {
+  min-width: 0;
 }
 
-/* ---- The four views, shown rather than described ---- */
+/* ---------------------------------------------------------------------------
+   2 — Proof band
+   --------------------------------------------------------------------------- */
 
-.landing__demo {
-  margin-top: var(--space-7);
-  padding: var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  text-align: left;
+.landing__proof {
+  padding-block: var(--band-tight);
+  text-align: center;
 }
 
-.landing__demo-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  background: var(--hue-conditional-soft);
-  border-radius: var(--radius-md);
-}
-
-.landing__kw {
-  font-weight: 700;
-  color: var(--hue-conditional);
-}
-
-.landing__var {
-  padding: 2px 8px;
-  font-weight: 600;
-  color: var(--hue-variable);
-  background: var(--bg-surface);
-  border: 1px solid var(--hue-variable-border);
-  border-radius: var(--radius-sm);
-}
-
-.landing__num {
-  padding: 2px 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-}
-
-.landing__op {
-  color: var(--text-secondary);
-}
-
-.landing__demo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-}
-
-.landing__demo-cell {
-  padding: var(--space-3);
-  background: var(--bg-inset);
-  border-radius: var(--radius-md);
-}
-
-.landing__demo-cell p,
-.landing__demo-cell code {
+.landing__proof-title {
   font-size: var(--text-xs);
-  color: var(--text-primary);
-}
-
-.landing__demo-cell code {
-  font-family: var(--font-mono);
-}
-
-.landing__demo-cell em {
-  font-style: normal;
-  font-weight: 600;
-  color: var(--hue-variable);
-}
-
-.landing__demo-label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 10px;
-  font-weight: 700;
+  font-weight: 750;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--band-dark-mute);
 }
 
-.landing__demo-diamond {
-  display: inline-block;
-  padding: 4px 14px;
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--hue-conditional);
-  border: 2px solid var(--hue-conditional);
-  border-radius: var(--radius-sm);
-  transform: skewX(-12deg);
-}
-
-/* ---- Sections ---- */
-
-/*
- * Alternating grounds, so no two neighbouring sections look alike. Six
- * identical blocks of centred title over a grid was the reason the page read
- * as a list rather than an argument.
- */
-.landing__section {
-  padding: var(--section-gap) var(--space-5);
-}
-
-.landing__section > * {
-  max-width: var(--landing-max);
-  margin-inline: auto;
-}
-
-.landing__section--raised {
-  background: var(--bg-surface);
-  border-block: 1px solid var(--border-subtle);
-}
-
-.landing__section--narrow > * {
-  max-width: var(--landing-narrow);
-}
-
-.landing__section-title {
-  font-size: var(--text-headline);
-  font-weight: 720;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.landing__section-lead {
-  max-width: 56ch;
-  margin: var(--space-3) auto 0;
-  font-size: var(--text-base);
-  line-height: 1.6;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.landing__cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-5);
-}
-
-.landing__card {
-  padding: var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
-}
-
-.landing__card:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-.landing__card-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  color: var(--accent-strong);
-  background: var(--accent-soft);
-  border-radius: var(--radius-md);
-}
-
-.landing__card-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.landing__card h3 {
-  margin-top: var(--space-3);
-  font-size: var(--text-md);
-  font-weight: 680;
-  color: var(--text-primary);
-}
-
-.landing__card p {
-  margin-top: var(--space-2);
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.landing__topics {
+.landing__proof-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  margin-top: var(--space-5);
-}
-
-.landing__topic {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--text-primary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-}
-
-.landing__topic svg {
-  width: 15px;
-  height: 15px;
-  color: var(--accent-strong);
-}
-
-/* What is coming is marked as such rather than promised as present. */
-.landing__topic--soon {
-  color: var(--text-muted);
-  background: transparent;
-  border-style: dashed;
-}
-
-.landing__topic--soon svg {
-  color: var(--text-muted);
-}
-
-.landing__closing {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: var(--space-7) var(--space-5) var(--space-8);
-  text-align: center;
-}
-
-.landing__closing h2 {
-  font-size: var(--text-headline);
-  font-weight: 720;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  text-wrap: balance;
-}
-
-.landing__closing p {
-  margin: var(--space-3) 0 var(--space-5);
-  font-size: var(--text-base);
-  line-height: 1.65;
-  color: var(--text-secondary);
-  text-wrap: pretty;
-}
-
-/* ---- Footer ---- */
-
-.landing__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--space-4);
-  flex-wrap: wrap;
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: var(--space-4) var(--space-5) var(--space-6);
-  border-top: 1px solid var(--border-subtle);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
+  margin-top: var(--space-4);
 }
 
-.landing__version {
-  padding: 2px 8px;
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  background: var(--bg-inset);
-  border-radius: var(--radius-full);
-}
-
-.landing__maker a {
-  font-weight: 700;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-strong);
-}
-
-.landing__maker a:hover {
-  color: var(--accent-strong);
-  border-bottom-color: var(--accent);
-}
-
-/* ---- How it works ---- */
-
-.landing__section--steps {
-  padding-bottom: var(--space-6);
-}
-
-/* Reveal wraps each item in a div, so the wrapper has to become the grid item
-   and pass its own height through to the card inside. */
-.landing__steps > .reveal,
-.landing__cards > .reveal {
+.landing__proof-item {
   display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 
-.landing__steps > .reveal > *,
-.landing__cards > .reveal > * {
-  flex: 1;
+.landing__proof-word {
+  font-family: var(--font-mono);
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Each view in the hue the editor gives it, so the palette is already being
+   taught before anyone opens the app. */
+.landing__proof-word[data-view='natural'] {
+  color: var(--hue-io-border);
+}
+
+.landing__proof-word[data-view='pseudocode'] {
+  color: var(--hue-variable-border);
+}
+
+.landing__proof-word[data-view='code'] {
+  color: var(--accent);
+}
+
+.landing__proof-word[data-view='chart'] {
+  color: var(--hue-loop-border);
+}
+
+/* ---------------------------------------------------------------------------
+   3 — How it works
+   --------------------------------------------------------------------------- */
+
+.landing__how-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: var(--space-6);
+  align-items: start;
 }
 
 .landing__steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  position: relative;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
   margin-top: var(--space-5);
-  counter-reset: step;
+}
+
+/* The spine behind the numbers, running through the three category hues. */
+.landing__steps::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 17px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    var(--hue-io),
+    var(--hue-conditional) 50%,
+    var(--hue-loop)
+  );
+  border-radius: var(--radius-full);
+  opacity: 0.35;
 }
 
 .landing__step {
   position: relative;
-  padding: var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
 }
 
 .landing__step-number {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  font-size: var(--text-sm);
-  font-weight: 750;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  font-size: var(--text-base);
+  font-weight: 740;
   color: var(--text-inverse);
   background: var(--accent);
   border-radius: var(--radius-full);
+  /* Above the spine, and opaque so the line stops cleanly at its edge. */
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 5px var(--bg-app);
 }
 
 .landing__step h3 {
-  margin-top: var(--space-3);
-  font-size: var(--text-md);
-  font-weight: 680;
+  font-size: var(--text-lg);
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 .landing__step p {
-  margin-top: var(--space-2);
-  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+  font-size: var(--text-base);
   line-height: 1.6;
   color: var(--text-secondary);
   text-wrap: pretty;
 }
 
-.landing__demo-caption {
-  margin-top: var(--space-3);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  text-align: center;
+/* The guide stays beside the reader for all three steps rather than scrolling
+   away after the first. */
+.landing__guide {
+  position: sticky;
+  top: 22vh;
+  display: flex;
+  justify-content: center;
 }
 
-/* ---- Who it is for ---- */
+/* ---------------------------------------------------------------------------
+   4 — The four views
+   --------------------------------------------------------------------------- */
 
-.landing__audience {
+.landing__views .landing__lead {
+  margin-bottom: var(--space-6);
+}
+
+/* ---------------------------------------------------------------------------
+   5 — Who it is for
+   --------------------------------------------------------------------------- */
+
+.landing__audience-inner {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-3);
-  margin-top: var(--space-5);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
 }
 
 .landing__audience-card {
   padding: var(--space-5);
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  /* Mirrored corners, so the two are a pair rather than a repetition. */
+  border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-sm);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
-.landing__audience-icon {
+.landing__audience-card--offset {
+  border-radius: var(--radius-xl) var(--radius-xl) var(--radius-sm) var(--radius-xl);
+  /* The stagger is the point: two cards at the same height read as one shape
+     cut in half. */
+  margin-top: var(--space-6);
+}
+
+.landing__audience-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.landing__audience-icon,
+.landing__card-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
-  color: var(--accent-strong);
-  background: var(--accent-soft);
   border-radius: var(--radius-md);
 }
 
-.landing__audience-icon svg {
-  width: 24px;
-  height: 24px;
+.landing__audience-icon svg,
+.landing__card-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+/* One rule per hue, shared by both card kinds. */
+.landing__audience-icon[data-hue='io'],
+.landing__card-icon[data-hue='io'] {
+  color: var(--hue-io);
+  background: var(--hue-io-soft);
+}
+
+.landing__audience-icon[data-hue='loop'],
+.landing__card-icon[data-hue='loop'] {
+  color: var(--hue-loop);
+  background: var(--hue-loop-soft);
+}
+
+.landing__card-icon[data-hue='variable'] {
+  color: var(--hue-variable);
+  background: var(--hue-variable-soft);
+}
+
+.landing__card-icon[data-hue='conditional'] {
+  color: var(--hue-conditional);
+  background: var(--hue-conditional-soft);
+}
+
+.landing__card-icon[data-hue='accent'] {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.landing__card-icon[data-hue='success'] {
+  color: var(--success);
+  background: var(--success-soft);
 }
 
 .landing__audience-card h3 {
@@ -601,77 +565,70 @@
   text-wrap: pretty;
 }
 
-/* The closing call to action is the page's last word, so it is the largest
-   thing on it after the title. */
-.landing__cta--large {
-  padding: var(--space-4) var(--space-6);
-  font-size: var(--text-md);
-}
+/* ---------------------------------------------------------------------------
+   6 — What's inside
+   --------------------------------------------------------------------------- */
 
-.landing__closing .landing__note {
-  margin-top: var(--space-3);
-}
-
-/* The product shot sits below the fold's copy, wide enough to be read. */
-.landing__shot {
-  max-width: 1000px;
-  margin: var(--space-7) auto 0;
-}
-
-@media (max-width: 700px) {
-  /* The grid costs legibility at this width and the tilt costs room. */
-  .landing__hero::before {
-    background-image: radial-gradient(
-      ellipse at 50% 0%,
-      color-mix(in srgb, var(--accent) 15%, transparent),
-      transparent 62%
-    );
-  }
-
-  .landing__hero {
-    padding-top: var(--space-5);
-  }
-}
-
-/* ---- Hero stage: the demo, with the robot beside it ---- */
-
-.landing__stage {
+.landing__cards {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 230px;
-  align-items: center;
-  gap: var(--space-5);
-  max-width: 1040px;
-  margin: var(--space-6) auto 0;
-  text-align: left;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-6);
 }
 
-.landing__shot {
-  max-width: none;
-  margin: 0;
-  min-width: 0;
-}
-
-.landing__host {
+.landing__card {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
-/* Below this width the robot would squeeze the demo, and the demo is the
-   argument. It moves under it instead, smaller. */
-@media (max-width: 900px) {
-  .landing__stage {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .landing__host {
-    max-width: 190px;
-    margin-inline: auto;
-  }
+.landing__card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
 }
 
-/* ---- Learn concepts ---- */
+/* The two strongest claims get twice the width and turn horizontal, so the
+   grid has two card shapes rather than six identical ones. */
+.landing__card[data-wide] {
+  grid-column: span 2;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.landing__card h3 {
+  font-size: var(--text-md);
+  font-weight: 690;
+  color: var(--text-primary);
+}
+
+.landing__card p {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------------------
+   7 — Learn, and the close
+   --------------------------------------------------------------------------- */
 
 .landing__learn {
+  text-align: center;
+}
+
+.landing__learn .landing__lead {
+  margin-inline: auto;
+}
+
+.landing__learn-list {
   display: grid;
   gap: var(--space-2);
   margin-top: var(--space-5);
@@ -694,14 +651,194 @@
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  margin-top: 3px;
+  margin-top: 4px;
   color: var(--accent);
 }
 
-/* ---- The robot signing off ---- */
+.landing__closing {
+  padding-block: var(--band-loose);
+  text-align: center;
+}
+
+.landing__closing .landing__lead {
+  margin-inline: auto;
+}
 
 .landing__closing-robot {
   display: flex;
   justify-content: center;
   margin-bottom: var(--space-4);
+}
+
+.landing__closing .landing__note {
+  color: var(--band-dark-mute);
+}
+
+/* ---------------------------------------------------------------------------
+   Footer
+   --------------------------------------------------------------------------- */
+
+.landing__footer {
+  padding-block: var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.landing__footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.landing__footer-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 680;
+  color: var(--text-primary);
+}
+
+.landing__version {
+  padding: 2px var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-sunken);
+  border-radius: var(--radius-full);
+}
+
+.landing__maker {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.landing__maker a {
+  font-weight: 680;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing__maker a:hover {
+  color: var(--accent-strong);
+}
+
+/* ---------------------------------------------------------------------------
+   Robots
+   ---------------------------------------------------------------------------
+   `Robot.css` caps `.robot__body` at 148px wide and 15vh tall, which protects
+   the editor on short screens: there the robot must give way to the console.
+   The landing scrolls and has no console, so it lifts the cap from outside
+   rather than editing Robot.css and taking the protection away from the
+   editor. Specificity does the work; no `!important` is needed.
+
+   Deliberately absent: any per-robot retinting. All three `<Robot>` instances
+   declare SVG gradients with the same fixed ids, so the page paints them all
+   from the first definition — changing `--robot-shell-top` on one would change
+   all three. They are told apart by size, pose and what they say, which is
+   better design anyway: one character, not three.
+   --------------------------------------------------------------------------- */
+
+.landing .robot-greeting[data-size='lg'] .robot__body {
+  width: min(100%, 220px);
+  max-height: none;
+}
+
+.landing .robot-greeting[data-size='md'] .robot__body {
+  width: min(100%, 132px);
+  max-height: none;
+}
+
+.landing .robot-greeting[data-size='sm'] .robot__body {
+  width: min(100%, 96px);
+  max-height: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Reveal inside grids
+   ---------------------------------------------------------------------------
+   Reveal wraps each child in a div, which would otherwise become the grid item
+   and leave the card unable to fill it.
+   --------------------------------------------------------------------------- */
+
+.landing__steps > .reveal {
+  display: flex;
+}
+
+.landing__steps > .reveal > * {
+  flex: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive — three breakpoints, all of them here
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 1000px) {
+  .landing__hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .landing__how-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Sticky needs somewhere to stick; in one column it would pin the robot over
+     the steps instead of beside them. */
+  .landing__guide {
+    position: static;
+  }
+
+  .landing__audience-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .landing__audience-inner > .landing__headline {
+    grid-column: 1 / -1;
+    margin-bottom: var(--space-4);
+  }
+
+  .landing__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing__card[data-wide] {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 700px) {
+  .landing__audience-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing__audience-card--offset {
+    margin-top: 0;
+  }
+
+  .landing__cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing__card[data-wide] {
+    grid-column: span 1;
+    flex-direction: column;
+  }
+
+  .landing__actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 520px) {
+  .landing__proof-row {
+    gap: var(--space-2);
+  }
+
+  .landing__proof-item {
+    gap: var(--space-2);
+  }
 }

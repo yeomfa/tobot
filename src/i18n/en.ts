@@ -53,8 +53,7 @@ export const en: Dictionary = {
     tryItLong: 'Build my first algorithm',
     signIn: 'Sign in',
     noAccount: 'Free, nothing to install, no account needed.',
-    shotAlt: 'The Tobot editor: blocks on the left, the algorithm in the middle and the robot ready to run it.',
-    demoCaption: 'This is Tobot from the inside: blocks on the left, your algorithm in the middle and the robot ready to run it.',
+    demoCaption: 'Tobot builds this algorithm and runs it, exactly as you will.',
 
     stepsTitle: 'How it works',
     stepsLead: 'Three steps, and the first one takes under a minute.',
@@ -112,8 +111,27 @@ export const en: Dictionary = {
     },
 
 
-    robotHello: "Hi! I'm Tobot. Shall we build an algorithm?",
+    robotHello: "Hi! I'm Tobot. Watch what I can do.",
+    robotDone: "Done! That's an algorithm.",
+    robotGuide: "I'll walk you through every step.",
     robotBye: 'See you inside!',
+
+    sameTitle: 'The same thing, four ways',
+    views: {
+      natural: 'English',
+      pseudocode: 'Pseudocode',
+      code: 'Real code',
+      chart: 'Flowchart',
+    },
+
+    showcaseTitle: 'One algorithm, four languages',
+    showcaseBody:
+      'This is the same program the robot built above. Change one block and all four views change with it.',
+    showcaseLabels: {
+      natural: 'In English',
+      code: 'In code',
+      flowchart: 'As a diagram',
+    },
 
     learnTitle: 'Learn concepts, not syntax',
     learnLead: 'Every instruction comes with its explanation, its examples and where to go next. You start with the essentials and keep climbing: the platform grows with you.',
@@ -125,7 +143,6 @@ export const en: Dictionary = {
     },
     closingTitle: 'Shall we build your first algorithm?',
     closingBody: 'Open the editor and start playing. If you later want your work saved and available from any computer, you make an account.',
-    madeFor: 'Made for programming students',
   },
   palette: {
     title: 'Statements',

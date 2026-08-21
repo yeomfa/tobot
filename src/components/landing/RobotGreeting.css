@@ -9,12 +9,25 @@
   width: 100%;
 }
 
+/*
+ * Sizes.
+ *
+ * `Robot.css` caps `.robot__body` at 148px so a short laptop screen shrinks
+ * the robot rather than pushing the editor's console out of view. The landing
+ * page scrolls and has no console to protect, so it lifts that cap from the
+ * outside — see the robot block in Landing.css. Editing Robot.css to suit the
+ * landing would take the protection away from the editor, which needs it.
+ */
+.robot-greeting[data-size='lg'] {
+  max-width: 240px;
+}
+
 .robot-greeting[data-size='md'] {
-  max-width: 260px;
+  max-width: 150px;
 }
 
 .robot-greeting[data-size='sm'] {
-  max-width: 150px;
+  max-width: 110px;
 }
 
 /* The eyes shift within the visor; the head stays put. A robot whose whole
