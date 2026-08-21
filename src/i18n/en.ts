@@ -124,18 +124,12 @@ export const en: Dictionary = {
       chart: 'Flowchart',
     },
 
-    showcaseTitle: 'The blocks and their diagram, together',
-    showcaseBody: 'Change one block and the diagram changes with you. The same goes for the code.',
-    flow: {
-      start: 'Start',
-      count: 'Add points',
-      check: 'points ≥ 5?',
-      end: 'End',
-    },
+    showcaseTitle: 'Your blocks already are code',
+    showcaseBody: 'What you build on the left is exactly what runs on the right.',
     showcaseLabels: {
+      blocks: 'Your blocks',
       natural: 'In English',
       code: 'In code',
-      flowchart: 'As a diagram',
     },
 
     learnTitle: 'Learn concepts, not syntax',

@@ -123,18 +123,12 @@ export const es = {
       chart: 'Diagrama',
     },
 
-    showcaseTitle: 'Los bloques y su diagrama, a la vez',
-    showcaseBody: 'Cambia un bloque y el diagrama cambia contigo. Lo mismo pasa con el código.',
-    flow: {
-      start: 'Inicio',
-      count: 'Sumar puntos',
-      check: '¿puntos ≥ 5?',
-      end: 'Fin',
-    },
+    showcaseTitle: 'Tus bloques ya son código',
+    showcaseBody: 'Lo que armas a la izquierda es exactamente lo que se ejecuta a la derecha.',
     showcaseLabels: {
+      blocks: 'Tus bloques',
       natural: 'En español',
       code: 'En código',
-      flowchart: 'Como diagrama',
     },
 
     learnTitle: 'Aprende conceptos, no sintaxis',

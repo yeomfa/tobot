@@ -499,13 +499,27 @@
   text-wrap: pretty;
 }
 
+/*
+ * The guide leans out past the bottom of its section, and the next section —
+ * which has a ground of its own — covers everything below that line. The cut
+ * is a real edge in the layout rather than a box drawn around the robot, so
+ * the tilt costs it nothing.
+ */
 .landing__guide {
+  position: relative;
+  z-index: 0;
   display: flex;
   justify-content: center;
   align-self: end;
-  /* Cropped at the panel's edge, so it reads as leaning in from outside. */
-  margin-bottom: calc(var(--band) * -1);
+  margin-bottom: calc(var(--band) * -1.6);
   pointer-events: none;
+}
+
+/* Raised above the guide so it hides the robot's lower half. Only needed on
+   the section that follows one containing a peeking robot. */
+.landing__views {
+  position: relative;
+  z-index: 1;
 }
 
 /* ---------------------------------------------------------------------------

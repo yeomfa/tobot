@@ -47,13 +47,14 @@
 /*
  * Peeking.
  *
- * The robot is clipped so only part of it shows, as though it had leaned in
- * from off the edge. A whole robot standing beside a paragraph competes with
- * it; a head and shoulders appearing over the boundary reads as company.
+ * The robot leans in from an edge and the *next section* covers its lower
+ * half. Nothing is clipped here: `overflow: hidden` cut a straight-sided box
+ * around a robot that is tilted, so its arms were sliced off at the sides —
+ * which reads as a rendering fault rather than as leaning.
+ *
+ * Being hidden by what comes after also means the cut sits exactly on a real
+ * edge in the layout, so it never looks arbitrary.
  */
-.robot-greeting[data-peek] {
-  overflow: hidden;
-}
 
 /*
  * Tilted, because upright reads as a robot that happens to be cropped while
@@ -64,25 +65,12 @@
  * there would simply lose to the keyframes.
  */
 .robot-greeting[data-peek='bottom'] {
-  transform: rotate(-7deg);
+  transform: rotate(-8deg);
   transform-origin: bottom center;
-}
-
-.robot-greeting[data-peek='bottom'] .robot__body {
-  /* Cut at the chest, so the head and arms carry the expression. */
-  margin-bottom: -20%;
 }
 
 /* The bubble turns back level — a tilted robot is playful, tilted text is
    broken. */
 .robot-greeting[data-peek='bottom'] .robot__bubble {
-  transform: rotate(7deg);
-}
-
-.robot-greeting[data-peek='right'] {
-  justify-content: flex-start;
-}
-
-.robot-greeting[data-peek='right'] .robot__body {
-  margin-right: -26%;
+  transform: rotate(8deg);
 }

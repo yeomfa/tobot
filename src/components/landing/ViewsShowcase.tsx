@@ -3,21 +3,20 @@ import { useCallback, useMemo, useState } from 'react';
 import { showcaseDemo } from '../../content/landingDemo';
 import { useTranslation } from '../../i18n/context';
 import { DemoPlayer } from './DemoPlayer';
-import { MiniFlow } from './MiniFlow';
-import { RobotGreeting } from './RobotGreeting';
 import './ViewsShowcase.css';
 
 /**
- * One algorithm, in the forms Tobot keeps in step.
+ * The same algorithm as blocks and as code, side by side.
  *
- * Everything here is drawn for the page. The editor's real `Flowchart` lays
- * out the whole program at whatever size that takes, which for this algorithm
- * is a tall column of eleven nodes — right for a canvas you can pan around,
- * unreadable in a panel beside a paragraph. `MiniFlow` shows four nodes big
- * enough to look at, in the shapes and colours the app uses.
+ * The pairing is the product's whole claim, and these two are the halves that
+ * carry it: one is what a student assembles, the other is what they are
+ * learning to read. The diagram was here too and has gone — four nodes was
+ * either a caricature of the real thing or, at full size, a column too tall to
+ * read beside a paragraph. It has a section of its own to earn later.
  *
- * The two views advance together, so a visitor watching the blocks can see
- * which part of the diagram they are in.
+ * Both halves highlight together, so the line a visitor is looking at in one
+ * is lit in the other. That correspondence is the argument; everything else is
+ * decoration around it.
  */
 export function ViewsShowcase() {
   const { d, language } = useTranslation();
@@ -30,36 +29,33 @@ export function ViewsShowcase() {
     setStep(index);
   }, []);
 
-  /* The five block steps map onto the diagram's four nodes: the loop and the
-     statement inside it are one node there, because a diagram shows the shape
-     of a program rather than every line of it. */
-  const flowStep = [0, 1, 1, 2, 3][step] ?? null;
+  const activeBlock = demo.steps[step]?.activeId ?? null;
 
   return (
     <div className="views-showcase">
-      <div className="views-showcase__cell">
-        <span className="views-showcase__label">{d.landing.showcaseLabels.natural}</span>
-        <div className="views-showcase__blocks">
-          <DemoPlayer demo={demo} pace={1900} onStep={onStep} />
-        </div>
-
-        <div className="views-showcase__narrator">
-          {/* Leaning in from the bottom edge rather than standing beside the
-              blocks, where a whole robot would be a second thing to read. */}
-          <RobotGreeting
-            mood={says ? 'speaking' : 'thinking'}
-            message={says}
-            size="md"
-            peek="bottom"
-          />
-        </div>
+      <div className="views-showcase__panel">
+        <span className="views-showcase__label">{d.landing.showcaseLabels.blocks}</span>
+        <DemoPlayer demo={demo} pace={1900} onStep={onStep} />
       </div>
 
-      <div className="views-showcase__cell views-showcase__cell--chart">
-        <span className="views-showcase__label">{d.landing.showcaseLabels.flowchart}</span>
-        <div className="views-showcase__chart">
-          <MiniFlow activeStep={flowStep} />
-        </div>
+      <div className="views-showcase__panel views-showcase__panel--code">
+        <span className="views-showcase__label">{d.landing.showcaseLabels.code}</span>
+        <pre className="views-showcase__code">
+          <code>
+            {demo.code?.map((line, index) => (
+              <span
+                className="views-showcase__line"
+                key={index}
+                data-on={line.blockId === activeBlock || undefined}
+                data-indent={line.indent || undefined}
+              >
+                {line.text}
+              </span>
+            ))}
+          </code>
+        </pre>
+
+        {says && <p className="views-showcase__says">{says}</p>}
       </div>
     </div>
   );
