@@ -1,65 +1,55 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
+import { showcaseDemo } from '../../content/landingDemo';
 import { heroAlgorithm } from '../../content/heroDemo';
 import { useTranslation } from '../../i18n/context';
-import { CodePanel } from '../CodePanel';
 import { Flowchart } from '../Flowchart';
+import { DemoPlayer } from './DemoPlayer';
+import { RobotGreeting } from './RobotGreeting';
 import './ViewsShowcase.css';
 
 /**
- * One algorithm, in the four forms Tobot keeps in step.
+ * One algorithm, in the forms Tobot keeps in step.
  *
- * The claim the whole product rests on is that these four never disagree, and
- * the honest way to make it is to render the real thing: two `CodePanel`s and
- * the real `Flowchart`, all fed the same algorithm the robot assembles in the
- * hero. Prose describing the agreement would be a weaker argument than the
- * agreement itself.
- *
- * The quadrants are deliberately unequal — the flowchart is tall, the text
- * views are wide — because four equal boxes would say these are four
- * interchangeable things, and they are not.
+ * The blocks and the running commentary are the landing's own, so they
+ * translate and can be sized for reading at a distance. The flowchart is the
+ * editor's real one: a diagram has no words to translate beyond the labels it
+ * builds itself, and drawing a fake one would be inventing a picture of a
+ * feature rather than showing it.
  */
 export function ViewsShowcase() {
   const { d, language } = useTranslation();
+  const demo = useMemo(() => showcaseDemo(language), [language]);
   const algorithm = useMemo(() => heroAlgorithm(language), [language]);
+  const [says, setSays] = useState<string | null>(null);
+
+  const onStep = useCallback((message: string | null) => setSays(message), []);
 
   return (
     <div className="views-showcase">
-      <figure className="views-showcase__cell views-showcase__cell--natural">
-        <figcaption className="views-showcase__label">{d.landing.showcaseLabels.natural}</figcaption>
-        <div className="views-showcase__body">
-          <CodePanel
-            algorithm={algorithm}
-            view="natural"
-            activeNodeId={null}
-            erroredNodeId={null}
-            onSelectNode={() => {}}
-            onExport={() => {}}
+      <div className="views-showcase__cell">
+        <span className="views-showcase__label">{d.landing.showcaseLabels.natural}</span>
+        <div className="views-showcase__blocks">
+          <DemoPlayer demo={demo} pace={1900} onStep={onStep} />
+        </div>
+
+        <div className="views-showcase__narrator">
+          {/* Leaning in from the bottom edge rather than standing beside the
+              blocks, where a whole robot would be a second thing to read. */}
+          <RobotGreeting
+            mood={says ? 'speaking' : 'thinking'}
+            message={says}
+            size="sm"
+            peek="bottom"
           />
         </div>
-      </figure>
+      </div>
 
-      <figure className="views-showcase__cell views-showcase__cell--code">
-        <figcaption className="views-showcase__label">{d.landing.showcaseLabels.code}</figcaption>
-        <div className="views-showcase__body">
-          <CodePanel
-            algorithm={algorithm}
-            view="code"
-            activeNodeId={null}
-            erroredNodeId={null}
-            onSelectNode={() => {}}
-            onExport={() => {}}
-          />
-        </div>
-      </figure>
-
-      <figure className="views-showcase__cell views-showcase__cell--chart">
-        <figcaption className="views-showcase__label">
-          {d.landing.showcaseLabels.flowchart}
-        </figcaption>
+      <div className="views-showcase__cell views-showcase__cell--chart">
+        <span className="views-showcase__label">{d.landing.showcaseLabels.flowchart}</span>
         {/* The flowchart measures its container to fit itself, so this needs a
             height of its own or it collapses to nothing. */}
-        <div className="views-showcase__body views-showcase__body--chart">
+        <div className="views-showcase__chart">
           <Flowchart
             program={algorithm.body}
             activeNodeId={null}
@@ -67,7 +57,7 @@ export function ViewsShowcase() {
             onSelectNode={() => {}}
           />
         </div>
-      </figure>
+      </div>
     </div>
   );
 }

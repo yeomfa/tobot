@@ -1,3 +1,14 @@
+import {
+  ArrowsClockwise,
+  ArrowsSplit,
+  ChatCircleText,
+  ListNumbers,
+  PencilSimple,
+  Question,
+  Repeat,
+  Tag,
+} from '@phosphor-icons/react';
+
 import './Decor.css';
 
 /**
@@ -23,17 +34,32 @@ export function Blobs() {
 }
 
 /**
- * Loose blocks scattered around the hero, tilted, as though waiting to be
- * dropped into place. They borrow the four category hues, so the palette a
- * student will learn inside the editor is already on screen here.
+ * Loose blocks scattered around the hero, tilted at different angles and
+ * sizes, as though waiting to be dropped into place.
+ *
+ * Each carries the icon the editor gives that kind of statement, so they are
+ * recognisable as blocks rather than as coloured rectangles — and a student
+ * who scrolls down to the palette meets the same eight shapes again.
  */
+const FLOATING = [
+  { hue: 'variable', icon: Tag, size: 'lg' },
+  { hue: 'io', icon: ChatCircleText, size: 'md' },
+  { hue: 'conditional', icon: ArrowsSplit, size: 'sm' },
+  { hue: 'loop', icon: Repeat, size: 'md' },
+  { hue: 'io', icon: Question, size: 'sm' },
+  { hue: 'loop', icon: ListNumbers, size: 'lg' },
+  { hue: 'variable', icon: PencilSimple, size: 'sm' },
+  { hue: 'conditional', icon: ArrowsClockwise, size: 'md' },
+] as const;
+
 export function Chips() {
   return (
     <div className="decor-chips" aria-hidden="true">
-      <span className="decor-chips__chip" data-hue="variable" />
-      <span className="decor-chips__chip" data-hue="io" />
-      <span className="decor-chips__chip" data-hue="conditional" />
-      <span className="decor-chips__chip" data-hue="loop" />
+      {FLOATING.map(({ hue, icon: Icon, size }, index) => (
+        <span className="decor-chips__chip" data-hue={hue} data-size={size} key={index}>
+          <Icon weight="duotone" />
+        </span>
+      ))}
     </div>
   );
 }

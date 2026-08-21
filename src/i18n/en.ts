@@ -47,8 +47,8 @@ export const en: Dictionary = {
   },
   landing: {
     eyebrow: 'Programming from scratch',
-    title: 'Learn to program without fighting the syntax',
-    lead: 'Build your algorithm out of blocks and Tobot shows it to you straight away in plain English, in pseudocode, in real code and as a flowchart. Then run it step by step and see exactly what each instruction does.',
+    title: 'Program, without fighting the syntax',
+    lead: 'Build algorithms out of blocks and watch them come alive.',
     tryIt: 'Start now',
     tryItLong: 'Build my first algorithm',
     signIn: 'Sign in',
@@ -125,8 +125,7 @@ export const en: Dictionary = {
     },
 
     showcaseTitle: 'One algorithm, four languages',
-    showcaseBody:
-      'This is the same program the robot built above. Change one block and all four views change with it.',
+    showcaseBody: 'Change one block and all four change with you.',
     showcaseLabels: {
       natural: 'In English',
       code: 'In code',

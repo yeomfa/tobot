@@ -1,92 +1,64 @@
 /**
- * The four views, side by side.
+ * The blocks and the diagram, side by side.
  *
- * Unequal on purpose. A flowchart is tall and a sentence is wide, so equal
- * quadrants would fight both: the text views take the left column in two
- * rows, and the diagram takes a full-height column of its own.
+ * Two panels rather than four. Three text views plus a chart meant four boxes
+ * of small type on one row, and nobody reads four columns of code on a landing
+ * page — they glance. The blocks and the diagram carry the claim; the rest of
+ * the argument is in the sentence above them.
  */
 .views-showcase {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.95fr);
-  grid-template-areas: 'natural code chart';
-  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: var(--space-4);
   align-items: stretch;
 }
 
 .views-showcase__cell {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden;
-  background: var(--bg-surface);
+  padding: var(--space-4);
+  background: var(--bg-app);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.views-showcase__cell--natural {
-  grid-area: natural;
-}
-
-.views-showcase__cell--code {
-  grid-area: code;
-}
-
-.views-showcase__cell--chart {
-  grid-area: chart;
 }
 
 .views-showcase__label {
-  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
   font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-muted);
-  border-bottom: 1px solid var(--border-subtle);
 }
 
-.views-showcase__body {
+.views-showcase__blocks {
   flex: 1;
-  min-height: 0;
+}
+
+/* The narrator sits at the bottom edge, cropped, so it belongs to the panel
+   rather than sitting inside it. */
+.views-showcase__narrator {
+  display: flex;
+  justify-content: flex-end;
+  margin: var(--space-5) calc(var(--space-4) * -1) calc(var(--space-4) * -1) 0;
+  pointer-events: none;
+}
+
+.views-showcase__chart {
+  flex: 1;
+  min-height: 380px;
   overflow: hidden;
+  border-radius: var(--radius-md);
 }
 
-/* The flowchart fits itself to whatever box it is given, so an unsized parent
-   renders nothing at all. */
-.views-showcase__body--chart {
-  min-height: 340px;
-}
-
-/*
- * The panels are the editor's, and they arrive with the editor's chrome: an
- * export button and a language select that belong to a workspace, not to a
- * page someone is reading. Hidden here rather than made optional in
- * `CodePanel`, so the editor's own copy stays exactly as it is.
- */
-.views-showcase .code-panel__toolbar {
-  display: none;
-}
-
-@media (max-width: 1000px) {
-  .views-showcase {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      'natural code'
-      'chart   chart';
-  }
-}
-
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .views-showcase {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'natural'
-      'code'
-      'chart';
   }
 
-  .views-showcase__body--chart {
-    min-height: 280px;
+  .views-showcase__chart {
+    min-height: 300px;
   }
 }

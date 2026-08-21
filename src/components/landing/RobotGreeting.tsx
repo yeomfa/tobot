@@ -10,6 +10,13 @@ interface RobotGreetingProps {
   /** Follows the pointer with its gaze. Only worth it where it is the focus. */
   follow?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  /**
+   * Crops the robot so it leans in from an edge rather than standing in full.
+   * A whole robot beside a paragraph is a second thing to look at; half a
+   * robot peering over the edge is a presence, which is what a section that
+   * is mostly text actually wants.
+   */
+  peek?: 'bottom' | 'right';
 }
 
 /**
@@ -22,7 +29,13 @@ interface RobotGreetingProps {
  * "cute": one small sign of life, in one place, rather than decoration
  * everywhere.
  */
-export function RobotGreeting({ mood, message, follow = false, size = 'md' }: RobotGreetingProps) {
+export function RobotGreeting({
+  mood,
+  message,
+  follow = false,
+  size = 'md',
+  peek,
+}: RobotGreetingProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [gaze, setGaze] = useState({ x: 0, y: 0 });
 
@@ -53,6 +66,7 @@ export function RobotGreeting({ mood, message, follow = false, size = 'md' }: Ro
       className="robot-greeting"
       ref={ref}
       data-size={size}
+      data-peek={peek}
       style={{ '--gaze-x': `${gaze.x}px`, '--gaze-y': `${gaze.y}px` } as React.CSSProperties}
     >
       <Robot mood={mood} message={message} />

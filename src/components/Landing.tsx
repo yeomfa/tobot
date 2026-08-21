@@ -23,6 +23,7 @@ import { SettingsMenu } from './SettingsMenu';
 import { Blobs, Chips, DashRule } from './landing/Decor';
 import { HeroStage } from './landing/HeroStage';
 import { Reveal } from './landing/Reveal';
+import { Starfield } from './landing/Starfield';
 import { RobotGreeting } from './landing/RobotGreeting';
 import { ViewsShowcase } from './landing/ViewsShowcase';
 import './Landing.css';
@@ -129,6 +130,7 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
         {/* 2 — A short dark band. No cards, no icons, no grid: four words and
             the connectors between them. */}
         <section className="landing__band landing__band--dark landing__proof">
+          <Starfield count={70} seed={7} />
           <div className="landing__inner">
             <p className="landing__proof-title">{d.landing.sameTitle}</p>
             <p className="landing__proof-row">
@@ -169,7 +171,12 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
 
             {/* Decorative: what it says is already in the steps beside it. */}
             <div className="landing__guide" aria-hidden="true">
-              <RobotGreeting mood="thinking" message={d.landing.robotGuide} size="md" />
+              <RobotGreeting
+                mood="thinking"
+                message={d.landing.robotGuide}
+                size="md"
+                peek="bottom"
+              />
             </div>
           </div>
         </section>
@@ -246,9 +253,10 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
         </section>
 
         <section className="landing__band landing__band--dark landing__closing">
+          <Starfield count={110} seed={23} dawn />
           <div className="landing__inner landing__inner--narrow">
             <div className="landing__closing-robot" aria-hidden="true">
-              <RobotGreeting mood="done" message={d.landing.robotBye} size="sm" />
+              <RobotGreeting mood="done" message={d.landing.robotBye} size="md" />
             </div>
             <h2 className="landing__headline">{d.landing.closingTitle}</h2>
             <p className="landing__lead">{d.landing.closingBody}</p>

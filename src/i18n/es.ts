@@ -46,8 +46,8 @@ export const es = {
   },
   landing: {
     eyebrow: 'Programación desde cero',
-    title: 'Aprende a programar sin pelear con la sintaxis',
-    lead: 'Armas tu algoritmo con bloques y Tobot te lo muestra al instante en español, en pseudocódigo, en código real y como diagrama de flujo. Después lo ejecutas paso a paso y ves exactamente qué hace cada instrucción.',
+    title: 'Programar, sin pelear con la sintaxis',
+    lead: 'Arma algoritmos con bloques y míralos cobrar vida al instante.',
     tryIt: 'Empezar ahora',
     tryItLong: 'Armar mi primer algoritmo',
     signIn: 'Entrar',
@@ -124,8 +124,7 @@ export const es = {
     },
 
     showcaseTitle: 'Un algoritmo, cuatro lenguajes',
-    showcaseBody:
-      'Este es el mismo programa que armó el robot arriba. Cambia un bloque y las cuatro vistas cambian con él.',
+    showcaseBody: 'Cambia un bloque y las cuatro cambian contigo.',
     showcaseLabels: {
       natural: 'En español',
       code: 'En código',

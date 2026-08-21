@@ -1,0 +1,39 @@
+/**
+ * The night sky behind the dark bands. Static: see Starfield.tsx.
+ */
+.starfield {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.starfield__star {
+  position: absolute;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+/*
+ * Dawn coming up over the horizon: the blue that arrives before the sun, which
+ * on a closing section reads as the beginning of something rather than the end
+ * of the page.
+ *
+ * It has to stay well below the text — a glow behind a sentence is how dark
+ * sections become unreadable.
+ */
+.starfield__dawn {
+  position: absolute;
+  left: 50%;
+  bottom: -55%;
+  width: min(150%, 1400px);
+  height: 90%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    rgb(56 130 246 / 0.5),
+    rgb(37 99 235 / 0.22) 42%,
+    transparent 72%
+  );
+  filter: blur(28px);
+}

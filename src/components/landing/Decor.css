@@ -46,58 +46,125 @@
   }
 }
 
-/* Loose blocks, tilted, in the editor's category colours. */
+/*
+ * Loose blocks, tilted, at three sizes, each carrying the icon the editor
+ * gives that kind of statement. Scattered rather than arranged: a ring of
+ * evenly spaced chips would read as a border.
+ */
 .decor-chips__chip {
   position: absolute;
-  width: 58px;
-  height: 22px;
-  border-radius: var(--radius-sm);
-  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  opacity: 0.75;
+}
+
+.decor-chips__chip[data-size='sm'] {
+  width: 30px;
+  height: 30px;
+}
+
+.decor-chips__chip[data-size='md'] {
+  width: 40px;
+  height: 40px;
+}
+
+.decor-chips__chip[data-size='lg'] {
+  width: 52px;
+  height: 52px;
+}
+
+.decor-chips__chip svg {
+  width: 52%;
+  height: 52%;
 }
 
 .decor-chips__chip[data-hue='variable'] {
-  top: 12%;
-  left: 4%;
+  color: var(--hue-variable);
   background: var(--hue-variable-soft);
   border: 1px solid var(--hue-variable-border);
-  transform: rotate(-8deg);
 }
 
 .decor-chips__chip[data-hue='io'] {
-  top: 30%;
-  right: 6%;
+  color: var(--hue-io);
   background: var(--hue-io-soft);
   border: 1px solid var(--hue-io-border);
-  transform: rotate(5deg);
 }
 
 .decor-chips__chip[data-hue='conditional'] {
-  bottom: 22%;
-  left: 8%;
+  color: var(--hue-conditional);
   background: var(--hue-conditional-soft);
   border: 1px solid var(--hue-conditional-border);
-  transform: rotate(11deg);
 }
 
 .decor-chips__chip[data-hue='loop'] {
-  bottom: 10%;
-  right: 12%;
+  color: var(--hue-loop);
   background: var(--hue-loop-soft);
   border: 1px solid var(--hue-loop-border);
-  transform: rotate(-3deg);
+}
+
+/* Positions, written out rather than generated: each one is placed to miss
+   the text and the demo, which no formula would know to do. */
+.decor-chips__chip:nth-child(1) {
+  top: 14%;
+  left: 3%;
+  transform: rotate(-9deg);
+}
+
+.decor-chips__chip:nth-child(2) {
+  top: 6%;
+  left: 33%;
+  transform: rotate(7deg);
+}
+
+.decor-chips__chip:nth-child(3) {
+  top: 40%;
+  left: 1%;
+  transform: rotate(13deg);
+}
+
+.decor-chips__chip:nth-child(4) {
+  bottom: 20%;
+  left: 5%;
+  transform: rotate(-5deg);
+}
+
+.decor-chips__chip:nth-child(5) {
+  bottom: 8%;
+  left: 30%;
+  transform: rotate(10deg);
+}
+
+.decor-chips__chip:nth-child(6) {
+  top: 8%;
+  right: 4%;
+  transform: rotate(-7deg);
+}
+
+.decor-chips__chip:nth-child(7) {
+  bottom: 30%;
+  right: 2%;
+  transform: rotate(12deg);
+}
+
+.decor-chips__chip:nth-child(8) {
+  bottom: 6%;
+  right: 8%;
+  transform: rotate(-11deg);
 }
 
 /* The soft fills are built for light grounds; on dark they wash out, so the
    chips fall back to a tinted outline. */
 :root[data-theme='dark'] .decor-chips__chip {
   background: transparent;
-  opacity: 0.5;
+  opacity: 0.42;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .decor-chips__chip {
     background: transparent;
-    opacity: 0.5;
+    opacity: 0.42;
   }
 }
 

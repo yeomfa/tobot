@@ -43,3 +43,27 @@
     transform: none;
   }
 }
+
+/*
+ * Peeking.
+ *
+ * The robot is clipped so only part of it shows, as though it had leaned in
+ * from off the edge. A whole robot standing beside a paragraph competes with
+ * it; a head and shoulders appearing over the boundary reads as company.
+ */
+.robot-greeting[data-peek] {
+  overflow: hidden;
+}
+
+.robot-greeting[data-peek='bottom'] .robot__body {
+  /* Cut at the chest, so the head and arms carry the expression. */
+  margin-bottom: -22%;
+}
+
+.robot-greeting[data-peek='right'] {
+  justify-content: flex-start;
+}
+
+.robot-greeting[data-peek='right'] .robot__body {
+  margin-right: -26%;
+}

@@ -1,72 +1,38 @@
 /**
- * The hero's self-running demonstration.
+ * The hero's demonstration: blocks in a window, with the robot beside them.
  *
- * Almost nothing about the blocks is styled here — they are the editor's own,
- * and anything that changes how they look belongs in StatementBlock.css where
- * the editor gets it too. This file arranges them, holds the height steady,
- * and fades the group on reset.
- */
-/*
- * The robot stands beside the frame, not on it.
- *
- * Overlapping the corner looked better in the abstract and put the robot —
- * and its speech bubble, which is wider than it is — straight over the middle
- * of the algorithm, hiding two of the seven blocks it is meant to be showing
- * off. The demonstration is the point; the robot is the presenter.
+ * The robot stands next to the frame rather than on it. Overlapping the corner
+ * looked better in the abstract and put the robot — and its speech bubble,
+ * which is wider than it is — over the middle of the algorithm it was meant to
+ * be presenting.
  */
 .hero-stage {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .hero-stage__canvas {
-  padding: var(--space-4);
-  /* The editor's grid, so the demo sits on the same surface as the real
-     canvas rather than on a plain card. */
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  /* The editor's grid, so the demo sits on the surface the student is about
+     to work on rather than on a plain card. */
   background-image:
     linear-gradient(var(--border-subtle) 1px, transparent 1px),
     linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
-.hero-stage__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  /* The reset fades the whole group: one thing moving, not seven. */
-  transition: opacity var(--duration-slow) var(--ease-out);
-}
-
-.hero-stage[data-phase='resetting'] .hero-stage__list {
-  opacity: 0;
-}
-
-/* Each block rises in as it is added, as though it had just been dropped
-   there. Short: the point is the algorithm, not the entrance. */
-.hero-stage__block {
-  animation: hero-block-in var(--duration-slow) var(--ease-out) both;
-}
-
-@keyframes hero-block-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-}
-
 .hero-stage__robot {
-  /* The bubble is wider than the robot and must not squeeze the blocks. */
-  width: 150px;
-  margin-bottom: var(--space-4);
+  /* The bubble is wider than the robot; this keeps it from squeezing the
+     blocks, which are the point. */
+  width: 168px;
   pointer-events: none;
 }
 
-@media (max-width: 1200px) {
-  /* A column for the robot costs width the blocks need more; it moves under
-     the frame, where it still presents without crowding. */
+@media (max-width: 1100px) {
+  /* A column for the robot costs width the blocks need more. */
   .hero-stage {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
@@ -74,14 +40,5 @@
 
   .hero-stage__robot {
     width: auto;
-    margin-bottom: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-stage__block,
-  .hero-stage__list {
-    animation: none;
-    transition: none;
   }
 }

@@ -1,0 +1,89 @@
+/**
+ * A demonstration that plays itself, and yields to anyone who reaches for it.
+ */
+.demo-player {
+  position: relative;
+}
+
+.demo-player__blocks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/*
+ * The controls are absent until the pointer arrives: at rest the section
+ * should be blocks and a robot, not a widget with buttons round it.
+ */
+.demo-player__controls {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--space-5) * -1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  pointer-events: none;
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.demo-player[data-engaged] .demo-player__controls {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.demo-player__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.demo-player__button:hover {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.demo-player__button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.demo-player__dots {
+  display: flex;
+  gap: 5px;
+}
+
+.demo-player__dot {
+  width: 6px;
+  height: 6px;
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.demo-player__dot[data-on] {
+  background: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-player__controls,
+  .demo-player__dot {
+    transition: none;
+  }
+}

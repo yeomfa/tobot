@@ -89,11 +89,38 @@
 }
 
 .landing__band--dark {
+  position: relative;
   color: var(--band-dark-text);
   background: var(--band-dark-bg);
-  /* The editor's dot grid, for texture rather than flat black. */
-  background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0);
-  background-size: 20px 20px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/*
+ * Text over a star field.
+ *
+ * Stars are small points of high contrast, and letters sitting directly on
+ * them lose their edges — the eye cannot tell which white belongs to the word.
+ * A soft dark pool behind the words restores it without hiding the sky, and
+ * costs nothing on a section with no stars.
+ */
+.landing__band--dark .landing__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.landing__band--dark .landing__inner::before {
+  content: '';
+  position: absolute;
+  inset: -12% -8%;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgb(14 19 32 / 0.92),
+    rgb(14 19 32 / 0.65) 55%,
+    transparent 78%
+  );
+  pointer-events: none;
 }
 
 .landing__inner {
@@ -218,9 +245,16 @@
    Nav
    --------------------------------------------------------------------------- */
 
+/*
+ * The nav floats over the hero rather than sitting above it. It used to be a
+ * band of its own, which cut a hard horizontal line straight through the warm
+ * wash behind the title — the gradient started below the bar instead of at the
+ * top of the page.
+ */
 .landing__nav {
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
   padding-block: var(--space-4);
 }
 
@@ -266,16 +300,28 @@
    1 — Hero
    --------------------------------------------------------------------------- */
 
+/*
+ * A full screen, so the first thing anyone sees is the whole argument: the
+ * claim, the demonstration and the way in, with nothing cut off at the fold.
+ * `min-height` rather than `height` — on a short laptop the content must be
+ * allowed to push past rather than be clipped.
+ */
 .landing__hero {
   position: relative;
-  padding-block: var(--band-tight) var(--band);
+  display: flex;
+  align-items: center;
+  min-height: 100svh;
+  /* Slightly above centre: an optically centred block sits a little high, and
+     the caption below the demo needs somewhere to go. */
+  padding-block: calc(var(--header-height) + var(--space-5)) var(--band-tight);
   /* The decoration sits behind the content but inside the section, so the
      stacking context is local and nothing above can bury it. */
   isolation: isolate;
 }
 
 /* The warm wash over the editor's grid, concentrated behind the text so it
-   does not fight the demo beside it. */
+   does not fight the demo beside it. Reaches the very top of the page now
+   that the nav floats rather than occupying a band of its own. */
 .landing__hero::before {
   content: '';
   position: absolute;
@@ -596,10 +642,11 @@
 
 /* The two strongest claims get twice the width and turn horizontal, so the
    grid has two card shapes rather than six identical ones. */
+/* Wide cards get twice the width and more room to breathe, but the icon stays
+   above the words: an icon beside a paragraph competes with the first line for
+   the reader's starting point. */
 .landing__card[data-wide] {
   grid-column: span 2;
-  flex-direction: row;
-  align-items: flex-start;
 }
 
 .landing__card h3 {
