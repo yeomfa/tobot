@@ -18,7 +18,7 @@
 
   /* The app's largest step is 1.75rem, which reads as timid on a page whose
      job is to be seen from across a room. */
-  --text-display: clamp(2.5rem, 6.5vw, 4.25rem);
+  --text-display: clamp(2.25rem, 5vw, 3.5rem);
   --text-headline: clamp(1.75rem, 3.5vw, 2.5rem);
   --text-body-lg: clamp(1rem, 1.4vw, 1.125rem);
 
@@ -121,11 +121,13 @@
 
 /* A warm wash behind the hero, so the page opens with the product's colour
    instead of the flat grey of a form. */
+/* Tight enough that the demo starts before the fold: the blocks assembling
+   themselves are the argument, and an argument below the fold is not made. */
 .landing__hero {
   position: relative;
   max-width: 780px;
   margin: 0 auto;
-  padding: var(--space-7) var(--space-5) var(--space-6);
+  padding: var(--space-6) var(--space-5) var(--space-5);
   text-align: center;
 }
 
@@ -629,4 +631,77 @@
   .landing__hero {
     padding-top: var(--space-5);
   }
+}
+
+/* ---- Hero stage: the demo, with the robot beside it ---- */
+
+.landing__stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 230px;
+  align-items: center;
+  gap: var(--space-5);
+  max-width: 1040px;
+  margin: var(--space-6) auto 0;
+  text-align: left;
+}
+
+.landing__shot {
+  max-width: none;
+  margin: 0;
+  min-width: 0;
+}
+
+.landing__host {
+  display: flex;
+  justify-content: center;
+}
+
+/* Below this width the robot would squeeze the demo, and the demo is the
+   argument. It moves under it instead, smaller. */
+@media (max-width: 900px) {
+  .landing__stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing__host {
+    max-width: 190px;
+    margin-inline: auto;
+  }
+}
+
+/* ---- Learn concepts ---- */
+
+.landing__learn {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  text-align: left;
+}
+
+.landing__learn-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.landing__learn-item svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--accent);
+}
+
+/* ---- The robot signing off ---- */
+
+.landing__closing-robot {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-4);
 }

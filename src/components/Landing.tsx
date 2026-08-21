@@ -1,16 +1,13 @@
 import {
   ArrowRight,
-  ArrowsSplit,
   ChalkboardTeacher,
   ChatCircleText,
   Check,
   Code,
-  Function as FunctionIcon,
   GraduationCap,
   Lightning,
-  Repeat,
+  Sparkle,
   Student,
-  Tag,
   TreeStructure,
 } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
@@ -18,10 +15,10 @@ import { Link } from 'react-router-dom';
 import { APP_VERSION, MAKER } from '../brand';
 import { useTranslation } from '../i18n/context';
 import { ROUTES } from '../routes';
-import shotDark from '../assets/editor-dark.png';
-import shotLight from '../assets/editor-light.png';
 import { BrandMark } from './BrandMark';
 import { BrowserFrame } from './landing/BrowserFrame';
+import { LiveBlocks } from './landing/LiveBlocks';
+import { RobotGreeting } from './landing/RobotGreeting';
 import { Reveal } from './landing/Reveal';
 import './Landing.css';
 
@@ -75,18 +72,19 @@ export function Landing({ onTry }: { onTry: () => void }) {
           <p className="landing__note">{d.landing.noAccount}</p>
 
           {/*
-            The tool itself, not a drawing of it. A landing page for something
-            visual that never shows it is asking to be taken on trust; this is
-            the actual editor, captured from the running app, so the claim and
-            the evidence are the same picture.
+            The tool itself, not a picture of it. These are the editor's own
+            blocks, assembling themselves: a screenshot goes stale the moment
+            the editor changes, and this cannot, because it is the editor.
           */}
-          <div className="landing__shot">
-            <BrowserFrame url="tobot.app/app" tilt>
-              <picture>
-                <source srcSet={shotDark} media="(prefers-color-scheme: dark)" />
-                <img src={shotLight} alt={d.landing.shotAlt} width={1440} height={620} />
-              </picture>
-            </BrowserFrame>
+          <div className="landing__stage">
+            <div className="landing__shot">
+              <BrowserFrame url="tobot.app/app" tilt>
+                <LiveBlocks />
+              </BrowserFrame>
+            </div>
+            <div className="landing__host">
+              <RobotGreeting mood="speaking" message={d.landing.robotHello} follow />
+            </div>
           </div>
           <p className="landing__demo-caption">{d.landing.demoCaption}</p>
         </section>
@@ -153,29 +151,28 @@ export function Landing({ onTry }: { onTry: () => void }) {
           </div>
         </section>
 
-        <section className="landing__section landing__section--topics landing__section--narrow">
-          <h2 className="landing__section-title">{d.landing.topicsTitle}</h2>
-          <p className="landing__section-lead">{d.landing.topicsLead}</p>
-          <ul className="landing__topics">
-            {[
-              { icon: Tag, label: d.palette.groups.variables },
-              { icon: ChatCircleText, label: d.palette.groups.io },
-              { icon: ArrowsSplit, label: d.palette.groups.conditionals },
-              { icon: Repeat, label: d.palette.groups.loops },
-            ].map(({ icon: Icon, label }) => (
-              <li className="landing__topic" key={label}>
-                <Icon weight="bold" />
-                {label}
+        {/*
+          Not a syllabus. Four chips and a "coming soon" told a reader that
+          Tobot *is* those four things, putting a ceiling where there is none.
+          What it should promise is somewhere to learn, that keeps growing.
+        */}
+        <section className="landing__section landing__section--learn landing__section--narrow">
+          <h2 className="landing__section-title">{d.landing.learnTitle}</h2>
+          <p className="landing__section-lead">{d.landing.learnLead}</p>
+          <ul className="landing__learn">
+            {(['explained', 'sources', 'pace', 'growing'] as const).map((key) => (
+              <li className="landing__learn-item" key={key}>
+                <Sparkle weight="fill" />
+                {d.landing.learn[key]}
               </li>
             ))}
-            <li className="landing__topic landing__topic--soon">
-              <FunctionIcon weight="bold" />
-              {d.landing.soon}
-            </li>
           </ul>
         </section>
 
         <section className="landing__closing">
+          <div className="landing__closing-robot">
+            <RobotGreeting mood="done" message={d.landing.robotBye} size="sm" />
+          </div>
           <h2>{d.landing.closingTitle}</h2>
           <p>{d.landing.closingBody}</p>
           <button type="button" className="landing__cta landing__cta--large" onClick={onTry}>

@@ -1,0 +1,32 @@
+/**
+ * Sizes the app's robot for the page and lets its eyes follow the pointer.
+ * Everything else about it — the shell, the moods, the bubble — stays exactly
+ * as the editor draws it.
+ */
+.robot-greeting {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.robot-greeting[data-size='md'] {
+  max-width: 260px;
+}
+
+.robot-greeting[data-size='sm'] {
+  max-width: 150px;
+}
+
+/* The eyes shift within the visor; the head stays put. A robot whose whole
+   head swung about would be a toy, not a host. */
+.robot-greeting .robot__eye {
+  transition: transform 220ms var(--ease-out);
+  transform: translate(var(--gaze-x, 0), var(--gaze-y, 0));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-greeting .robot__eye {
+    transition: none;
+    transform: none;
+  }
+}

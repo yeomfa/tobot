@@ -111,10 +111,18 @@ export const en: Dictionary = {
       body: 'Hand out exercises as a link, with nothing to install in the lab. Your students see the diagram and the code of the same thing, side by side.',
     },
 
-    topicsTitle: 'The topics of the course',
-    topicsLead: 'Everything a first programming course needs, in blocks that will not let you write something impossible.',
-    soon: 'Functions and more, on the way',
 
+    robotHello: "Hi! I'm Tobot. Shall we build an algorithm?",
+    robotBye: 'See you inside!',
+
+    learnTitle: 'Learn concepts, not syntax',
+    learnLead: 'Every instruction comes with its explanation, its examples and where to go next. You start with the essentials and keep climbing: the platform grows with you.',
+    learn: {
+      explained: 'Every topic explained in plain words',
+      sources: 'Links to trustworthy sources to go deeper',
+      pace: 'At your own pace, with nobody looking over your shoulder',
+      growing: 'New topics as you go',
+    },
     closingTitle: 'Shall we build your first algorithm?',
     closingBody: 'Open the editor and start playing. If you later want your work saved and available from any computer, you make an account.',
     madeFor: 'Made for programming students',

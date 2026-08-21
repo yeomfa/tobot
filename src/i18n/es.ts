@@ -110,10 +110,18 @@ export const es = {
       body: 'Reparte ejercicios como un enlace, sin instalar nada en la sala. Tus estudiantes ven el diagrama y el código de lo mismo, lado a lado.',
     },
 
-    topicsTitle: 'Los temas del curso',
-    topicsLead: 'Todo lo de un primer curso de programación, en bloques que no te dejan escribir algo imposible.',
-    soon: 'Funciones y más, en camino',
 
+    robotHello: '¡Hola! Soy Tobot. ¿Armamos un algoritmo?',
+    robotBye: '¡Te espero adentro!',
+
+    learnTitle: 'Aprende conceptos, no sintaxis',
+    learnLead: 'Cada instrucción trae su explicación, sus ejemplos y a dónde ir para profundizar. Empiezas por lo esencial y sigues subiendo: la plataforma crece contigo.',
+    learn: {
+      explained: 'Cada tema con su explicación, en palabras claras',
+      sources: 'Enlaces a fuentes confiables para ir más a fondo',
+      pace: 'A tu ritmo, sin nadie mirando por encima del hombro',
+      growing: 'Temas nuevos a medida que avanzas',
+    },
     closingTitle: '¿Armamos tu primer algoritmo?',
     closingBody: 'Abre el editor y empieza a jugar. Si más adelante quieres guardar tu trabajo y encontrarlo desde cualquier computador, creas tu cuenta.',
     madeFor: 'Hecho para estudiantes de programación',

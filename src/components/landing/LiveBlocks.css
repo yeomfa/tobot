@@ -1,0 +1,53 @@
+/**
+ * The hero's living demo.
+ *
+ * The blocks are the editor's own, so almost nothing is styled here: this file
+ * only arranges them and animates their arrival. Anything that changes how a
+ * block looks belongs in StatementBlock.css, where the editor will get it too.
+ */
+.live-blocks {
+  position: relative;
+  padding: var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+
+  /* The editor's grid, so the demo sits on the same surface as the real
+     canvas rather than on a plain card. */
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.live-blocks__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Each block rises in as it is added, as though someone had just dropped it
+   there. Fast: the point is the algorithm, not the entrance. */
+.live-blocks__item {
+  animation: live-block-in 340ms var(--ease-out) both;
+}
+
+@keyframes live-block-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+/* Reserves the finished height from the start, so the page below does not
+   shift every time a block appears. */
+.live-blocks__spacer {
+  height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-blocks__item {
+    animation: none;
+  }
+}
