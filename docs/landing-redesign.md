@@ -1,311 +1,180 @@
-# Rediseño de la landing — plan completo
+# Landing v2 — plan de trabajo
 
-Diseño, estilos, componentes y contenido. Escrito para poder implementarse por
-partes: cada sección dice qué se construye, con qué tokens y qué texto lleva.
+Rediseño completo: nada de capturas, componentes reales, el robot como
+anfitrión, y un mensaje sobre aprender conceptos en vez de un temario cerrado.
 
 ---
 
-## 0 · Punto de partida (medido)
+## 0 · Qué cambia respecto a lo que hay
 
-| | Escritorio | Móvil |
+| Hoy | v2 |
+| --- | --- |
+| Captura PNG del editor en el hero | **Bloques reales**, vivos, animándose |
+| El robot no aparece | **El robot es el anfitrión**, en 3 momentos |
+| "Los temas del curso": 4 chips cerrados | **Lo que puedes aprender**, abierto y creciendo |
+| Ilustración estática | Los mismos componentes de la app |
+| Tono correcto pero plano | Cálido, con personalidad |
+
+Dos razones de fondo para dejar la captura:
+
+- **Una imagen envejece.** Cada cambio en el editor la deja mentirosa, y ya
+  ocurrió: la leyenda seguía describiendo una demo que había sustituido.
+- **Los componentes reales son la prueba.** Si la landing dibuja un bloque con
+  el mismo `StatementBlock` del editor, entonces la página *es* el producto,
+  no una foto suya. Ese es un argumento que una captura nunca da.
+
+---
+
+## 1 · El mensaje: de temario a capacidad
+
+Ahora mismo la sección de temas enumera cuatro cosas y añade "funciones, en
+camino". Eso **pone techo** donde no lo hay: dice al lector que Tobot son esas
+cuatro cosas.
+
+**Antes:**
+> Los temas del curso — Variables · Entrada y salida · Condicionales · Ciclos ·
+> *Funciones y más, en camino*
+
+**Después:**
+> ### Aprende conceptos, no sintaxis
+>
+> Cada instrucción trae su explicación, ejemplos y enlaces a fuentes confiables.
+> Empiezas por lo esencial y sigues subiendo: la plataforma crece contigo.
+>
+> **Explora un concepto** →
+
+Y en lugar de chips cerrados, una muestra viva de la tarjeta de concepto real
+(`ConceptDrawer` ya tiene el contenido), con un enlace a explorar los demás. La
+diferencia: no promete una lista, promete un lugar donde aprender.
+
+---
+
+## 2 · El robot como anfitrión
+
+Aparece tres veces, cada una con un `mood` distinto, contando algo:
+
+| Momento | mood | Qué dice |
 | --- | --- | --- |
-| Altura total | 2 544px (2.8 pantallas) | 4 248px (5.0 pantallas) |
-| Altura del hero | 749px | 976px |
-| Secciones | 6 | 6 |
-| Imágenes del producto | **0** | **0** |
-| Desborde horizontal | no | no |
+| **Hero** | `idle` → `speaking` | «¡Hola! Soy Tobot. ¿Armamos un algoritmo?» |
+| **Cómo funciona**, paso 3 | `thinking` | Sigue la ejecución paso a paso |
+| **Cierre** | `done` | «¿Empezamos?» con una sonrisa |
 
-Cinco carencias, en orden de peso:
-
-1. **No enseña el producto.** Cero imágenes de una herramienta visual.
-2. **Todo pesa igual.** Seis secciones con el mismo patrón; sin jerarquía.
-3. **Nada se mueve.** El producto no se demuestra, se describe.
-4. **Móvil = 5 pantallas de texto**, y ahí es donde llega el enlace.
-5. **Sin prueba** de que alguien lo use.
-
----
-
-## 1 · Dirección de diseño
-
-**El principio:** la landing debe *ser* una demostración, no un folleto sobre
-una demostración. Tobot convierte una idea en cuatro representaciones a la vez;
-la página tiene que hacer sentir eso antes de explicarlo.
-
-**Tres decisiones que la separan de una landing genérica de SaaS:**
-
-- **El índigo profundo como protagonista, no como acento.** El sistema ya tiene
-  `--slate-900` / `--slate-950` como "mesa de trabajo". Una sección oscura a
-  pantalla completa en el centro de la página rompe el blanco continuo y da a
-  la marca un momento propio. La mayoría de landings son blancas de arriba
-  abajo; ésta no tiene por qué serlo.
-- **Los colores de categoría como lenguaje visual.** Variable índigo, E/S cian,
-  condicional ámbar, ciclo violeta. Ya significan algo dentro del editor; en la
-  landing hacen que la página y el producto se reconozcan como lo mismo.
-- **El robot como personaje.** Hoy no aparece en la landing. Es el rostro de la
-  marca y debería recibir al visitante.
-
-### Escala tipográfica
-
-La landing necesita más rango que la app. Se añaden tres tokens de página:
-
-```css
---text-display: clamp(2.5rem, 6.5vw, 4.25rem);  /* h1 del hero */
---text-headline: clamp(1.75rem, 3.5vw, 2.5rem); /* h2 de sección */
---text-body-lg: clamp(1rem, 1.4vw, 1.125rem);   /* párrafos guía */
-```
-
-El h1 actual es `clamp(2rem, 5vw, 3rem)`: tímido para un hero. El salto entre
-título y cuerpo es lo que hace que una página se lea como diseñada.
-
-### Ritmo vertical
-
-Se alterna fondo y ancho para que ninguna sección se parezca a la anterior:
-
-| Sección | Fondo | Ancho |
-| --- | --- | --- |
-| Hero | degradado cálido sobre `--bg-base` | 780px |
-| Para quién | `--bg-surface` | 1080px |
-| Cómo funciona | `--bg-base` | 1080px |
-| **Las cuatro vistas** | `--slate-950` (oscuro) | **pantalla completa** |
-| Qué encuentras | `--bg-surface` | 1080px |
-| Temas | `--bg-base` | 880px |
-| Preguntas | `--bg-surface` | 720px |
-| Cierre | degradado cálido | 640px |
-
----
-
-## 2 · Contenido del hero
-
-El hero es la única parte que casi todo visitante lee entera. Tres propuestas,
-para elegir tono.
-
-### Opción A — El dolor (recomendada)
-
-> **Eyebrow:** Programación desde cero
->
-> **Título:** Aprende a programar sin pelear con la sintaxis
->
-> **Bajada:** Arma tu algoritmo con bloques y velo al instante en español, en
-> pseudocódigo, en código real y como diagrama de flujo. Ejecútalo paso a paso
-> y entiende qué hace cada instrucción.
->
-> **Acciones:** `Empezar ahora →` · `Entrar`
->
-> **Nota:** Gratis, sin instalar nada y sin crear cuenta.
-
-Nombra el problema que el estudiante ya siente. Es la que recomiendo: el punto
-y coma olvidado es una experiencia universal en un primer curso.
-
-### Opción B — La promesa
-
-> **Título:** Una idea. Cuatro formas de verla.
->
-> **Bajada:** Español, pseudocódigo, código y diagrama de flujo — siempre de
-> acuerdo entre sí. Cambia un bloque y las cuatro cambian contigo.
-
-Más memorable y más corta, pero exige que la demo cargue rápido para que se
-entienda.
-
-### Opción C — El robot habla
-
-> **Título:** Hola, soy Tobot. Enséñame un algoritmo.
->
-> **Bajada:** Ármalo con bloques y lo ejecuto paso a paso, mientras lo ves
-> escrito en español, en pseudocódigo, en código y como diagrama.
-
-La más cálida y distintiva. Riesgo: puede leerse como infantil para
-universitarios, aunque el resto del texto lo compense.
-
-**Recomendación:** A para el título, con el robot de la opción C presente
-visualmente al lado. Se obtiene la seriedad del mensaje y la calidez del
-personaje.
-
-### Lo que va al lado del texto
-
-En vez de la demo dibujada actual, **el editor real**. Dos niveles:
-
-1. **Captura enmarcada** — imagen de alta resolución del editor con un
-   algoritmo real, en un marco de ventana, con sombra y ligera perspectiva.
-   Versión clara y oscura según el tema del visitante.
-2. **`<iframe>` en vivo** (recomendado) — el editor de verdad en una ruta
-   `/embed` sin cabecera ni paneles laterales. El visitante *toca* el producto
-   antes de decidir nada. Es el argumento más fuerte que tiene la página.
+El componente `Robot` ya acepta `mood` y `message`, así que es reutilizarlo, no
+reescribirlo. En el hero, además, la mirada sigue al cursor: un detalle
+pequeño que hace la página memorable.
 
 ---
 
 ## 3 · Componentes a construir
 
-Todos nuevos y en `src/components/landing/`, para no cargar el árbol principal.
+Todos en `src/components/landing/`, y todos apoyados en los del editor.
 
-### `<BrowserFrame>`
+### `<LiveBlocks>` — el corazón del hero
 
-Marco de ventana que envuelve captura o iframe.
+Un mini-editor **real**, no una imagen: los mismos `StatementBlock` que usa la
+app, sobre un AST fijo.
 
-```tsx
-<BrowserFrame url="tobot.app/app" theme="auto">
-  <img src={editorLight} alt="…" />
-</BrowserFrame>
-```
+- Los bloques se escriben solos, uno tras otro, como si alguien los estuviera
+  armando. Al terminar, espera y vuelve a empezar.
+- Es de verdad: usa el `StatementBlock` real con callbacks inertes.
+- `IntersectionObserver` para animar solo en pantalla.
+- Con `prefers-reduced-motion`, muestra el algoritmo completo sin animar.
 
-- Barra superior con tres puntos y una URL falsa.
-- `border-radius: var(--radius-lg)`, `box-shadow: var(--shadow-lg)`.
-- Opcional `tilt` para una perspectiva sutil (`rotateX(2deg)`).
+Reutiliza: `StatementBlock`, `Editor.css`, tokens de categoría.
 
-### `<ViewSwitcher>` — la pieza central
+### `<FourViews>` — la sección protagonista
 
-La sección protagonista, a pantalla completa sobre fondo oscuro.
+Fondo oscuro, a pantalla completa. Un algoritmo, cuatro representaciones
+generadas por **los emisores reales**.
 
-- Un bloque de sentencia arriba, editándose solo en bucle.
-- Debajo, las cuatro vistas en pestañas que se recorren automáticamente.
-- Cada cambio anima el contenido, no lo corta.
-- Se detiene al pasar el ratón, para poder leerlo.
-- `IntersectionObserver`: solo anima cuando está en pantalla.
-- Respeta `prefers-reduced-motion` — sin bucle, muestra las cuatro a la vez.
+- Pestañas que se recorren solas: Español → Pseudocódigo → Código → Diagrama.
+- El texto de cada vista sale de `emitters[id].emit(algorithm)`, así que es
+  literalmente lo que produce el producto.
+- El diagrama usa el `Flowchart` real.
+- Se detiene al pasar el ratón.
 
-Es la pieza que más trabajo lleva y la que más diferencia hace.
+Reutiliza: `emitters`, `Flowchart`, `highlight.ts`.
 
-### `<Reveal>`
-
-Envoltorio que revela a sus hijos al entrar en pantalla.
-
-```tsx
-<Reveal delay={80}><Card … /></Reveal>
-```
-
-`opacity: 0; translateY(12px)` → visible. Inerte bajo
-`prefers-reduced-motion`. Unas 30 líneas.
-
-### `<FeatureCard>`
-
-Reemplaza las tarjetas actuales: añade una micro-captura sobre el icono, para
-que cada función se vea además de leerse.
-
-### `<AudienceCard>`, `<StepCard>`, `<FaqItem>`
-
-Variantes de tarjeta ya definidas visualmente; se extraen para que la landing
-deje de ser un único archivo largo.
+Es la pieza que más trabajo lleva y la que más diferencia hace: demuestra la
+idea central de Tobot sin una sola palabra de explicación.
 
 ### `<RobotGreeting>`
 
-El robot de la app, en el hero, con la mirada siguiendo al cursor. Reutiliza
-`Robot.tsx`; solo añade el seguimiento.
+Envoltorio sobre `Robot` con el saludo y el seguimiento de la mirada.
+
+### `<ConceptPeek>`
+
+Una tarjeta de concepto real, tomada de `content/concepts`, con su explicación
+y sus enlaces. Sustituye a los chips de temario.
+
+### `<StepCard>`, `<AudienceCard>`, `<FaqItem>`
+
+Extracciones de lo que ya existe, para que `Landing.tsx` deje de crecer.
 
 ---
 
-## 4 · Estilos
+## 4 · Estilos: qué hace que sea "cute"
 
-### Tokens nuevos (en `Landing.css`, no globales)
+Sin caer en infantil, que sería el riesgo con universitarios.
 
-```css
-.landing {
-  --landing-max: 1080px;
-  --landing-narrow: 720px;
-  --section-gap: clamp(4rem, 9vw, 7rem);
-}
-```
+- **Formas redondeadas y generosas.** `--radius-lg` en tarjetas, `--radius-full`
+  en chips. Ya está en el sistema; se usa más.
+- **Los colores de categoría como confeti.** Índigo, cian, ámbar y violeta
+  aparecen en iconos, números de paso y detalles. La página se ve como el
+  editor.
+- **Micro-interacciones.** Tarjetas que se elevan al pasar el ratón, el número
+  de paso que rebota al entrar, el robot que parpadea.
+- **Formas orgánicas de fondo.** Manchas suaves en los colores de categoría,
+  muy tenues, detrás de las secciones. Rompen la rejilla sin ruido.
+- **Espacio.** El "cute" sale más del aire que de los adornos.
 
-### Fondo del hero
-
-Ya hay un degradado radial cálido. Se le añade una malla sutil que evoque el
-lienzo del editor:
-
-```css
-background-image:
-  radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%),
-  linear-gradient(var(--border-subtle) 1px, transparent 1px),
-  linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-background-size: 100% 100%, 32px 32px, 32px 32px;
-```
-
-### Sección oscura
-
-```css
-.landing__showcase {
-  background: var(--slate-950);
-  color: var(--slate-100);
-  /* Aísla el tema: la sección es oscura en ambos temas de la app. */
-  --bg-surface: var(--slate-900);
-  --border-subtle: var(--slate-800);
-  --text-primary: var(--slate-50);
-  --text-secondary: var(--slate-300);
-}
-```
-
-Redefinir los tokens dentro de la sección, en vez de escribir colores a mano,
-mantiene los componentes de dentro sin cambios.
-
-### Móvil
-
-- Hero: bajar a `padding: var(--space-5)` y ocultar la malla.
-- Tarjetas: carrusel horizontal con `scroll-snap` donde hay más de tres.
-- Objetivos táctiles: mínimo 44px, verificado.
-- La sección oscura se acorta: bucle más rápido, sin las cuatro vistas a la vez.
+Riesgo consciente: la línea entre *cálido* e *infantil*. La mantenemos con
+tipografía seria (ya la tenemos), texto adulto, y color contenido.
 
 ---
 
 ## 5 · Estructura final
 
-Reordenada para acompañar la decisión del visitante, no el inventario de
-funciones:
-
-1. **Hero** — qué es + producto real a la vista
-2. **Para quién es** — que se reconozca antes de leer detalles
-3. **Cómo funciona** — tres pasos
-4. **Las cuatro vistas** ← protagonista, oscura, animada
-5. **Qué encuentras** — seis tarjetas con micro-capturas
-6. **Los temas del curso**
-7. **Preguntas frecuentes** ← nueva
-8. **Cierre** — llamada final
+1. **Hero** — saludo del robot + `<LiveBlocks>` armándose solo
+2. **Para quién es** — estudiante / docente
+3. **Cómo funciona** — 3 pasos, con el robot en el tercero
+4. **Las cuatro vistas** ← protagonista, oscura, `<FourViews>`
+5. **Aprende conceptos** ← reemplaza el temario, con `<ConceptPeek>`
+6. **Qué encuentras** — 6 tarjetas
+7. **Preguntas frecuentes**
+8. **Cierre** — el robot despidiéndose
 9. **Pie** — Tobot · v1.0.0 · By mocta
 
-### Preguntas frecuentes (contenido)
-
-- **¿Es gratis?** Sí, y lo seguirá siendo para estudiantes. No pide tarjeta.
-- **¿Necesito instalar algo?** No. Funciona en el navegador, también en el
-  teléfono.
-- **¿Sirve para mi curso?** Cubre variables, entrada y salida, condicionales y
-  ciclos — el temario de un primer curso. Funciones vienen en camino.
-- **¿Qué lenguajes genera?** Pseudocódigo y JavaScript hoy; la arquitectura
-  admite añadir uno con un solo archivo.
-- **¿Mis algoritmos están seguros?** Sin cuenta, se quedan en tu navegador. Con
-  cuenta, solo tú puedes leerlos: lo garantiza la base de datos, no el código
-  del navegador.
-
 ---
 
-## 6 · Metadatos para compartir
+## 6 · Orden de trabajo
 
-Hoy el enlace se comparte sin previsualización, y va a repartirse por WhatsApp
-y Classroom. En `index.html`:
-
-```html
-<meta property="og:title" content="Tobot — Aprende a programar sin pelear con la sintaxis" />
-<meta property="og:description" content="Arma algoritmos con bloques y velos en español, pseudocódigo, código y diagrama de flujo." />
-<meta property="og:image" content="/og-image.png" />   <!-- 1200×630 -->
-<meta property="og:type" content="website" />
-<meta name="twitter:card" content="summary_large_image" />
-```
-
-La imagen: el editor real con la marca y el título, generada una vez.
-
----
-
-## 7 · Orden de implementación
-
-| Fase | Qué entra | Impacto | Esfuerzo |
+| # | Tarea | Impacto | Esfuerzo |
 | --- | --- | --- | --- |
-| **1** | `BrowserFrame` + hero con producto real | Muy alto | Bajo |
-| **2** | Ritmo: fondos alternos, escala tipográfica, reorden | Alto | Bajo |
-| **3** | `ViewSwitcher` (sección oscura animada) | Muy alto | Alto |
-| **4** | `Reveal` + micro-capturas en tarjetas | Medio | Medio |
-| **5** | FAQ + Open Graph + robot en el hero | Medio | Bajo |
-| **6** | Pulido móvil y accesibilidad AA | Alto | Medio |
+| 1 | `<LiveBlocks>` en el hero (quita la captura) | Muy alto | Medio |
+| 2 | `<RobotGreeting>` en hero y cierre | Alto | Bajo |
+| 3 | Reescribir temas → **aprender conceptos** | Alto | Bajo |
+| 4 | `<FourViews>` (sección oscura) | Muy alto | Alto |
+| 5 | `<ConceptPeek>` | Medio | Bajo |
+| 6 | Micro-interacciones y fondos orgánicos | Medio | Medio |
+| 7 | FAQ | Medio | Bajo |
+| 8 | Móvil y accesibilidad AA | Alto | Medio |
 
-**Si solo se hace una:** fase 1. Una landing de herramienta visual sin imagen
-de la herramienta es la carencia mayor.
+Propongo ejecutar **1 → 2 → 3** primero: quitan la captura, meten al robot y
+arreglan el mensaje del techo. Es el salto más grande por el menor esfuerzo, y
+deja la página coherente aunque paremos ahí.
 
-**Si se hacen tres:** 1 + 2 + 5. Producto visible, ritmo, y que el enlace se
-vea bien al repartirlo.
+Luego **4**, que es la que la pone a otro nivel.
 
-**El techo:** con la fase 3 hecha, la página compite de verdad con la de
-cualquier empresa grande, porque enseña algo que las demás no tienen.
+---
+
+## 7 · Riesgos
+
+- **Peso.** Montar `StatementBlock` y `Flowchart` en la landing carga parte del
+  editor en la primera visita. Mitigación: `React.lazy` para `<FourViews>`, que
+  está bajo el pliegue.
+- **Acoplamiento.** Si la landing usa componentes del editor, un cambio ahí la
+  afecta. Es intencional — esa es la garantía de que nunca miente — pero hay
+  que asumirlo conscientemente.
+- **Movimiento.** Tres animaciones en bucle pueden distraer. Todas se detienen
+  al pasar el ratón y respetan `prefers-reduced-motion`.
