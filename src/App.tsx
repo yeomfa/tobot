@@ -175,6 +175,8 @@ export default function App() {
               onLanguageChange={(next) =>
                 setPreferences((current) => ({ ...current, language: next }))
               }
+              theme={preferences.theme}
+              onThemeChange={(next) => setPreferences((current) => ({ ...current, theme: next }))}
               onTry={() => {
                 /* Trying it is the point of the page, so it opens the editor
                    rather than the gate: a visitor who has to sign in before

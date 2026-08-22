@@ -6,10 +6,13 @@ import {
   Check,
   Clock,
   Code,
+  Desktop,
   GraduationCap,
   Lightning,
   LinkSimple,
+  Moon,
   Student,
+  Sun,
   Translate,
   TreeStructure,
   TrendUp,
@@ -19,6 +22,7 @@ import { Link } from 'react-router-dom';
 import { APP_VERSION, MAKER } from '../brand';
 import { LANGUAGES, languageNames } from '../i18n';
 import type { Language } from '../i18n';
+import type { Preferences } from '../state/storage';
 import { useTranslation } from '../i18n/context';
 import { ROUTES } from '../routes';
 import { BrandMark } from './BrandMark';
@@ -49,10 +53,14 @@ const LEARN = [
   { key: 'growing', icon: TrendUp, hue: 'loop' },
 ] as const;
 
+type Theme = Preferences['theme'];
+
 interface LandingProps {
   onTry: () => void;
   language: Language;
   onLanguageChange: (language: Language) => void;
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
 }
 
 /**
@@ -72,7 +80,13 @@ interface LandingProps {
  * shape. Five identical centred grids was the previous arrangement, and it
  * read as a list of features rather than as an argument.
  */
-export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
+export function Landing({
+  onTry,
+  language,
+  onLanguageChange,
+  theme,
+  onThemeChange,
+}: LandingProps) {
   const { d } = useTranslation();
 
   return (
@@ -94,6 +108,20 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
               onChange={onLanguageChange}
               trigger={Translate}
               label={d.settings.language}
+            />
+            {/* Someone who prefers a dark screen should not have to enter the
+                app to find the switch — and the landing is what they meet
+                first. */}
+            <SettingsMenu
+              value={theme}
+              options={[
+                { value: 'system' as Theme, label: d.settings.themeSystem, icon: Desktop },
+                { value: 'light' as Theme, label: d.settings.themeLight, icon: Sun },
+                { value: 'dark' as Theme, label: d.settings.themeDark, icon: Moon },
+              ]}
+              onChange={onThemeChange}
+              trigger={theme === 'dark' ? Moon : theme === 'light' ? Sun : Desktop}
+              label={d.settings.theme}
             />
             <Link className="landing__nav-link" to={ROUTES.login}>
               {d.landing.signIn}
@@ -139,17 +167,22 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
         </section>
 
         {/* 2 — A short dark band. No cards, no icons, no grid: four words and
-            the connectors between them. */}
+            the connectors between them.
+
+            They name the arc a student travels, not the four panels of the
+            editor. Tobot is here to teach programming — the panels are how it
+            teaches, and stating the method as the promise sold the tool short
+            and put a ceiling on what it could grow into. */}
         <section className="landing__band landing__band--dark landing__proof">
           <Starfield count={70} seed={7} />
           <div className="landing__inner">
             <p className="landing__proof-title">{d.landing.sameTitle}</p>
             <p className="landing__proof-row">
-              {(['natural', 'pseudocode', 'code', 'chart'] as const).map((key, index) => (
+              {(['logic', 'code', 'concepts', 'beyond'] as const).map((key, index) => (
                 <span className="landing__proof-item" key={key}>
                   {index > 0 && <DashRule />}
                   <span className="landing__proof-word" data-view={key}>
-                    {d.landing.views[key]}
+                    {d.landing.journey[key]}
                   </span>
                 </span>
               ))}
@@ -275,7 +308,7 @@ export function Landing({ onTry, language, onLanguageChange }: LandingProps) {
           <Starfield count={110} seed={23} dawn />
           <div className="landing__inner landing__inner--narrow">
             <div className="landing__closing-robot" aria-hidden="true">
-              <RobotGreeting mood="done" message={d.landing.robotBye} size="md" />
+              <RobotGreeting mood="done" message={d.landing.robotBye} size="md" float />
             </div>
             <h2 className="landing__headline">{d.landing.closingTitle}</h2>
             <p className="landing__lead">{d.landing.closingBody}</p>

@@ -52,7 +52,7 @@ export const en: Dictionary = {
     tryIt: 'Start now',
     tryItLong: 'Build my first algorithm',
     signIn: 'Sign in',
-    noAccount: 'Free, nothing to install, no account needed.',
+    noAccount: 'Nothing to install. Start in the browser.',
     demoCaption: 'Tobot builds this algorithm and runs it, exactly as you will.',
 
     stepsTitle: 'How it works',
@@ -63,8 +63,8 @@ export const en: Dictionary = {
         body: 'Drag instructions in from the panel. Syntax errors do not exist here: blocks only fit together in ways that mean something.',
       },
       compare: {
-        title: 'See it four ways',
-        body: 'The same thing in English, pseudocode, code and a diagram. Change one block and all four change with you.',
+        title: 'Understand what it does',
+        body: 'You read it in plain English while it is written as real code. You learn to read it before having to write it.',
       },
       run: {
         title: 'Run it step by step',
@@ -72,11 +72,11 @@ export const en: Dictionary = {
       },
     },
 
-    featuresTitle: 'What you get',
+    featuresTitle: 'Everything to understand, nothing to memorise',
     features: {
-      views: {
-        title: 'One idea, four forms',
-        body: 'English, pseudocode, real code and a diagram, always in agreement. The relationship between them shows itself.',
+        views: {
+        title: 'From the idea to the code',
+        body: 'You write in plain English and watch it become real code, step by step. The relationship between the two teaches itself.',
       },
       diagram: {
         title: 'Flowcharts',
@@ -116,7 +116,13 @@ export const en: Dictionary = {
     robotGuide: "I'll walk you through every step.",
     robotBye: 'See you inside!',
 
-    sameTitle: 'The same thing, four ways',
+    sameTitle: 'Learn programming for real',
+    journey: {
+      logic: 'Logic',
+      code: 'Code',
+      concepts: 'Concepts',
+      beyond: 'And whatever comes next',
+    },
     views: {
       natural: 'English',
       pseudocode: 'Pseudocode',
@@ -124,8 +130,8 @@ export const en: Dictionary = {
       chart: 'Flowchart',
     },
 
-    showcaseTitle: 'Your blocks already are code',
-    showcaseBody: 'What you build on the left is exactly what runs on the right.',
+    showcaseTitle: 'You write logic, not syntax',
+    showcaseBody: 'You think through the solution and Tobot writes it as real code, while you learn to read it.',
     showcaseLabels: {
       blocks: 'Your blocks',
       natural: 'In English',

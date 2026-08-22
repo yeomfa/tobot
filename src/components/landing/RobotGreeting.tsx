@@ -17,6 +17,9 @@ interface RobotGreetingProps {
    * is mostly text actually wants.
    */
   peek?: 'bottom' | 'right';
+  /** Drifts and keeps waving. For the send-off, where a still robot ends the
+   *  page on a photograph. */
+  float?: boolean;
 }
 
 /**
@@ -35,6 +38,7 @@ export function RobotGreeting({
   follow = false,
   size = 'md',
   peek,
+  float = false,
 }: RobotGreetingProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [gaze, setGaze] = useState({ x: 0, y: 0 });
@@ -67,6 +71,7 @@ export function RobotGreeting({
       ref={ref}
       data-size={size}
       data-peek={peek}
+      data-float={float || undefined}
       style={{ '--gaze-x': `${gaze.x}px`, '--gaze-y': `${gaze.y}px` } as React.CSSProperties}
     >
       <Robot mood={mood} message={message} />

@@ -404,22 +404,23 @@
   letter-spacing: -0.01em;
 }
 
-/* Each view in the hue the editor gives it, so the palette is already being
-   taught before anyone opens the app. */
-.landing__proof-word[data-view='natural'] {
+/* Each stage in one of the editor's hues, so the palette is already being
+   taught before anyone opens the app. The last is deliberately dimmer: it
+   names what has not been built yet. */
+.landing__proof-word[data-view='logic'] {
   color: var(--hue-io-border);
 }
 
-.landing__proof-word[data-view='pseudocode'] {
-  color: var(--hue-variable-border);
-}
-
 .landing__proof-word[data-view='code'] {
-  color: var(--accent);
+  color: var(--code-string);
 }
 
-.landing__proof-word[data-view='chart'] {
+.landing__proof-word[data-view='concepts'] {
   color: var(--hue-loop-border);
+}
+
+.landing__proof-word[data-view='beyond'] {
+  color: var(--band-dark-mute);
 }
 
 /* ---------------------------------------------------------------------------
@@ -431,7 +432,7 @@
    mistake rather than as a companion. */
 .landing__how-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: var(--space-6);
   align-items: center;
 }
@@ -512,8 +513,13 @@
   z-index: 0;
   display: flex;
   justify-content: center;
+  /* Wide enough for the robot to reach its own maximum: inside a narrower box
+     it was quietly held at 132px however high the cap was raised. */
+  min-width: 230px;
   align-self: end;
-  margin-bottom: calc(var(--band) * -1.6);
+  /* Less of it hidden than before: at -1.6 bands only the visor showed, and
+     a robot you cannot recognise is not company, it is a shape. */
+  margin-bottom: calc(var(--band) * -0.9);
   pointer-events: none;
 }
 
@@ -561,7 +567,7 @@
   position: relative;
   overflow: hidden;
   padding: var(--space-5);
-  background: var(--bg-surface);
+  background: var(--bg-app);
   border: 1px solid var(--border-subtle);
   /* Mirrored corners, so the two are a pair rather than a repetition. */
   border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-sm);
@@ -754,25 +760,8 @@
   text-align: left;
 }
 
-/* The line they climb, fading in and out so it has no hard ends. */
-.landing__learn-list::before {
-  content: '';
-  position: absolute;
-  top: 8%;
-  bottom: 8%;
-  left: 27px;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    var(--hue-io) 12%,
-    var(--hue-variable) 40%,
-    var(--hue-conditional) 66%,
-    var(--hue-loop) 88%,
-    transparent
-  );
-  opacity: 0.4;
-}
+/* No rule down the side any more: a straight line through scattered items
+   would be the staircase again, drawn instead of implied. */
 
 .landing__learn-item {
   display: flex;
@@ -784,17 +773,27 @@
   text-wrap: pretty;
 }
 
-/* Each rung sits a little further right than the last, so the eye climbs. */
+/*
+ * Scattered rather than stepped.
+ *
+ * A staircase says these four things come in order, and they do not — they are
+ * four properties of one place, all true at once. Uneven offsets read as a
+ * constellation instead: related, arranged, not sequential.
+ */
+.landing__learn-item:nth-child(1) {
+  margin-left: clamp(0px, 6vw, 64px);
+}
+
 .landing__learn-item:nth-child(2) {
-  margin-left: clamp(0px, 4vw, 40px);
+  margin-left: 0;
 }
 
 .landing__learn-item:nth-child(3) {
-  margin-left: clamp(0px, 8vw, 80px);
+  margin-left: clamp(0px, 10vw, 108px);
 }
 
 .landing__learn-item:nth-child(4) {
-  margin-left: clamp(0px, 12vw, 120px);
+  margin-left: clamp(0px, 3vw, 32px);
 }
 
 /* Opaque, and above the line, so the rule appears to pass behind each rung. */
@@ -929,7 +928,7 @@
 }
 
 .landing .robot-greeting[data-size='md'] .robot__body {
-  width: min(100%, 132px);
+  width: min(100%, 200px);
   max-height: none;
 }
 
@@ -996,11 +995,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* The climb costs width the words need more. */
-  .landing__learn-item:nth-child(2),
-  .landing__learn-item:nth-child(3),
-  .landing__learn-item:nth-child(4) {
-    margin-left: 0;
+  /* The scatter costs width the words need more. */
+  .landing__learn-item {
+    margin-left: 0 !important;
   }
 
   .landing__audience-card--offset {

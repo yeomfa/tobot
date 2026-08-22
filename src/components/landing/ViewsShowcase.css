@@ -6,26 +6,28 @@
  * product. Putting them in matching cards would have hidden the very contrast
  * the section is about.
  */
-/* Each panel takes the height its own contents need. Stretching them to match
-   left a pool of empty card under whichever was shorter, and the two hold
-   genuinely different things. */
+/* Matched heights: the two halves say the same thing, so they should read as
+   one object cut down the middle rather than two cards that happen to be
+   adjacent. */
 .views-showcase {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-4);
-  align-items: start;
-}
-
-.views-showcase__panel {
-  height: fit-content;
+  align-items: stretch;
 }
 
 .views-showcase__panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: var(--space-4);
+  padding: var(--space-5);
+  /* The editor's own canvas: graph paper, so the blocks sit on the surface a
+     student will actually build them on. */
   background: var(--bg-app);
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 28px 28px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
 }
@@ -43,6 +45,7 @@
    editor — it is what separates "what you wrote" from "what it becomes". */
 .views-showcase__panel--code {
   background: var(--code-bg);
+  background-image: none;
   border-color: transparent;
 }
 
@@ -101,10 +104,11 @@
 }
 
 /* What the robot would be saying, as a caption rather than a speech bubble:
-   a third robot on the page was one presenter too many. */
+   a third robot on the page was one presenter too many. `margin-top: auto`
+   pins it to the foot of the panel however tall the code turns out to be. */
 .views-showcase__says {
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-5);
   font-size: var(--text-sm);
   color: var(--code-muted);
   border-top: 1px solid color-mix(in srgb, var(--code-muted) 25%, transparent);

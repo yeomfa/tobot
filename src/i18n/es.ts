@@ -51,7 +51,7 @@ export const es = {
     tryIt: 'Empezar ahora',
     tryItLong: 'Armar mi primer algoritmo',
     signIn: 'Entrar',
-    noAccount: 'Gratis, sin instalar nada y sin crear cuenta.',
+    noAccount: 'Sin instalar nada. Empieza en el navegador.',
     demoCaption: 'Tobot arma este algoritmo y lo ejecuta, igual que lo harás tú.',
 
     stepsTitle: 'Así funciona',
@@ -62,8 +62,8 @@ export const es = {
         body: 'Arrastra instrucciones desde el panel. No existe el error de sintaxis: los bloques solo encajan de formas que tienen sentido.',
       },
       compare: {
-        title: 'Míralo en cuatro formas',
-        body: 'Lo mismo en español, pseudocódigo, código y diagrama. Cambia un bloque y las cuatro cambian contigo.',
+        title: 'Entiende qué hace',
+        body: 'Lo ves en español mientras se escribe en código real. Aprendes a leerlo sin tener que escribirlo todavía.',
       },
       run: {
         title: 'Ejecútalo paso a paso',
@@ -71,11 +71,11 @@ export const es = {
       },
     },
 
-    featuresTitle: 'Lo que encuentras adentro',
+    featuresTitle: 'Todo para que entiendas, no para que memorices',
     features: {
-      views: {
-        title: 'La misma idea, cuatro formas',
-        body: 'Español, pseudocódigo, código real y diagrama, siempre de acuerdo entre sí. La relación entre ellos se ve sola.',
+        views: {
+        title: 'De la idea al código',
+        body: 'Escribes en español y lo ves convertirse en código real, paso a paso. La relación entre los dos se aprende sola.',
       },
       diagram: {
         title: 'Diagramas de flujo',
@@ -115,7 +115,13 @@ export const es = {
     robotGuide: 'Yo te acompaño en cada paso.',
     robotBye: '¡Te espero adentro!',
 
-    sameTitle: 'Lo mismo, en cuatro formas',
+    sameTitle: 'Aprende programación de verdad',
+    journey: {
+      logic: 'Lógica',
+      code: 'Código',
+      concepts: 'Conceptos',
+      beyond: 'Y lo que venga',
+    },
     views: {
       natural: 'Español',
       pseudocode: 'Pseudocódigo',
@@ -123,8 +129,8 @@ export const es = {
       chart: 'Diagrama',
     },
 
-    showcaseTitle: 'Tus bloques ya son código',
-    showcaseBody: 'Lo que armas a la izquierda es exactamente lo que se ejecuta a la derecha.',
+    showcaseTitle: 'Escribes lógica, no sintaxis',
+    showcaseBody: 'Piensas la solución y Tobot la escribe en código real, mientras aprendes a leerlo.',
     showcaseLabels: {
       blocks: 'Tus bloques',
       natural: 'En español',

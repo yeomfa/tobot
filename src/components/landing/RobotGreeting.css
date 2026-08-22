@@ -22,8 +22,10 @@
   max-width: 240px;
 }
 
+/* Only the outer bound. The `.robot__body` cap that `Robot.css` sets for the
+   editor is lifted in `Landing.css`, where all three sizes live together. */
 .robot-greeting[data-size='md'] {
-  max-width: 150px;
+  max-width: 230px;
 }
 
 .robot-greeting[data-size='sm'] {
@@ -73,4 +75,70 @@
    broken. */
 .robot-greeting[data-peek='bottom'] .robot__bubble {
   transform: rotate(8deg);
+}
+
+/*
+ * The bubble floats above the robot instead of sitting in a slot over it.
+ *
+ * In the editor the slot reserves 44px, which is right there because messages
+ * are short and the panel is narrow. Here they run to two and three lines, and
+ * each change resized the slot and shoved the robot down the page — the robot
+ * appeared to bob every time it spoke. Taking the bubble out of the flow means
+ * the robot never moves, whatever it says.
+ */
+/* Zero-height as well as absolute: a slot that still reserved its minimum
+   moved the robot by a couple of pixels every time a message arrived or
+   left, which is small enough to look like a glitch rather than a motion. */
+.robot-greeting[data-size='lg'] .robot__bubble-slot,
+.robot-greeting[data-size='md'] .robot__bubble-slot {
+  height: 0;
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  width: max-content;
+  max-width: min(260px, 90vw);
+  min-height: 0;
+  transform: translateX(-50%);
+}
+
+.robot-greeting[data-size='lg'],
+.robot-greeting[data-size='md'] {
+  position: relative;
+}
+
+/*
+ * The send-off robot floats.
+ *
+ * `done` already waves, but only twice on mount — by the time anyone scrolls
+ * this far it has long finished, so the page ended on a still image. Drifting
+ * keeps it alive without a second timer, and the closing section is the one
+ * place on the page where a little theatre is the point: it is the invitation.
+ *
+ * The float goes on the wrapper, since `.robot__body` is already animating
+ * transform for the breathing.
+ */
+.robot-greeting[data-float] {
+  animation: robot-float 5.5s ease-in-out infinite;
+}
+
+@keyframes robot-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(1.5deg);
+  }
+}
+
+/* Waving for as long as it is on screen, rather than twice and then still. */
+.robot-greeting[data-float] .robot__arm--right {
+  animation: wave 1.6s var(--ease-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-greeting[data-float],
+  .robot-greeting[data-float] .robot__arm--right {
+    animation: none;
+  }
 }
