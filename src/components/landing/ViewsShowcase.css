@@ -6,11 +6,18 @@
  * product. Putting them in matching cards would have hidden the very contrast
  * the section is about.
  */
+/* Each panel takes the height its own contents need. Stretching them to match
+   left a pool of empty card under whichever was shorter, and the two hold
+   genuinely different things. */
 .views-showcase {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: var(--space-4);
   align-items: start;
+}
+
+.views-showcase__panel {
+  height: fit-content;
 }
 
 .views-showcase__panel {
@@ -64,6 +71,25 @@
 
 .views-showcase__line[data-indent='1'] {
   padding-left: var(--space-6);
+}
+
+/* The same syntax colours the editor uses, from the same tokens: plain white
+   code on the landing said "a picture of code" where the product shows the
+   real thing. */
+.views-showcase__tok[data-kind='keyword'] {
+  color: var(--code-keyword);
+}
+
+.views-showcase__tok[data-kind='name'] {
+  color: var(--code-name);
+}
+
+.views-showcase__tok[data-kind='string'] {
+  color: var(--code-string);
+}
+
+.views-showcase__tok[data-kind='number'] {
+  color: var(--code-number);
 }
 
 /* The line matching the block currently lit, so the eye can pair them without

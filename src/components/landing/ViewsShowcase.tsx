@@ -49,7 +49,11 @@ export function ViewsShowcase() {
                 data-on={line.blockId === activeBlock || undefined}
                 data-indent={line.indent || undefined}
               >
-                {line.text}
+                {line.tokens.map((token, position) => (
+                  <span className="views-showcase__tok" data-kind={token.kind} key={position}>
+                    {token.text}
+                  </span>
+                ))}
               </span>
             ))}
           </code>

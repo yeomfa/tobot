@@ -54,9 +54,9 @@
   --band-dark-mute: var(--slate-400);
 
   min-height: 100%;
-  /* Was `--bg-base`, a token that does not exist: the page had no ground of
-     its own and inherited one by accident. */
-  background: var(--bg-app);
+  /* White, not the app's grey. The editor's ground is right for a workspace
+     that surrounds panels; on a page it just reads as dull. */
+  background: var(--bg-surface);
   /* The hero's decoration reaches past the viewport; clip it rather than
      letting the page scroll sideways. `clip` not `hidden`, so the sticky
      robot in "how it works" still works. */
@@ -83,8 +83,10 @@
   padding-block: var(--band);
 }
 
+/* Now that the page is white, a raised band is the tinted one — the contrast
+   is what matters, not which of the two is lighter. */
 .landing__band--raised {
-  background: var(--bg-surface);
+  background: var(--bg-app);
   border-block: 1px solid var(--border-subtle);
 }
 
@@ -540,6 +542,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-4);
+  /* Equal height: one card taller than the other looked like a bug rather
+     than a rhythm, since they hold the same kind of thing. */
+  align-items: stretch;
 }
 
 .landing__audience-inner > .landing__headline {
@@ -582,11 +587,10 @@
   box-shadow: var(--shadow-md);
 }
 
+/* Mirrored corners are enough to make them a pair rather than a repetition;
+   the vertical stagger that used to be here made them different sizes. */
 .landing__audience-card--offset {
   border-radius: var(--radius-xl) var(--radius-xl) var(--radius-sm) var(--radius-xl);
-  /* The stagger is the point: two cards at the same height read as one shape
-     cut in half. */
-  margin-top: var(--space-6);
 }
 
 .landing__audience-card:hover {
@@ -717,9 +721,15 @@
    --------------------------------------------------------------------------- */
 
 /* Left-aligned, heading included: a climb reads along its own direction, and a
-   centred title over indented rungs looks like two decisions that never met. */
+   centred title over indented rungs looks like two decisions that never met.
+   The whole thing is inset, though — starting hard against the gutter left the
+   climb with nowhere to have come from. */
 .landing__learn {
   text-align: left;
+}
+
+.landing__learn .landing__inner {
+  max-width: 860px;
 }
 
 .landing__learn .landing__lead {
@@ -798,7 +808,7 @@
   height: 54px;
   flex-shrink: 0;
   border-radius: var(--radius-lg);
-  box-shadow: 0 0 0 6px var(--bg-app);
+  box-shadow: 0 0 0 6px var(--bg-surface);
 }
 
 .landing__learn-icon svg {
