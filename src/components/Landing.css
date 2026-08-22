@@ -432,7 +432,7 @@
    mistake rather than as a companion. */
 .landing__how-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 1fr) 290px;
   gap: var(--space-6);
   align-items: center;
 }
@@ -515,11 +515,19 @@
   justify-content: center;
   /* Wide enough for the robot to reach its own maximum: inside a narrower box
      it was quietly held at 132px however high the cap was raised. */
-  min-width: 230px;
+  min-width: 280px;
   align-self: end;
-  /* Less of it hidden than before: at -1.6 bands only the visor showed, and
-     a robot you cannot recognise is not company, it is a shape. */
-  margin-bottom: calc(var(--band) * -0.9);
+  /*
+   * Pushed down until the next section covers its lower third.
+   *
+   * `translateY` rather than a negative margin: the row is centred and the
+   * section carries nearly a hundred pixels of bottom padding, so a margin
+   * only moved the robot down *within* that air and never reached the edge —
+   * which is how it came to be standing there in full. A transform ignores
+   * the flow, and the distance is measured against the robot rather than
+   * against the padding, so growing it keeps the same third hidden.
+   */
+  transform: translateY(190px);
   pointer-events: none;
 }
 
@@ -928,7 +936,7 @@
 }
 
 .landing .robot-greeting[data-size='md'] .robot__body {
-  width: min(100%, 200px);
+  width: min(100%, 260px);
   max-height: none;
 }
 

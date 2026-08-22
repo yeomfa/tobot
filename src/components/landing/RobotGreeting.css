@@ -25,7 +25,7 @@
 /* Only the outer bound. The `.robot__body` cap that `Robot.css` sets for the
    editor is lifted in `Landing.css`, where all three sizes live together. */
 .robot-greeting[data-size='md'] {
-  max-width: 230px;
+  max-width: 280px;
 }
 
 .robot-greeting[data-size='sm'] {
