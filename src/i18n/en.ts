@@ -138,8 +138,10 @@ export const en: Dictionary = {
       code: 'In code',
     },
 
-    learnTitle: 'Learn concepts, not syntax',
-    learnLead: 'Every instruction comes with its explanation, its examples and where to go next. You start with the essentials and keep climbing: the platform grows with you.',
+    readingTime: '{minutes} min',
+    sourcesLabel: 'Sources',
+    learnTitle: 'Concepts, properly explained',
+    learnLead: 'Every instruction comes with its explanation, the idea behind it and where to go deeper. Not loose definitions: material for understanding why it works.',
     learn: {
       explained: 'Every topic explained in plain words',
       sources: 'Links to trustworthy sources to go deeper',

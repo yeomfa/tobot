@@ -1,21 +1,17 @@
 import {
   ArrowRight,
-  BookOpenText,
   ChalkboardTeacher,
   ChatCircleText,
   Check,
-  Clock,
   Code,
   Desktop,
   GraduationCap,
   Lightning,
-  LinkSimple,
   Moon,
   Student,
   Sun,
   Translate,
   TreeStructure,
-  TrendUp,
 } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 
@@ -28,6 +24,7 @@ import { ROUTES } from '../routes';
 import { BrandMark } from './BrandMark';
 import { SettingsMenu } from './SettingsMenu';
 import { Blobs, Chips, DashRule } from './landing/Decor';
+import { ConceptPeek } from './landing/ConceptPeek';
 import { HeroStage } from './landing/HeroStage';
 import { Reveal } from './landing/Reveal';
 import { Starfield } from './landing/Starfield';
@@ -43,14 +40,6 @@ const FEATURES = [
   { key: 'robot', icon: ChatCircleText, hue: 'accent', wide: false },
   { key: 'concepts', icon: GraduationCap, hue: 'loop', wide: false },
   { key: 'validation', icon: Check, hue: 'success', wide: false },
-] as const;
-
-/** The four promises about learning, each in a hue of its own. */
-const LEARN = [
-  { key: 'explained', icon: BookOpenText, hue: 'io' },
-  { key: 'sources', icon: LinkSimple, hue: 'variable' },
-  { key: 'pace', icon: Clock, hue: 'conditional' },
-  { key: 'growing', icon: TrendUp, hue: 'loop' },
 ] as const;
 
 type Theme = Preferences['theme'];
@@ -291,16 +280,7 @@ export function Landing({
           <div className="landing__inner">
             <h2 className="landing__headline">{d.landing.learnTitle}</h2>
             <p className="landing__lead">{d.landing.learnLead}</p>
-            <ul className="landing__learn-list">
-              {LEARN.map(({ key, icon: Icon, hue }) => (
-                <li className="landing__learn-item" key={key} data-hue={hue}>
-                  <span className="landing__learn-icon">
-                    <Icon weight="duotone" />
-                  </span>
-                  {d.landing.learn[key]}
-                </li>
-              ))}
-            </ul>
+            <ConceptPeek />
           </div>
         </section>
 

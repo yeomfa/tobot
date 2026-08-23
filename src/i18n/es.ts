@@ -137,8 +137,10 @@ export const es = {
       code: 'En código',
     },
 
-    learnTitle: 'Aprende conceptos, no sintaxis',
-    learnLead: 'Cada instrucción trae su explicación, sus ejemplos y a dónde ir para profundizar. Empiezas por lo esencial y sigues subiendo: la plataforma crece contigo.',
+    readingTime: '{minutes} min',
+    sourcesLabel: 'Fuentes',
+    learnTitle: 'Conceptos explicados de verdad',
+    learnLead: 'Cada instrucción trae su explicación, la idea que hay detrás y a dónde ir para profundizar. No son definiciones sueltas: es material para entender por qué funciona.',
     learn: {
       explained: 'Cada tema con su explicación, en palabras claras',
       sources: 'Enlaces a fuentes confiables para ir más a fondo',

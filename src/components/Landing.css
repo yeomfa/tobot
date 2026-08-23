@@ -757,124 +757,9 @@
 }
 
 .landing__learn .landing__lead {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
-/*
- * A system, not a list.
- *
- * These four are properties of one place, all true at once — a column of
- * bullets said "four more things" and a staircase said they come in order.
- * They sit around a centre instead, each on its own side, with a line running
- * back to the middle: the arrangement says they belong to one thing, which is
- * the claim the section is making.
- */
-.landing__learn-list {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-6) var(--space-7);
-  margin-top: var(--space-7);
-  text-align: left;
-}
-
-/* The centre they all point at. Faint on purpose: it is the thing being
-   described, not another item in the list. */
-.landing__learn-list::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 132px;
-  height: 132px;
-  transform: translate(-50%, -50%);
-  border: 1px dashed var(--border-strong);
-  border-radius: 50%;
-  opacity: 0.4;
-}
-
-.landing__learn-item {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  font-size: var(--text-base);
-  line-height: 1.5;
-  color: var(--text-primary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  text-wrap: pretty;
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
-}
-
-.landing__learn-item:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-2px);
-}
-
-/* Pulled away from the centre in four directions, so the group reads as an
-   arrangement rather than as a two-by-two grid. */
-.landing__learn-item:nth-child(1) {
-  margin-right: var(--space-5);
-}
-
-.landing__learn-item:nth-child(2) {
-  margin-left: var(--space-5);
-  margin-top: var(--space-6);
-}
-
-.landing__learn-item:nth-child(3) {
-  margin-right: var(--space-5);
-  margin-bottom: var(--space-6);
-}
-
-.landing__learn-item:nth-child(4) {
-  margin-left: var(--space-5);
-}
-
-/* Opaque, and above the line, so the rule appears to pass behind each rung. */
-.landing__learn-icon {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 54px;
-  height: 54px;
-  flex-shrink: 0;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 0 0 6px var(--bg-surface);
-}
-
-.landing__learn-icon svg {
-  width: 25px;
-  height: 25px;
-}
-
-.landing__learn-item[data-hue='io'] .landing__learn-icon {
-  color: var(--hue-io);
-  background: var(--hue-io-soft);
-}
-
-.landing__learn-item[data-hue='variable'] .landing__learn-icon {
-  color: var(--hue-variable);
-  background: var(--hue-variable-soft);
-}
-
-.landing__learn-item[data-hue='conditional'] .landing__learn-icon {
-  color: var(--hue-conditional);
-  background: var(--hue-conditional-soft);
-}
-
-.landing__learn-item[data-hue='loop'] .landing__learn-icon {
-  color: var(--hue-loop);
-  background: var(--hue-loop-soft);
-}
 
 .landing__closing {
   padding-block: var(--band-loose);
@@ -1034,21 +919,6 @@
 @media (max-width: 700px) {
   .landing__audience-inner {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* One column: the arrangement needs width to read as one, and without it a
-     ring behind four stacked cards is just a smudge. */
-  .landing__learn-list {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-3);
-  }
-
-  .landing__learn-list::before {
-    display: none;
-  }
-
-  .landing__learn-item {
-    margin: 0;
   }
 
   .landing__audience-card--offset {
