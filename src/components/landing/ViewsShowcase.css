@@ -21,9 +21,9 @@
   flex-direction: column;
   min-width: 0;
   padding: var(--space-5);
-  /* The editor's own canvas: graph paper, so the blocks sit on the surface a
-     student will actually build them on. */
-  background: var(--bg-app);
+  /* The editor's own canvas: white with graph paper over it, which is the
+     surface a student actually builds on. */
+  background: var(--bg-surface);
   background-image:
     linear-gradient(var(--border-subtle) 1px, transparent 1px),
     linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
@@ -43,10 +43,48 @@
 
 /* Code keeps its dark ground in both themes, exactly as it does in the
    editor — it is what separates "what you wrote" from "what it becomes". */
+/*
+ * The code panel is a window rather than a card: a title bar with the file's
+ * name, a rule under it, and the code beneath. The dark rectangle it was is
+ * accurate but inert, and this section is the one making the argument that
+ * blocks and code are the same thing — the code half should look like
+ * somewhere real that code lives.
+ */
 .views-showcase__panel--code {
+  padding: 0;
+  overflow: hidden;
   background: var(--code-bg);
   background-image: none;
   border-color: transparent;
+  box-shadow: var(--shadow-lg);
+}
+
+.views-showcase__panel--code .views-showcase__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  background: var(--code-surface);
+  border-bottom: 1px solid color-mix(in srgb, var(--code-muted) 22%, transparent);
+}
+
+/* The three dots of a window, in the editor's own syntax colours rather than
+   the usual traffic lights. */
+.views-showcase__panel--code .views-showcase__label::before {
+  content: '';
+  flex-shrink: 0;
+  width: 38px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background:
+    radial-gradient(circle 4px at 4px 4px, var(--code-keyword) 96%, transparent),
+    radial-gradient(circle 4px at 19px 4px, var(--code-number) 96%, transparent),
+    radial-gradient(circle 4px at 34px 4px, var(--code-string) 96%, transparent);
+}
+
+.views-showcase__code-body {
+  padding: var(--space-5);
 }
 
 .views-showcase__panel--code .views-showcase__label {
@@ -108,10 +146,9 @@
    pins it to the foot of the panel however tall the code turns out to be. */
 .views-showcase__says {
   margin-top: auto;
-  padding-top: var(--space-5);
+  padding: var(--space-4) var(--space-5) var(--space-5);
   font-size: var(--text-sm);
   color: var(--code-muted);
-  border-top: 1px solid color-mix(in srgb, var(--code-muted) 25%, transparent);
 }
 
 @media (max-width: 900px) {

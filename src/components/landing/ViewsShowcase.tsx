@@ -40,6 +40,7 @@ export function ViewsShowcase() {
 
       <div className="views-showcase__panel views-showcase__panel--code">
         <span className="views-showcase__label">{d.landing.showcaseLabels.code}</span>
+        <div className="views-showcase__code-body">
         <pre className="views-showcase__code">
           <code>
             {demo.code?.map((line, index) => (
@@ -58,6 +59,7 @@ export function ViewsShowcase() {
             ))}
           </code>
         </pre>
+        </div>
 
         {says && <p className="views-showcase__says">{says}</p>}
       </div>

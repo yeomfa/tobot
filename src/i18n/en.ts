@@ -114,7 +114,7 @@ export const en: Dictionary = {
     robotHello: "Hi! I'm Tobot. Watch what I can do.",
     robotDone: "Done! That's an algorithm.",
     robotGuide: "I'll walk you through every step.",
-    robotBye: 'See you inside!',
+    robotBye: 'Shall we?',
 
     sameTitle: 'Learn programming for real',
     journey: {

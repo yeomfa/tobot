@@ -28,8 +28,23 @@
   max-width: 280px;
 }
 
+/* The small robot's bubble is not bound by the robot's own width: at 110px a
+   two-word question broke across lines mid-syllable. It floats free like the
+   larger sizes' does, sized to its own text. */
 .robot-greeting[data-size='sm'] {
+  position: relative;
   max-width: 110px;
+}
+
+.robot-greeting[data-size='sm'] .robot__bubble-slot {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  width: max-content;
+  max-width: min(220px, 80vw);
+  height: 0;
+  min-height: 0;
+  transform: translateX(-50%);
 }
 
 /* The eyes shift within the visor; the head stays put. A robot whose whole

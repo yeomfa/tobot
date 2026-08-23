@@ -113,7 +113,7 @@ export const es = {
     robotHello: '¡Hola! Soy Tobot. Mira lo que puedo hacer.',
     robotDone: '¡Listo! Eso es un algoritmo.',
     robotGuide: 'Yo te acompaño en cada paso.',
-    robotBye: '¡Te espero adentro!',
+    robotBye: '¿Empezamos?',
 
     sameTitle: 'Aprende programación de verdad',
     journey: {

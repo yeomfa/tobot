@@ -308,7 +308,7 @@ export function Landing({
           <Starfield count={110} seed={23} dawn />
           <div className="landing__inner landing__inner--narrow">
             <div className="landing__closing-robot" aria-hidden="true">
-              <RobotGreeting mood="done" message={d.landing.robotBye} size="md" float />
+              <RobotGreeting mood="done" message={d.landing.robotBye} size="sm" />
             </div>
             <h2 className="landing__headline">{d.landing.closingTitle}</h2>
             <p className="landing__lead">{d.landing.closingBody}</p>

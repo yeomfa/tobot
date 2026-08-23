@@ -523,11 +523,12 @@
    * `translateY` rather than a negative margin: the row is centred and the
    * section carries nearly a hundred pixels of bottom padding, so a margin
    * only moved the robot down *within* that air and never reached the edge —
-   * which is how it came to be standing there in full. A transform ignores
-   * the flow, and the distance is measured against the robot rather than
-   * against the padding, so growing it keeps the same third hidden.
+   * which is how it came to be standing there in full.
+   *
+   * Cut below the chest rather than at the neck: a head alone on the boundary
+   * is a mask, while a torso reads as somebody leaning in.
    */
-  transform: translateY(190px);
+  transform: translateY(140px);
   pointer-events: none;
 }
 
@@ -552,6 +553,12 @@
 
 /* The title sits above rather than in a column of its own, which left a third
    of the row empty and the cards squeezed into the rest. */
+/* Tinted, so the white cards on it have something to sit on. Without a ground
+   of its own the section was the page's white and the cards vanished into it. */
+.landing__audience {
+  background: var(--bg-app);
+}
+
 .landing__audience-inner {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -575,7 +582,7 @@
   position: relative;
   overflow: hidden;
   padding: var(--space-5);
-  background: var(--bg-app);
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   /* Mirrored corners, so the two are a pair rather than a repetition. */
   border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-sm);
@@ -689,12 +696,15 @@
   margin-top: var(--space-6);
 }
 
+/* White on the band's tint. The two were the same grey, so the cards dissolved
+   into the ground and the grid read as a sheet of text rather than as six
+   things. A card should be what sits on top. */
 .landing__card {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--bg-app);
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   transition:
@@ -751,57 +761,80 @@
 }
 
 /*
- * A path rather than a grid.
+ * A system, not a list.
  *
- * Four cards here made this the third card grid in a row, and the section
- * directly above it was already one — the page started repeating itself. The
- * promise being made is that learning goes somewhere, so the four items climb:
- * a stepped line, each rung further along and further up, with a rule running
- * through them.
+ * These four are properties of one place, all true at once — a column of
+ * bullets said "four more things" and a staircase said they come in order.
+ * They sit around a centre instead, each on its own side, with a line running
+ * back to the middle: the arrangement says they belong to one thing, which is
+ * the claim the section is making.
  */
 .landing__learn-list {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6) var(--space-7);
   margin-top: var(--space-7);
   text-align: left;
 }
 
-/* No rule down the side any more: a straight line through scattered items
-   would be the staircase again, drawn instead of implied. */
+/* The centre they all point at. Faint on purpose: it is the thing being
+   described, not another item in the list. */
+.landing__learn-list::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 132px;
+  height: 132px;
+  transform: translate(-50%, -50%);
+  border: 1px dashed var(--border-strong);
+  border-radius: 50%;
+  opacity: 0.4;
+}
 
 .landing__learn-item {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  font-size: var(--text-body-lg);
+  padding: var(--space-4);
+  font-size: var(--text-base);
   line-height: 1.5;
   color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   text-wrap: pretty;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
-/*
- * Scattered rather than stepped.
- *
- * A staircase says these four things come in order, and they do not — they are
- * four properties of one place, all true at once. Uneven offsets read as a
- * constellation instead: related, arranged, not sequential.
- */
+.landing__learn-item:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+/* Pulled away from the centre in four directions, so the group reads as an
+   arrangement rather than as a two-by-two grid. */
 .landing__learn-item:nth-child(1) {
-  margin-left: clamp(0px, 6vw, 64px);
+  margin-right: var(--space-5);
 }
 
 .landing__learn-item:nth-child(2) {
-  margin-left: 0;
+  margin-left: var(--space-5);
+  margin-top: var(--space-6);
 }
 
 .landing__learn-item:nth-child(3) {
-  margin-left: clamp(0px, 10vw, 108px);
+  margin-right: var(--space-5);
+  margin-bottom: var(--space-6);
 }
 
 .landing__learn-item:nth-child(4) {
-  margin-left: clamp(0px, 3vw, 32px);
+  margin-left: var(--space-5);
 }
 
 /* Opaque, and above the line, so the rule appears to pass behind each rung. */
@@ -941,7 +974,7 @@
 }
 
 .landing .robot-greeting[data-size='sm'] .robot__body {
-  width: min(100%, 96px);
+  width: min(100%, 120px);
   max-height: none;
 }
 
@@ -1003,9 +1036,19 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* The scatter costs width the words need more. */
+  /* One column: the arrangement needs width to read as one, and without it a
+     ring behind four stacked cards is just a smudge. */
+  .landing__learn-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .landing__learn-list::before {
+    display: none;
+  }
+
   .landing__learn-item {
-    margin-left: 0 !important;
+    margin: 0;
   }
 
   .landing__audience-card--offset {
