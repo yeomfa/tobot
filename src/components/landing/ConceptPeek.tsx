@@ -1,60 +1,83 @@
-import { ArrowRight, Clock } from '@phosphor-icons/react';
+import { ArrowRight } from '@phosphor-icons/react';
 
 import { concepts } from '../../content/concepts';
+import { statementIcon } from '../statementMeta';
+import type { Statement } from '../../core/ast/types';
 import { useTranslation } from '../../i18n/context';
 import './ConceptPeek.css';
 
 /**
- * What Tobot explains, as a shelf rather than a reader.
+ * What Tobot explains, drawn as a box the topics come out of.
  *
- * The shelf is the extensible part of the page. It reads from `concepts`
- * today, but nothing about the layout is specific to them: a topic, a course
- * or a whole track is the same shape — a name, a length, a colour. When those
- * arrive, this takes a list rather than importing one, and the section keeps
- * its place and its heading.
+ * The shelf this replaces was an honest list and read as an inventory. The box
+ * says something the list could not: that these are not five separate features
+ * but the contents of one thing, and that more can come out of it. The dashed
+ * card at the end of the fan is the same promise the copy makes, in the shape
+ * of the drawing.
  *
- * The version this replaces opened a concept in place, with its summary, its
- * key idea and its citations — which was true, complete, and the wrong thing
- * to put on a landing page. Nobody arrives here to read about variables; they
- * arrive to decide whether to open the tool. Two paragraphs of documentation
- * one section before the final call to action asks them to start studying
- * instead.
+ * Reading times are gone. On a page whose job is to get someone into the
+ * editor, "3 min" invites them to budget for studying rather than to look
+ * inside; the number belongs in the app, next to the reading itself.
  *
- * So the shelf: five titles, their reading times, and the publishers behind
- * them. It proves the material exists and is properly sourced in about three
- * seconds, and the reading itself waits until they are inside — which is also
- * where the app can track what they have read.
+ * The shelf is also the extensible part of the page. It reads from `concepts`
+ * today, but a topic, a course or a whole track is the same shape — a name and
+ * a colour — so when those exist this takes a list rather than importing one.
  */
 export function ConceptPeek({ onTry }: { onTry: () => void }) {
   const { d, language, fill } = useTranslation();
 
-  // Every publisher cited across the concepts, named once.
   const publishers = [
     ...new Set(concepts.flatMap((concept) => concept.references.map((r) => r.publisher))),
   ];
 
   return (
     <div className="concept-peek">
-      <ul className="concept-peek__shelf">
-        {concepts.map((concept) => (
-          <li className="concept-peek__item" data-category={concept.category} key={concept.id}>
-            <span className="concept-peek__name">{concept.copy[language].title}</span>
-            <span className="concept-peek__time">
-              <Clock weight="bold" />
-              {fill(d.landing.readingTime, { minutes: concept.readingMinutes })}
-            </span>
-          </li>
-        ))}
-
+      <div className="concept-peek__scene">
+        <span className="concept-peek__label" aria-hidden="true">
+          {d.landing.boxLabel}
+        </span>
         {/*
-          Open-ended on purpose. Naming five topics and stopping would say
-          Tobot is those five, and what goes here is not fixed to concepts
-          either — topics, courses and whatever the platform grows into all
-          belong on this shelf. "And more" rather than "more on the way",
-          which promises a schedule nobody has committed to.
+          The box is the frame around everything, not a picture beside it: the
+          topics sit *in* it and the last ones break out over its top edge.
+          Three attempts at drawing a container next to the cards all read as a
+          bin with rubbish beside it — because a box you are looking at is not
+          a box things are coming out of. Being inside the frame is what makes
+          the claim.
         */}
-        <li className="concept-peek__item concept-peek__item--more">{d.landing.andMore}</li>
-      </ul>
+
+        <ul className="concept-peek__fan">
+          {concepts.map((concept, index) => {
+            // The icon of the first statement the concept teaches, so a topic
+            // is recognisable by the same mark it carries in the palette.
+            const Icon = statementIcon[concept.statements[0] as Statement['kind']];
+
+            return (
+              <li
+                className="concept-peek__card"
+                data-category={concept.category}
+                style={{ '--i': index } as React.CSSProperties}
+                key={concept.id}
+              >
+                {Icon && <Icon weight="duotone" />}
+                {concept.copy[language].title}
+              </li>
+            );
+          })}
+
+          {/*
+            Open-ended on purpose. Naming five topics and stopping would say
+            Tobot is those five, and what belongs on this shelf is not fixed to
+            concepts either — topics, courses and whatever the platform grows
+            into all sit here.
+          */}
+          <li
+            className="concept-peek__card concept-peek__card--more"
+            style={{ '--i': concepts.length } as React.CSSProperties}
+          >
+            {d.landing.andMore}
+          </li>
+        </ul>
+      </div>
 
       <p className="concept-peek__sources">
         {fill(d.landing.sourcedFrom, { publishers: publishers.join(' · ') })}

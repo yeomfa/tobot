@@ -138,6 +138,7 @@ export const es = {
     },
 
     readingTime: '{minutes} min',
+    boxLabel: 'Dentro de Tobot',
     andMore: 'Y más',
     sourcedFrom: 'Con fuentes de {publishers}.',
     exploreConcepts: 'Explorar los conceptos',

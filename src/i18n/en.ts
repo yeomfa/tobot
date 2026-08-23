@@ -139,6 +139,7 @@ export const en: Dictionary = {
     },
 
     readingTime: '{minutes} min',
+    boxLabel: 'Inside Tobot',
     andMore: 'And more',
     sourcedFrom: 'Sourced from {publishers}.',
     exploreConcepts: 'Explore the concepts',
