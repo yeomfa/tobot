@@ -1,51 +1,31 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Phosphor renamed eighteen icons in v2 and kept the old names working as
- * aliases — so a deprecated one compiles, renders, and quietly waits to break
- * on a major upgrade. Nothing in the type system or the linter objects.
+ * Phosphor deprecated every short icon name.
  *
- * This is the list from `@phosphor-icons/core`, where each renamed icon
- * carries its former name in an `alias` field. Reproduced rather than fetched
- * so the suite stays offline; it changes about once a major version.
+ * `SealCheck` and `SealCheckIcon` are the same component, but the first
+ * carries `@deprecated Use SealCheckIcon` in its declaration — all 1512 icons
+ * are shipped this way. The short names still compile and still render, so
+ * nothing objects when one arrives: not the type checker, not the linter, not
+ * a review. They break on a major upgrade instead, which is the worst possible
+ * time to find out.
+ *
+ * The sources are read through Vite's glob rather than `node:fs`, so this runs
+ * under the same browser-facing tsconfig as the app.
  */
-const DEPRECATED: Record<string, string> = {
-  Activity: 'Pulse',
-  ArchiveBox: 'BoxArrowDown',
-  ArchiveTray: 'TrayArrowDown',
-  Caduceus: 'Asclepius',
-  CircleWavy: 'Seal',
-  CircleWavyCheck: 'SealCheck',
-  CircleWavyQuestion: 'SealQuestion',
-  CircleWavyWarning: 'SealWarning',
-  FileDotted: 'FileDashed',
-  FileSearch: 'FileMagnifyingGlass',
-  FolderDotted: 'FolderDashed',
-  FolderNotch: 'Folder',
-  FolderNotchMinus: 'FolderMinus',
-  FolderNotchOpen: 'FolderOpen',
-  FolderNotchPlus: 'FolderPlus',
-  FolderSimpleDotted: 'FolderSimpleDashed',
-  Lemniscate: 'Infinity',
-  TextBolder: 'TextB',
-};
+const SOURCES = import.meta.glob('/src/**/*.{ts,tsx}', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>;
 
-function sourceFiles(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const path = join(dir, entry);
-    if (statSync(path).isDirectory()) return sourceFiles(path);
-    return /\.tsx?$/.test(entry) ? [path] : [];
-  });
-}
-
-/** Every name imported from the icon package, across the app. */
+/** Every name imported from the icon package, with the file it came from. */
 function importedIcons(): { name: string; file: string }[] {
   const found: { name: string; file: string }[] = [];
 
-  for (const file of sourceFiles('src')) {
-    const source = readFileSync(file, 'utf8');
+  for (const [file, source] of Object.entries(SOURCES)) {
+    if (!source.includes('@phosphor-icons/react')) continue;
+
     const imports = source.matchAll(
       /import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+'@phosphor-icons\/react'/g,
     );
@@ -53,7 +33,10 @@ function importedIcons(): { name: string; file: string }[] {
     for (const block of imports) {
       for (const part of block[1].split(',')) {
         const name = part.trim().split(/\s+as\s+/)[0].trim();
-        if (/^[A-Z][A-Za-z0-9]*$/.test(name)) found.push({ name, file });
+        // `Icon` itself is the shared type, not an icon.
+        if (name && name !== 'Icon' && /^[A-Z][A-Za-z0-9]*$/.test(name)) {
+          found.push({ name, file });
+        }
       }
     }
   }
@@ -62,10 +45,10 @@ function importedIcons(): { name: string; file: string }[] {
 }
 
 describe('icon imports', () => {
-  it('uses no icon Phosphor has renamed', () => {
+  it('uses the suffixed names Phosphor recommends', () => {
     const offenders = importedIcons()
-      .filter(({ name }) => name in DEPRECATED)
-      .map(({ name, file }) => `${file}: ${name} → ${DEPRECATED[name]}`);
+      .filter(({ name }) => !name.endsWith('Icon'))
+      .map(({ name, file }) => `${file}: ${name} → ${name}Icon`);
 
     expect(offenders).toEqual([]);
   });

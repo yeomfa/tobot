@@ -1,4 +1,8 @@
-import { ArrowLeft, ArrowRight, X } from '@phosphor-icons/react';
+import {
+  ArrowLeftIcon as ArrowLeft,
+  ArrowRightIcon as ArrowRight,
+  XIcon as X,
+} from '@phosphor-icons/react';
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { useTranslation } from '../i18n/context';

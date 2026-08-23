@@ -1,4 +1,4 @@
-import { X } from '@phosphor-icons/react';
+import { XIcon as X } from '@phosphor-icons/react';
 import { memo, useState } from 'react';
 
 import type { Algorithm } from '../core/ast/types';

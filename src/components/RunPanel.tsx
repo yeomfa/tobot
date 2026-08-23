@@ -1,11 +1,11 @@
 import {
-  ArrowCounterClockwise,
-  BugBeetle,
-  Pause,
-  Play,
-  SkipBack,
-  SkipForward,
-  X,
+  ArrowCounterClockwiseIcon as ArrowCounterClockwise,
+  BugBeetleIcon as BugBeetle,
+  PauseIcon as Pause,
+  PlayIcon as Play,
+  SkipBackIcon as SkipBack,
+  SkipForwardIcon as SkipForward,
+  XIcon as X,
 } from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState } from 'react';
 

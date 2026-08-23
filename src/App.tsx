@@ -2,22 +2,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import {
-  ArrowClockwise,
-  ArrowCounterClockwise,
-  CaretDown,
-  SquaresFour,
-  TreeStructure,
-  CaretUp,
-  Play,
-  SidebarSimple,
-  Translate,
-  Moon,
-  Sun,
-  BookOpenText,
-  House,
-  Compass,
-  Desktop,
-  Export,
+  ArrowClockwiseIcon as ArrowClockwise,
+  ArrowCounterClockwiseIcon as ArrowCounterClockwise,
+  CaretDownIcon as CaretDown,
+  SquaresFourIcon as SquaresFour,
+  TreeStructureIcon as TreeStructure,
+  CaretUpIcon as CaretUp,
+  PlayIcon as Play,
+  SidebarSimpleIcon as SidebarSimple,
+  TranslateIcon as Translate,
+  MoonIcon as Moon,
+  SunIcon as Sun,
+  BookOpenTextIcon as BookOpenText,
+  HouseIcon as House,
+  CompassIcon as Compass,
+  DesktopIcon as Desktop,
+  ExportIcon as Export,
 } from '@phosphor-icons/react';
 
 import type { NodeId, Statement } from './core/ast/types';

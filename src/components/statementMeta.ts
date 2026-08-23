@@ -1,16 +1,16 @@
 import {
-  ArrowsClockwise,
-  ArrowsSplit,
-  ChatCircleText,
-  Hash,
-  ListNumbers,
-  NoteBlank,
-  PencilSimple,
-  Question,
-  Repeat,
-  Tag,
-  TextAa,
-  ToggleLeft,
+  ArrowsClockwiseIcon as ArrowsClockwise,
+  ArrowsSplitIcon as ArrowsSplit,
+  ChatCircleTextIcon as ChatCircleText,
+  HashIcon as Hash,
+  ListNumbersIcon as ListNumbers,
+  NoteBlankIcon as NoteBlank,
+  PencilSimpleIcon as PencilSimple,
+  QuestionIcon as Question,
+  RepeatIcon as Repeat,
+  TagIcon as Tag,
+  TextAaIcon as TextAa,
+  ToggleLeftIcon as ToggleLeft,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 

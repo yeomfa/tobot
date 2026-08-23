@@ -1,4 +1,11 @@
-import { CheckCircle, Keyboard, Plus, Tag, Trash, XCircle } from '@phosphor-icons/react';
+import {
+  CheckCircleIcon as CheckCircle,
+  KeyboardIcon as Keyboard,
+  PlusIcon as Plus,
+  TagIcon as Tag,
+  TrashIcon as Trash,
+  XCircleIcon as XCircle,
+} from '@phosphor-icons/react';
 import { memo } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';

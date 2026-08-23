@@ -1,4 +1,7 @@
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
+import {
+  CaretLeftIcon as CaretLeft,
+  CaretRightIcon as CaretRight,
+} from '@phosphor-icons/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useTranslation } from '../../i18n/context';

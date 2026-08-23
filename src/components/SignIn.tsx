@@ -1,4 +1,8 @@
-import { ArrowRight, GoogleLogo, Warning } from '@phosphor-icons/react';
+import {
+  ArrowRightIcon as ArrowRight,
+  GoogleLogoIcon as GoogleLogo,
+  WarningIcon as Warning,
+} from '@phosphor-icons/react';
 import { memo, useState } from 'react';
 
 import { useTranslation } from '../i18n/context';

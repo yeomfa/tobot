@@ -1,9 +1,9 @@
 import {
-  DotsSixVertical,
-  Question,
-  Trash,
-  Warning,
-  WarningCircle,
+  DotsSixVerticalIcon as DotsSixVertical,
+  QuestionIcon as Question,
+  TrashIcon as Trash,
+  WarningIcon as Warning,
+  WarningCircleIcon as WarningCircle,
 } from '@phosphor-icons/react';
 import { memo } from 'react';
 

@@ -1,12 +1,12 @@
 import {
-  ArrowsClockwise,
-  ArrowsSplit,
-  ChatCircleText,
-  ListNumbers,
-  PencilSimple,
-  Question,
-  Repeat,
-  Tag,
+  ArrowsClockwiseIcon as ArrowsClockwise,
+  ArrowsSplitIcon as ArrowsSplit,
+  ChatCircleTextIcon as ChatCircleText,
+  ListNumbersIcon as ListNumbers,
+  PencilSimpleIcon as PencilSimple,
+  QuestionIcon as Question,
+  RepeatIcon as Repeat,
+  TagIcon as Tag,
 } from '@phosphor-icons/react';
 
 import './Decor.css';

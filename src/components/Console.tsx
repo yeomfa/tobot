@@ -1,4 +1,4 @@
-import { Broom } from '@phosphor-icons/react';
+import { BroomIcon as Broom } from '@phosphor-icons/react';
 import { memo, useEffect, useRef } from 'react';
 
 import type { NodeId } from '../core/ast/types';

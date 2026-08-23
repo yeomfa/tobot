@@ -1,4 +1,4 @@
-import { CaretDown, Check } from '@phosphor-icons/react';
+import { CaretDownIcon as CaretDown, CheckIcon as Check } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 

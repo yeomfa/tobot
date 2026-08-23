@@ -1,4 +1,4 @@
-import { Check } from '@phosphor-icons/react';
+import { CheckIcon as Check } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 

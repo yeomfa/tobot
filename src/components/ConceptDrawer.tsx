@@ -1,4 +1,8 @@
-import { ArrowSquareOut, Warning, X } from '@phosphor-icons/react';
+import {
+  ArrowSquareOutIcon as ArrowSquareOut,
+  WarningIcon as Warning,
+  XIcon as X,
+} from '@phosphor-icons/react';
 import { memo, useEffect, useRef } from 'react';
 
 import { concepts, conceptsById } from '../content/concepts';

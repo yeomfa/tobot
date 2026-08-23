@@ -1,4 +1,4 @@
-import { ArrowRight } from '@phosphor-icons/react';
+import { ArrowRightIcon as ArrowRight } from '@phosphor-icons/react';
 
 import { concepts } from '../../content/concepts';
 import { statementIcon } from '../statementMeta';
