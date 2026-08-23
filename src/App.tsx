@@ -164,6 +164,21 @@ export default function App() {
     setSkippedAuth(true);
   };
 
+  /*
+   * Reopens the gate for someone working locally who decides to sign in.
+   *
+   * Both halves matter, and only clearing storage was the bug: `skippedAuth`
+   * stayed true in React, so `/login` evaluated `needsAuth` as false and
+   * redirected straight back, which looked like a button that did nothing.
+   * The state is what the routes read; storage is only what survives a reload.
+   */
+  const reopenAuth = (): void => {
+    window.localStorage.removeItem(SKIP_AUTH_KEY);
+    setSkippedAuth(false);
+    // Back to the library once they are in, not to a fixed page.
+    redirectAfterAuth.current = ROUTES.library;
+  };
+
   return (
     <I18nProvider language={language}>
       <Routes>
@@ -213,6 +228,7 @@ export default function App() {
                 setPreferences={setPreferences}
                 auth={auth}
                 onSignOut={() => void auth.signOut()}
+                onSignIn={reopenAuth}
               />
             )
           }
@@ -228,6 +244,7 @@ export default function App() {
                 setPreferences={setPreferences}
                 auth={auth}
                 onSignOut={() => void auth.signOut()}
+                onSignIn={reopenAuth}
               />
             )
           }
@@ -244,12 +261,19 @@ interface WorkspaceProps {
   setPreferences: React.Dispatch<React.SetStateAction<Preferences>>;
   auth: ReturnType<typeof useSession>;
   onSignOut: () => void;
+  /** Reopens the gate: owned by App, because App is what the routes read. */
+  onSignIn: () => void;
 }
 
 /** The editor and its library: everything behind the sign-in gate. */
-function Workspace({ preferences, setPreferences, auth, onSignOut }: WorkspaceProps) {
+function Workspace({
+  preferences,
+  setPreferences,
+  auth,
+  onSignOut,
+  onSignIn,
+}: WorkspaceProps) {
   const language = preferences.language as Language;
-  const navigate = useNavigate();
 
   return (
     <I18nProvider language={language}>
@@ -258,12 +282,7 @@ function Workspace({ preferences, setPreferences, auth, onSignOut }: WorkspacePr
         displayName={auth.displayName}
         initials={auth.initials}
         onSignOut={onSignOut}
-        onSignIn={() => {
-          // Clearing the skip is what makes the gate ask again; the route is
-          // where it asks.
-          window.localStorage.removeItem(SKIP_AUTH_KEY);
-          navigate(ROUTES.login);
-        }}
+        onSignIn={onSignIn}
         firstVisit={IS_FIRST_VISIT}
         theme={preferences.theme}
         onThemeChange={(theme) => setPreferences((current) => ({ ...current, theme }))}
