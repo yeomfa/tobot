@@ -1,4 +1,12 @@
-import { BugBeetle, Pause, Play, SkipBack, SkipForward, X } from '@phosphor-icons/react';
+import {
+  ArrowCounterClockwise,
+  BugBeetle,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  X,
+} from '@phosphor-icons/react';
 import { memo, useEffect, useRef, useState } from 'react';
 
 import type { ExecutionState } from '../core/runtime/types';
@@ -193,6 +201,29 @@ export const RunPanel = memo(function RunPanel({ execution }: RunPanelProps) {
             >
               <BugBeetle weight="fill" />
             </button>
+
+            {/*
+              Start over, and the only way out of a run that is waiting for an
+              answer. Stopping used to live inside step mode alone, so a
+              continuous run could be paused but never abandoned — and a
+              program sitting on `ask` had no exit at all short of reloading
+              the page.
+
+              Present only once something has happened: on an untouched
+              program there is nothing to reset, and a permanently disabled
+              button is just clutter.
+            */}
+            {state.stepCount > 0 && (
+              <button
+                type="button"
+                className="run-panel__button run-panel__button--quiet"
+                onClick={execution.stop}
+                title={d.actions.reset}
+                aria-label={d.actions.reset}
+              >
+                <ArrowCounterClockwise weight="bold" />
+              </button>
+            )}
           </>
         )}
       </div>
