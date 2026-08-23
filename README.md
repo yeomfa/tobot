@@ -116,8 +116,15 @@ as it did before.
    VITE_SUPABASE_GOOGLE=false
    ```
 
+   A project created before 2025 has a legacy `anon` JWT instead, under the
+   *Legacy API Keys* tab; it works the same, and `VITE_SUPABASE_ANON_KEY` is
+   still read if that is what you have.
+
    Never use the `sb_secret_` key: it bypasses those policies and must not
    reach a browser. Restart `pnpm dev` afterwards — Vite reads env at startup.
+
+   Leave the values blank to run entirely on localStorage, with no account
+   layer at all.
 
 4. Optionally turn off *Confirm email* under **Authentication → Sign In /
    Providers → Email**. The built-in mail service is rate-limited for testing,
