@@ -228,9 +228,9 @@ export const es = {
     canvasTitle: 'Tu algoritmo',
     canvasBody:
       'Los bloques se leen como frases. Pasa el ratón sobre uno para editarlo, moverlo o borrarlo. Si algo no cuadra, como una variable repetida o un ciclo que nunca termina, aparece un aviso en el bloque mismo antes de ejecutar.',
-    drawerTitle: 'Las cinco vistas',
+    drawerTitle: 'Las otras vistas',
     drawerBody:
-      'El mismo algoritmo escrito de cuatro formas, más la consola con todo lo que dijo el robot. Cambia de pestaña para comparar; al ejecutar se resalta la línea que corre en todas a la vez. Haz clic en la pestaña abierta para plegar el panel.',
+      'El mismo algoritmo escrito de otras formas, más la consola con todo lo que dijo el robot. Cambia de pestaña para comparar; al ejecutar se resalta la línea que corre en todas a la vez. Haz clic en la pestaña abierta para plegar el panel.',
     robotTitle: 'El robot',
     robotBody:
       'El robot ejecuta tu algoritmo y te habla mientras avanza. Debajo tienes ejecutar y depurar paso a paso, y arriba a la derecha el botón para limpiar la consola.',
@@ -261,7 +261,7 @@ export const es = {
     challengesTitle: 'Ponte a prueba',
     challengesBody: 'Ejercicios a medio hacer: los comentarios te dicen qué falta y tú escribes el resto.',
     examplesTitle: 'Aprende con ejemplos',
-    examplesBody: 'Problemas típicos ya resueltos. Ábrelos y compara los cuatro lenguajes para ver cómo funcionan.',
+    examplesBody: 'Problemas típicos ya resueltos. Ábrelos y compara las distintas vistas para ver cómo funcionan.',
     conceptsTitle: 'Entiende las ideas',
     conceptsBody: 'Variables, decisiones y ciclos explicados desde cero, con referencias para profundizar.',
   },
@@ -381,7 +381,7 @@ export const es = {
   },
   panel: {
     languageSelect: 'Lenguaje de programación',
-    viewHint: 'La misma idea, escrita de tres formas',
+    viewHint: 'La misma idea, escrita de varias formas',
   },
   robot: {
     idle: 'Listo cuando quieras',
