@@ -265,6 +265,7 @@ export const es = {
     signUpBody: 'Con una cuenta, tu trabajo se guarda y lo encuentras desde cualquier computador.',
     email: 'Correo',
     password: 'Contraseña',
+    emailHint: 'tu@correo.com',
     passwordHint: 'Mínimo 6 caracteres',
     signIn: 'Entrar',
     signUp: 'Registrarme',

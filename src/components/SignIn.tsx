@@ -140,7 +140,7 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="tu@correo.edu"
+              placeholder={d.auth.emailHint}
             />
           </label>
 

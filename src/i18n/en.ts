@@ -257,6 +257,7 @@ export const en: Dictionary = {
     signUpBody: 'With an account your work is saved and waiting on any computer.',
     email: 'Email',
     password: 'Password',
+    emailHint: 'you@email.com',
     passwordHint: 'At least 6 characters',
     signIn: 'Sign in',
     signUp: 'Sign up',
