@@ -7,6 +7,12 @@ import './ConceptPeek.css';
 /**
  * What Tobot explains, as a shelf rather than a reader.
  *
+ * The shelf is the extensible part of the page. It reads from `concepts`
+ * today, but nothing about the layout is specific to them: a topic, a course
+ * or a whole track is the same shape — a name, a length, a colour. When those
+ * arrive, this takes a list rather than importing one, and the section keeps
+ * its place and its heading.
+ *
  * The version this replaces opened a concept in place, with its summary, its
  * key idea and its citations — which was true, complete, and the wrong thing
  * to put on a landing page. Nobody arrives here to read about variables; they
@@ -40,9 +46,14 @@ export function ConceptPeek({ onTry }: { onTry: () => void }) {
           </li>
         ))}
 
-        {/* The list is open-ended on purpose: naming five topics and stopping
-            would say Tobot is those five. */}
-        <li className="concept-peek__item concept-peek__item--more">{d.landing.moreComing}</li>
+        {/*
+          Open-ended on purpose. Naming five topics and stopping would say
+          Tobot is those five, and what goes here is not fixed to concepts
+          either — topics, courses and whatever the platform grows into all
+          belong on this shelf. "And more" rather than "more on the way",
+          which promises a schedule nobody has committed to.
+        */}
+        <li className="concept-peek__item concept-peek__item--more">{d.landing.andMore}</li>
       </ul>
 
       <p className="concept-peek__sources">

@@ -139,7 +139,7 @@ export const en: Dictionary = {
     },
 
     readingTime: '{minutes} min',
-    moreComing: 'and more on the way…',
+    andMore: 'And more',
     sourcedFrom: 'Sourced from {publishers}.',
     exploreConcepts: 'Explore the concepts',
     learnTitle: 'Every topic, explained',

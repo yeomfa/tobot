@@ -138,7 +138,7 @@ export const es = {
     },
 
     readingTime: '{minutes} min',
-    moreComing: 'y más en camino…',
+    andMore: 'Y más',
     sourcedFrom: 'Con fuentes de {publishers}.',
     exploreConcepts: 'Explorar los conceptos',
     learnTitle: 'Cada tema, explicado',
