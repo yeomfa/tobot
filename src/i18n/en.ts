@@ -215,29 +215,21 @@ export const en: Dictionary = {
     back: 'Back',
     done: 'Start',
     welcomeTitle: 'Meet Tobot',
-    welcomeBody:
-      'Here you build algorithms from statements you drag into place, and see them at once in natural language, pseudocode, real code and as a flowchart. Let me show you where everything is.',
+    welcomeBody: 'Here you build algorithms out of blocks and Tobot runs them step by step. A minute and you will know your way around.',
     paletteTitle: 'The statements',
-    paletteBody:
-      'Every statement lives here, grouped by topic and colour. Click to add one at the end, or drag it exactly where you want it.',
+    paletteBody: 'Drag or click an instruction to add it. They are grouped by topic.',
     canvasTitle: 'Your algorithm',
-    canvasBody:
-      'Blocks read as sentences. Hover one to edit, move or delete it. If something does not add up, like a repeated variable or a loop that never ends, a note appears on the block itself before you even run it.',
+    canvasBody: 'Your algorithm, top to bottom. Drag to reorder, and drop inside a block to nest.',
     drawerTitle: 'The other views',
-    drawerBody:
-      'The same algorithm written other ways, plus the console with everything the robot has said. Switch tabs to compare; while it runs, the current line is highlighted in all of them at once. Click the open tab to fold the panel away.',
+    drawerBody: 'The same algorithm written other ways, plus the console. Switch tabs to compare.',
     robotTitle: 'The robot',
-    robotBody:
-      'The robot runs your algorithm and talks to you as it goes. Below it are run and step-through, and the button to clear the console sits in its top corner.',
+    robotBody: 'It runs your algorithm and talks as it goes. If something breaks, it says what and where.',
     runTitle: 'Run it',
-    runBody:
-      'Run the whole algorithm, or use the beetle button to advance one statement at a time and see what each one does. The speed control decides how fast it goes.',
+    runBody: 'Run it straight through or step by step. Stepping lets you go back whenever you like.',
     panelsTitle: 'Arrange your space',
-    panelsBody:
-      'These buttons show or hide each panel, and the house takes you home, where your algorithms, the challenges, the examples and the concepts live. You can also drag any panel edge to resize it.',
+    panelsBody: 'Hide the panels you do not need, or drag their edges to resize them.',
     endTitle: 'Ready to start',
-    endBody:
-      'From home you can open an example to see how something is solved, or a challenge to practise. You can see this tour again with the compass button.',
+    endBody: 'That is it. Open an example or start from scratch — the guide stays here if you want it.',
   },
   home: {
     title: 'Your algorithms',

@@ -220,29 +220,21 @@ export const es = {
     back: 'Atrás',
     done: 'Empezar',
     welcomeTitle: 'Te presento a Tobot',
-    welcomeBody:
-      'Aquí escribes algoritmos con instrucciones que se arrastran, y los ves al instante en lenguaje natural, pseudocódigo, código real y como diagrama de flujo. Te muestro dónde está cada cosa.',
+    welcomeBody: 'Aquí escribes algoritmos con bloques y Tobot los ejecuta paso a paso. Un minuto y sabes moverte.',
     paletteTitle: 'Las instrucciones',
-    paletteBody:
-      'Aquí están todas las instrucciones, agrupadas por tema y con su color. Haz clic para agregarlas al final, o arrástralas al lugar exacto.',
+    paletteBody: 'Arrastra o pulsa una instrucción para añadirla. Están agrupadas por tema.',
     canvasTitle: 'Tu algoritmo',
-    canvasBody:
-      'Los bloques se leen como frases. Pasa el ratón sobre uno para editarlo, moverlo o borrarlo. Si algo no cuadra, como una variable repetida o un ciclo que nunca termina, aparece un aviso en el bloque mismo antes de ejecutar.',
+    canvasBody: 'Tu algoritmo, de arriba abajo. Arrastra para reordenar y suelta dentro de un bloque para anidar.',
     drawerTitle: 'Las otras vistas',
-    drawerBody:
-      'El mismo algoritmo escrito de otras formas, más la consola con todo lo que dijo el robot. Cambia de pestaña para comparar; al ejecutar se resalta la línea que corre en todas a la vez. Haz clic en la pestaña abierta para plegar el panel.',
+    drawerBody: 'El mismo algoritmo escrito de otras formas, más la consola. Cambia de pestaña para comparar.',
     robotTitle: 'El robot',
-    robotBody:
-      'El robot ejecuta tu algoritmo y te habla mientras avanza. Debajo tienes ejecutar y depurar paso a paso, y arriba a la derecha el botón para limpiar la consola.',
+    robotBody: 'Ejecuta tu algoritmo y te habla mientras avanza. Si algo falla, te dice qué y dónde.',
     runTitle: 'Ejecutar',
-    runBody:
-      'Ejecuta todo el algoritmo, o usa el botón del bicho para avanzar de a una instrucción y ver qué pasa en cada paso. Con la velocidad decides qué tan rápido va.',
+    runBody: 'Ejecuta de corrido o paso a paso. En modo paso puedes devolverte cuando quieras.',
     panelsTitle: 'Acomoda tu espacio',
-    panelsBody:
-      'Estos botones muestran u ocultan cada panel, y la casita te lleva al inicio, donde están tus algoritmos, los retos, los ejemplos y los conceptos. También puedes arrastrar el borde de cualquier panel para cambiar su tamaño.',
+    panelsBody: 'Oculta los paneles que no necesites, o arrastra sus bordes para cambiarles el tamaño.',
     endTitle: 'Listo para empezar',
-    endBody:
-      'Desde el inicio puedes abrir un ejemplo para ver cómo se resuelve algo, o un reto para practicar. Puedes volver a ver esta guía con el botón de la brújula.',
+    endBody: 'Ya está. Abre un ejemplo o empieza en blanco: la guía sigue aquí si la necesitas.',
   },
   /** Landing view copy. */
   home: {
