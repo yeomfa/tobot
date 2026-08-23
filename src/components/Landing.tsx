@@ -280,7 +280,7 @@ export function Landing({
           <div className="landing__inner">
             <h2 className="landing__headline">{d.landing.learnTitle}</h2>
             <p className="landing__lead">{d.landing.learnLead}</p>
-            <ConceptPeek />
+            <ConceptPeek onTry={onTry} />
           </div>
         </section>
 

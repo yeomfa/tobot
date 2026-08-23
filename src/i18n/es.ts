@@ -138,9 +138,11 @@ export const es = {
     },
 
     readingTime: '{minutes} min',
-    sourcesLabel: 'Fuentes',
-    learnTitle: 'Conceptos explicados de verdad',
-    learnLead: 'Cada instrucción trae su explicación, la idea que hay detrás y a dónde ir para profundizar. No son definiciones sueltas: es material para entender por qué funciona.',
+    moreComing: 'y más en camino…',
+    sourcedFrom: 'Con fuentes de {publishers}.',
+    exploreConcepts: 'Explorar los conceptos',
+    learnTitle: 'Cada tema, explicado',
+    learnLead: 'Mientras armas tu algoritmo, cada instrucción trae su explicación al lado: la idea que hay detrás, los errores comunes y a dónde ir para profundizar.',
     learn: {
       explained: 'Cada tema con su explicación, en palabras claras',
       sources: 'Enlaces a fuentes confiables para ir más a fondo',

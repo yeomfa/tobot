@@ -139,9 +139,11 @@ export const en: Dictionary = {
     },
 
     readingTime: '{minutes} min',
-    sourcesLabel: 'Sources',
-    learnTitle: 'Concepts, properly explained',
-    learnLead: 'Every instruction comes with its explanation, the idea behind it and where to go deeper. Not loose definitions: material for understanding why it works.',
+    moreComing: 'and more on the way…',
+    sourcedFrom: 'Sourced from {publishers}.',
+    exploreConcepts: 'Explore the concepts',
+    learnTitle: 'Every topic, explained',
+    learnLead: 'As you build, each instruction carries its explanation alongside it: the idea behind it, the common mistakes, and where to go deeper.',
     learn: {
       explained: 'Every topic explained in plain words',
       sources: 'Links to trustworthy sources to go deeper',
