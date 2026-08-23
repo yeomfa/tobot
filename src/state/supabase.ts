@@ -42,4 +42,14 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
  * appears once it is switched on rather than failing when pressed.
  */
 export const isGoogleEnabled =
-  isSupabaseConfigured && import.meta.env.VITE_SUPABASE_GOOGLE === 'true';
+  isSupabaseConfigured &&
+  /*
+    Compared loosely on purpose. This is typed by hand into a GitHub
+    repository variable or a `.env` file, where `TRUE`, `True` and a stray
+    trailing space are all things people write and all mean the same thing —
+    and an exact `=== 'true'` turns any of them into a silently hidden button
+    with nothing to explain why.
+  */
+  String(import.meta.env.VITE_SUPABASE_GOOGLE ?? '')
+    .trim()
+    .toLowerCase() === 'true';

@@ -159,7 +159,10 @@ Skip this and students sign in with email and password.
    try it.
 4. Copy the resulting *Client ID* and *Client Secret* back into the Supabase
    Google provider page and enable it.
-5. Set `VITE_SUPABASE_GOOGLE=true`. Until then the button is hidden rather
+5. Set `VITE_SUPABASE_GOOGLE=true`. On the published site this is a
+   repository **variable**, not a secret — *Settings → Secrets and variables
+   → Actions → Variables*. Set as a secret it reads back empty and the button
+   stays hidden. Until then the button is hidden rather
    than failing when pressed.
 
 ## Deployment
