@@ -6,6 +6,7 @@ import {
 import { memo, useState } from 'react';
 
 import { useTranslation } from '../i18n/context';
+import { ROUTES } from '../routes';
 import { isGoogleEnabled, supabase } from '../state/supabase';
 import { BrandMark } from './BrandMark';
 import './SignIn.css';
@@ -23,13 +24,19 @@ type Mode = 'signIn' | 'signUp';
  * Built from the address actually being visited rather than left to
  * Supabase's Site URL, which is a single value and therefore always wrong for
  * somewhere: set to localhost it breaks production, set to production it
- * breaks local development, and it cannot be both. Vite's `BASE_URL` carries
- * the subdirectory a project site is served from, so this is right on
- * GitHub Pages, on Vercel and on a laptop without any of them being
- * configured anywhere.
+ * breaks local development, and it cannot be both.
+ *
+ * Note that Supabase only honours a `redirect_to` it has been shown under
+ * *Authentication → URL Configuration → Redirect URLs*. An address that is
+ * not on that list is discarded in favour of the Site URL — silently, and
+ * with a valid token attached, so it looks like the app asked for the wrong
+ * place when it did not.
+ *
+ * Returning to the library rather than the root: someone who has just signed
+ * in wants their work, not the page that invited them to sign in.
  */
 function appUrl(): string {
-  return new URL(import.meta.env.BASE_URL, window.location.origin).href;
+  return new URL(ROUTES.library, window.location.origin).href;
 }
 
 /**
@@ -116,13 +123,31 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
   const withGoogle = async (): Promise<void> => {
     if (!supabase) return;
     setError(null);
+
+    const target = appUrl();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      // Comes back to wherever the app is served from, so this works the same
-      // on localhost and on the published site.
-      options: { redirectTo: appUrl() },
+      options: { redirectTo: target },
     });
-    if (oauthError) setError(oauthError.message);
+    if (oauthError) {
+      setError(oauthError.message);
+      return;
+    }
+
+    /*
+      Supabase silently drops a `redirect_to` it has not been shown and uses
+      its Site URL instead, so a missing entry sends someone to whatever that
+      happens to be — localhost:3000 on a fresh project — with a valid token
+      in the fragment and no clue why. Saying so in the console beats letting
+      them work it out from a dead address.
+    */
+    if (import.meta.env.DEV) {
+      console.info(
+        `[tobot] Signing in with Google. Supabase must list ${target} under ` +
+          'Authentication → URL Configuration → Redirect URLs, or it will ' +
+          'return to its Site URL instead.',
+      );
+    }
   };
 
   return (
