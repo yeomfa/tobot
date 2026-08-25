@@ -130,7 +130,8 @@ as it did before.
    the app is published, and add every address it runs at to *Redirect URLs*:
 
    ```
-   https://yourname.github.io/tobot/**
+   https://your-app.vercel.app/**
+   https://yourdomain.com/**
    http://localhost:5173/**
    ```
 
@@ -181,34 +182,33 @@ Skip this and students sign in with email and password.
 
 ## Deployment
 
-Pushing to `main` builds and publishes to GitHub Pages via
-`.github/workflows/deploy.yml`. Enable it once under **Settings → Pages →
-Source → GitHub Actions**.
+Hosted on Vercel. Import the repository at [vercel.com/new](https://vercel.com/new)
+— the framework, the build command and the output directory are all detected,
+and `vercel.json` carries the rest.
 
-The workflow passes the repository name as `BASE_PATH` so assets resolve under
-`/<repo>/`. For a user or organisation page served from the domain root, remove
-that environment variable from the workflow.
+Add the three environment variables under **Settings → Environment Variables**,
+for every environment you want accounts in:
 
-Tests gate the deploy: a failing interpreter never ships.
+```
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
+VITE_SUPABASE_GOOGLE
+```
 
-For accounts on the published site, add the same values under **Settings →
-Secrets and variables → Actions**: `VITE_SUPABASE_URL` and
-`VITE_SUPABASE_PUBLISHABLE_KEY` as *secrets*, and `VITE_SUPABASE_GOOGLE` as a
-*variable* — it is a switch, not a credential. None of the three is truly
-secret, since Vite inlines them into the JavaScript the browser downloads;
-they live there only to stay out of the repository. Row-level security is what
-protects the data.
+Vite reads them at build time, so a change to any of them needs a redeploy to
+take effect. None is truly secret — they end up in the JavaScript the browser
+downloads — and row-level security is what protects the data.
 
-### Free-tier limits
+For a custom domain, add it under **Settings → Domains**, then go back to
+Supabase and add it to *Redirect URLs* (see step 4 above). A sign-in from an
+address Supabase has not been shown falls back to the Site URL, which is how
+someone ends up on localhost after signing in from production.
 
-| Limit | Free |
-| --- | --- |
-| Monthly active users | 50,000 |
-| Pooler connections | 200 |
-| Database | 500 MB |
-| Egress | 5 GB / month |
+### Why not GitHub Pages
 
-Ample for ninety students. The constraint that does bite is different: **a free
-project pauses after a week without use**, so after a holiday the first student
-to arrive finds the app down until you wake it from the dashboard. The Pro plan
-or a scheduled query every few days avoids it.
+It served the app from `/<repo>/` and could not route unknown paths, which
+needed a `base` prefix, a `404.html` redirect and a plugin to bake the prefix
+into it. Those three parts between them produced a blank page on reload and,
+in one build configuration, an infinite redirect. Vercel routes to
+`index.html` itself, so a single `rewrites` rule replaces all of it — and it
+handles the domain.

@@ -4,8 +4,9 @@
  * In English, like the rest of the source: the interface is translated, the
  * code is not, and a URL is code. Written out rather than assembled from
  * fragments so that searching for a path finds it, and so a rename is one
- * edit. They are served as real paths; how GitHub Pages is persuaded to route
- * them is `public/404.html`'s problem, not anything here.
+ * edit. They are real paths, served from the root: the host rewrites unknown
+ * ones to `index.html`, which is `vercel.json`'s job rather than anything
+ * here.
  */
 export const ROUTES = {
   /** The public page: what Tobot is, for someone who has never seen it. */

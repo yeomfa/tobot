@@ -22,12 +22,11 @@ if (!container) throw new Error('root element missing');
 createRoot(container).render(
   <StrictMode>
     {/*
-      Clean paths, no `#`. GitHub Pages cannot route unknown paths itself, so
-      `public/404.html` catches them and hands the path back to index.html in a
-      query string, which is restored before React mounts. The basename is the
-      subdirectory Pages serves the project from.
+      Clean paths, no `#` and no basename: the app is served from the root and
+      the host routes unknown paths to index.html, which is what a single-page
+      app needs and what GitHub Pages could not do.
     */}
-    <BrowserRouter basename={__BASE_PATH__}>
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </StrictMode>,
