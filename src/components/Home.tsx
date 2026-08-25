@@ -489,6 +489,10 @@ export const Home = memo(function Home({
                           type="button"
                           className="home__card-open"
                           onClick={() => onOpen(algorithm)}
+                          /* The card clamps the name to two lines, so a very
+                             long one is still readable here without opening
+                             the algorithm to find out which it is. */
+                          title={algorithm.name}
                         >
                           <span className="home__card-name">{algorithm.name}</span>
                           <span className="home__card-meta">

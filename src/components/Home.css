@@ -205,16 +205,9 @@
   color: var(--text-muted);
 }
 
-.home__account[data-state='out'] /* The account address, secondary to the name above it. */
-.home__account-mail {
-  font-size: 10px;
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home__account-label {
+/* The invitation's label takes the accent too, so the card reads as one
+   piece rather than an orange heading over grey text. */
+.home__account[data-state='out'] .home__account-label {
   color: color-mix(in srgb, var(--accent-strong) 80%, transparent);
 }
 
