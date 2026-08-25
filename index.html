@@ -41,9 +41,15 @@
       (function () {
         var match = /[?&]redirect=([^&]*)/.exec(window.location.search);
         if (!match) return;
-        var target = decodeURIComponent(match[1]);
+
+        // The path 404.html parked is relative to the site root, so the
+        // subdirectory a project site lives in has to go back on: written
+        // straight out it produced /login instead of /tobot/login, and the
+        // router saw a route that does not exist.
+        var base = window.location.pathname.replace(/index\.html$/, '');
+        var route = decodeURIComponent(match[1]).replace(/^\//, '');
         var rest = window.location.search.replace(/[?&]redirect=[^&]*/, '').replace(/^&/, '?');
-        window.history.replaceState(null, '', target + rest + window.location.hash);
+        window.history.replaceState(null, '', base + route + rest + window.location.hash);
       })();
     </script>
 

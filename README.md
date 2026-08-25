@@ -126,7 +126,21 @@ as it did before.
    Leave the values blank to run entirely on localStorage, with no account
    layer at all.
 
-4. Optionally turn off *Confirm email* under **Authentication → Sign In /
+4. Under **Authentication → URL Configuration**, set *Site URL* to wherever
+   the app is published, and add every address it runs at to *Redirect URLs*:
+
+   ```
+   https://yourname.github.io/tobot/**
+   http://localhost:5173/**
+   ```
+
+   Supabase only honours a redirect it has been shown, and falls back to the
+   Site URL for anything else — which is why a sign-in from production can
+   land on localhost. The app asks to come back to the address being visited,
+   so both entries are needed for both to work; add the Vercel domain too if
+   you deploy there as well.
+
+5. Optionally turn off *Confirm email* under **Authentication → Sign In /
    Providers → Email**. The built-in mail service is rate-limited for testing,
    so thirty students signing up at once will not all receive a message.
 

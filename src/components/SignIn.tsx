@@ -18,6 +18,21 @@ interface SignInProps {
 type Mode = 'signIn' | 'signUp';
 
 /**
+ * Where an auth provider should send the browser back to.
+ *
+ * Built from the address actually being visited rather than left to
+ * Supabase's Site URL, which is a single value and therefore always wrong for
+ * somewhere: set to localhost it breaks production, set to production it
+ * breaks local development, and it cannot be both. Vite's `BASE_URL` carries
+ * the subdirectory a project site is served from, so this is right on
+ * GitHub Pages, on Vercel and on a laptop without any of them being
+ * configured anywhere.
+ */
+function appUrl(): string {
+  return new URL(import.meta.env.BASE_URL, window.location.origin).href;
+}
+
+/**
  * The account screen.
  *
  * Signing in is optional by design: without it the app still works on
@@ -45,17 +60,38 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
 
     try {
       if (mode === 'signUp') {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          // The database trigger reads these into the profile row, so the
-          // name exists from the very first sign-in.
-          options: { data: { first_name: firstName.trim(), last_name: lastName.trim() } },
+          // Comes back to the app rather than to whatever Supabase has as its
+          // Site URL, which is what sent confirmation links to localhost.
+          options: {
+            emailRedirectTo: appUrl(),
+            // The database trigger reads these into the profile row, so the
+            // name exists from the very first sign-in.
+            data: { first_name: firstName.trim(), last_name: lastName.trim() },
+          },
         });
         if (signUpError) throw signUpError;
-        // Projects that require confirmation return no session, so say what
-        // happens next rather than appearing to do nothing.
-        setNotice(d.auth.checkEmail);
+
+        /*
+          An address that is already registered comes back as success, with a
+          user whose `identities` array is empty — Supabase does this
+          deliberately so that a stranger cannot use the sign-up form to
+          discover who has an account.
+
+          The app has to read that, because the alternative is what happened
+          here: someone re-registers an existing address, is told to check
+          their email, and waits for a message that will never arrive.
+        */
+        if (data.user && data.user.identities?.length === 0) {
+          setError(d.auth.alreadyExists);
+          return;
+        }
+
+        // A session means the project has confirmation switched off and they
+        // are already in; otherwise there is a message on the way.
+        if (!data.session) setNotice(d.auth.checkEmail);
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -84,7 +120,7 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
       provider: 'google',
       // Comes back to wherever the app is served from, so this works the same
       // on localhost and on the published site.
-      options: { redirectTo: window.location.origin + window.location.pathname },
+      options: { redirectTo: appUrl() },
     });
     if (oauthError) setError(oauthError.message);
   };

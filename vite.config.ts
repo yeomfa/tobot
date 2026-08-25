@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -25,13 +26,21 @@ export default defineConfig({
       // 404.html is served verbatim by GitHub Pages, so the base path has to
       // be baked into it at build time rather than read from a module.
       name: 'tobot-404-base',
-      closeBundle() {
-        const file = new URL('./dist/404.html', import.meta.url);
-        try {
-          writeFileSync(file, readFileSync(file, 'utf8').replaceAll('__BASE_PATH__', base));
-        } catch {
-          /* No 404.html in this build; nothing to rewrite. */
-        }
+      // Takes the directory this build is actually writing to. Hard-coding
+      // `dist` meant any build with a different `outDir` shipped the
+      // placeholder unreplaced, and 404.html then redirected to itself
+      // forever — a blank page and a URL growing without limit.
+      closeBundle: {
+        sequential: true,
+        handler(this: { environment?: { config?: { build?: { outDir?: string } } } }) {
+          const outDir = this.environment?.config?.build?.outDir ?? 'dist';
+          const file = resolve(outDir, '404.html');
+          try {
+            writeFileSync(file, readFileSync(file, 'utf8').replaceAll('__BASE_PATH__', base));
+          } catch {
+            /* No 404.html in this build; nothing to rewrite. */
+          }
+        },
       },
     },
   ],
