@@ -67,15 +67,53 @@
   color: var(--text-primary);
 }
 
-.app__doc-title {
-  flex: 0 1 260px;
+/*
+  The title field, sized to the name it holds.
+
+  A fixed width left the save state stranded at the far end of an empty box,
+  so the width now comes from the text: an invisible mirror span sets it and
+  the input is stretched over the top. Both must carry identical typography
+  and padding — the moment they disagree, the caret drifts out of the field.
+
+  `max-width` keeps a long name from pushing the header controls off screen;
+  past it the field stops growing and scrolls internally, as any input does.
+*/
+.app__doc-title-wrap {
+  position: relative;
+  display: inline-grid;
+  flex: 0 1 auto;
   min-width: 0;
-  padding: var(--space-1) var(--space-2);
+  max-width: 320px;
+}
+
+.app__doc-title-mirror,
+.app__doc-title {
+  grid-area: 1 / 1;
+  /* Roomier than a fixed-width field needed: now that the box hugs the text,
+     tight sides read as cramped. */
+  padding: var(--space-1) var(--space-3);
+  font-family: inherit;
   font-size: var(--text-base);
   font-weight: 600;
+  letter-spacing: inherit;
+  border: 1px solid transparent;
+}
+
+/* Reserves the space; never seen. `pre` keeps trailing spaces counted, so the
+   field does not lag a character behind while typing them. */
+.app__doc-title-mirror {
+  min-width: 3ch;
+  overflow: hidden;
+  white-space: pre;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.app__doc-title {
+  width: 100%;
+  min-width: 0;
   color: var(--text-primary);
   background: transparent;
-  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   transition:
     background var(--duration-fast) var(--ease-out),
@@ -463,8 +501,8 @@
 /* ---- Responsive ---- */
 
 @media (max-width: 1180px) {
-  .app__doc-title {
-    flex-basis: 180px;
+  .app__doc-title-wrap {
+    max-width: 180px;
   }
 }
 
@@ -480,7 +518,7 @@
     display: none;
   }
 
-  .app__doc-title {
+  .app__doc-title-wrap {
     display: none;
   }
 }

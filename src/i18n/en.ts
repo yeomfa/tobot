@@ -155,6 +155,10 @@ export const en: Dictionary = {
     closingBody: 'Open the editor and start playing. If you later want your work saved and available from any computer, you make an account.',
   },
   save: {
+    /* At rest the work *is* saved — the last write finished. Same word
+       as `saved` on purpose: the difference between them is the tick
+       settling in, not the wording changing under the reader. */
+    idle: 'Saved',
     saving: 'Saving…',
     saved: 'Saved',
     error: 'Not saved',

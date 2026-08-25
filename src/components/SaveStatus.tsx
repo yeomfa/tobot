@@ -13,18 +13,19 @@ import './SaveStatus.css';
  *
  * Only appears with an account: local writes are synchronous and cannot fail,
  * so a badge would be reassuring the student about something never in doubt.
- * It says nothing at rest for the same reason — a permanent "saved" is
- * furniture people stop reading, and it is the moment of *change* that carries
- * the information.
  *
- * A failure stays on screen. The other two states are transient because they
- * describe something that finished; this one describes work that is still only
- * in this browser, which does not stop being true because time passed.
+ * Once there *is* an account it stays put, including at rest. An indicator
+ * that comes and goes asks to be watched — it is the appearing that carries
+ * the meaning, so missing it means missing the message. One that is always
+ * there can be glanced at instead, which is what someone wondering "did that
+ * save?" actually does. It also stops the header reflowing every time a save
+ * finishes.
+ *
+ * `idle` and `saved` say the same word for that reason: between them nothing
+ * changed about where the work is, only how recently it got there.
  */
 export function SaveStatus({ state }: { state: SaveState }) {
   const { d } = useTranslation();
-
-  if (state === 'idle') return null;
 
   return (
     <span
@@ -35,9 +36,13 @@ export function SaveStatus({ state }: { state: SaveState }) {
          "saved" after every pause in typing is noise. */
       aria-live={state === 'error' ? 'assertive' : 'off'}
     >
-      {state === 'saving' && <SpinnerGap weight="bold" />}
-      {state === 'saved' && <CheckCircle weight="fill" />}
-      {state === 'error' && <CloudSlash weight="fill" />}
+      {state === 'saving' ? (
+        <SpinnerGap weight="bold" />
+      ) : state === 'error' ? (
+        <CloudSlash weight="fill" />
+      ) : (
+        <CheckCircle weight="fill" />
+      )}
       {d.save[state]}
     </span>
   );

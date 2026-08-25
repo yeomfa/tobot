@@ -577,13 +577,31 @@ function Workbench({
           </button>
         </h1>
 
-        <input
-          className="app__doc-title"
-          value={algorithm.name}
-          onChange={(event) => controller.setName(event.target.value)}
-          aria-label={d.actions.rename}
-          placeholder={d.app.untitled}
-        />
+        {/*
+          The field takes the width of the name inside it, so the save state
+          sits beside the title rather than across a gap of empty box.
+
+          An input cannot size itself to its content, so the width comes from
+          a mirror: a span holding the same text, in the same font, that the
+          input is stretched over. It carries the placeholder when the name is
+          empty, so a blank title still has somewhere to be typed.
+        */}
+        <span className="app__doc-title-wrap">
+          <span className="app__doc-title-mirror" aria-hidden="true">
+            {algorithm.name || d.app.untitled}
+          </span>
+          <input
+            className="app__doc-title"
+            /* An input carries a default `size` of 20 characters, which the
+               grid honours as a minimum and which pinned short names to a
+               fixed width. Set to 1, the mirror alone decides. */
+            size={1}
+            value={algorithm.name}
+            onChange={(event) => controller.setName(event.target.value)}
+            aria-label={d.actions.rename}
+            placeholder={d.app.untitled}
+          />
+        </span>
 
         {/* Beside the name it belongs to, rather than in the actions cluster:
             it is a fact about this document, not something to press. */}

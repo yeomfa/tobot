@@ -2,8 +2,9 @@
  * The save indicator, in the header beside the document title.
  *
  * Quiet by design: it sits at the size of a caption and takes a colour only
- * when something went wrong. A student watching it constantly is a student not
- * writing algorithms.
+ * when something changed. Present at all times, so it can be glanced at rather
+ * than caught — but at rest it is grey furniture, because a student watching
+ * it constantly is a student not writing algorithms.
  */
 .save-status {
   display: inline-flex;
@@ -15,12 +16,29 @@
   color: var(--text-muted);
   border-radius: var(--radius-full);
   white-space: nowrap;
+}
+
+/* Only the states that *arrive* fade in. Idle is where the badge lives, so
+   animating it would mean a flicker every time a save settles. */
+.save-status[data-state='saving'],
+.save-status[data-state='saved'],
+.save-status[data-state='error'] {
   animation: save-status-in var(--duration-base) var(--ease-out);
 }
 
 .save-status svg {
   width: 14px;
   height: 14px;
+}
+
+/* At rest: present, readable, and asking for nothing. */
+.save-status[data-state='idle'] {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.save-status[data-state='idle'] svg {
+  opacity: 0.7;
 }
 
 .save-status[data-state='saving'] svg {
@@ -52,6 +70,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .save-status,
+  .save-status[data-state='saving'],
+  .save-status[data-state='saved'],
+  .save-status[data-state='error'],
   .save-status[data-state='saving'] svg {
     animation: none;
   }

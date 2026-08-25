@@ -16,7 +16,7 @@ const HISTORY_LIMIT = 60;
 /** Debounce so typing in a field does not hit storage on every keystroke. */
 const SAVE_DELAY_MS = 500;
 
-/** How long "saved" stays up before the header goes quiet again. */
+/** How long the green confirmation holds before cooling back to grey. */
 const SAVED_VISIBLE_MS = 2200;
 
 export function createEmptyAlgorithm(name: string): Algorithm {
@@ -122,7 +122,8 @@ export interface AlgorithmController {
  *
  * `idle` covers both "nothing has changed" and "there is nowhere to save to":
  * working locally, the write is synchronous and cannot fail, so announcing it
- * would be noise about something that was never in doubt.
+ * would be noise about something that was never in doubt. With an account it
+ * is the resting state — everything written, nothing in flight.
  */
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -162,8 +163,9 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
       store.save(state.algorithm).then(
         () => {
           setSaveState('saved');
-          /* "Saved" steps back after a moment. A badge that never leaves stops
-             being read, and then it cannot report the one state that matters.
+          /* The badge stays on screen either way; this only lets the green
+             confirmation cool back to grey, so the colour keeps meaning
+             "just now" rather than becoming part of the furniture.
              A failure has no timer: the work really is only in this browser,
              and that does not stop being true because time passed. */
           clearSaved.current = setTimeout(() => setSaveState('idle'), SAVED_VISIBLE_MS);

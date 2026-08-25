@@ -154,6 +154,10 @@ export const es = {
     closingBody: 'Abre el editor y empieza a jugar. Si más adelante quieres guardar tu trabajo y encontrarlo desde cualquier computador, creas tu cuenta.',
   },
   save: {
+    /* At rest the work *is* saved — the last write finished. Same word
+       as `saved` on purpose: the difference between them is the tick
+       settling in, not the wording changing under the reader. */
+    idle: 'Guardado',
     saving: 'Guardando…',
     saved: 'Guardado',
     error: 'Sin guardar',
