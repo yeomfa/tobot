@@ -45,6 +45,9 @@ function toAlgorithm(row: Row): Algorithm {
  * up or when the network is down.
  */
 export class SupabaseAlgorithmStore implements AlgorithmStore {
+  /* Every write crosses the network, so it can be slow and it can fail. */
+  readonly isRemote = true;
+
   private async userId(): Promise<string | null> {
     if (!supabase) return null;
     const { data } = await supabase.auth.getUser();
@@ -98,7 +101,13 @@ export class SupabaseAlgorithmStore implements AlgorithmStore {
       { onConflict: 'id' },
     );
 
-    if (error) console.error('[tobot] could not save algorithm:', error.message);
+    /*
+      Thrown rather than logged. A failed save is the one storage error a
+      student needs to know about — their work is not where they think it is —
+      and swallowing it into the console meant the interface went on claiming
+      everything was fine. The caller decides what to show.
+    */
+    if (error) throw new Error(error.message);
   }
 
   async remove(id: string): Promise<void> {

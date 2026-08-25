@@ -154,6 +154,11 @@ export const en: Dictionary = {
     closingTitle: 'Shall we build your first algorithm?',
     closingBody: 'Open the editor and start playing. If you later want your work saved and available from any computer, you make an account.',
   },
+  save: {
+    saving: 'Saving…',
+    saved: 'Saved',
+    error: 'Not saved',
+  },
   palette: {
     title: 'Statements',
     subtitle: 'Pick a statement to add it to your algorithm',

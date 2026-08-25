@@ -17,6 +17,16 @@ export interface AlgorithmStore {
   get(id: string): Promise<Algorithm | null>;
   save(algorithm: Algorithm): Promise<void>;
   remove(id: string): Promise<void>;
+  /**
+   * Whether a save crosses the network.
+   *
+   * The interface is async either way — that is what lets the two
+   * implementations be swapped — but only one of them can fail or take time
+   * worth mentioning. Local writes are synchronous underneath, so the
+   * interface reports which kind it is rather than making callers guess from
+   * whether a session exists.
+   */
+  readonly isRemote: boolean;
 }
 
 export interface Preferences {
@@ -81,6 +91,10 @@ function reviveAlgorithm(value: unknown): Algorithm | null {
 }
 
 export class LocalAlgorithmStore implements AlgorithmStore {
+  /* Writes land in `localStorage` synchronously; there is nothing to wait
+     for and nothing that can fail on the way. */
+  readonly isRemote = false;
+
   private readAll(): Algorithm[] {
     const raw = safeRead(ALGORITHMS_KEY);
     if (!raw) return [];

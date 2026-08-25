@@ -1,0 +1,58 @@
+/**
+ * The save indicator, in the header beside the document title.
+ *
+ * Quiet by design: it sits at the size of a caption and takes a colour only
+ * when something went wrong. A student watching it constantly is a student not
+ * writing algorithms.
+ */
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  animation: save-status-in var(--duration-base) var(--ease-out);
+}
+
+.save-status svg {
+  width: 14px;
+  height: 14px;
+}
+
+.save-status[data-state='saving'] svg {
+  animation: save-status-spin 900ms linear infinite;
+}
+
+.save-status[data-state='saved'] {
+  color: var(--success);
+}
+
+/* The one state that has to be noticed: work that is not where the student
+   thinks it is. */
+.save-status[data-state='error'] {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+@keyframes save-status-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes save-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .save-status,
+  .save-status[data-state='saving'] svg {
+    animation: none;
+  }
+}

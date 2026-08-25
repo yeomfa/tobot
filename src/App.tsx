@@ -38,6 +38,7 @@ import { SettingsMenu } from './components/SettingsMenu';
 import { Tour } from './components/Tour';
 import { ResizeHandle } from './components/ResizeHandle';
 import { RunPanel } from './components/RunPanel';
+import { SaveStatus } from './components/SaveStatus';
 import type { BlockCallbacks } from './components/StatementBlock';
 import { I18nProvider, useTranslation } from './i18n/context';
 import { DEFAULT_LANGUAGE, isLanguage, languageNames, LANGUAGES } from './i18n';
@@ -583,6 +584,10 @@ function Workbench({
           aria-label={d.actions.rename}
           placeholder={d.app.untitled}
         />
+
+        {/* Beside the name it belongs to, rather than in the actions cluster:
+            it is a fact about this document, not something to press. */}
+        <SaveStatus state={controller.saveState} />
 
         <div className="app__header-actions">
           {/* Inside the editor this always means "go home"; the landing view

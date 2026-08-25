@@ -153,6 +153,11 @@ export const es = {
     closingTitle: '¿Armamos tu primer algoritmo?',
     closingBody: 'Abre el editor y empieza a jugar. Si más adelante quieres guardar tu trabajo y encontrarlo desde cualquier computador, creas tu cuenta.',
   },
+  save: {
+    saving: 'Guardando…',
+    saved: 'Guardado',
+    error: 'Sin guardar',
+  },
   palette: {
     title: 'Instrucciones',
     subtitle: 'Elige una instrucción para agregarla a tu algoritmo',
