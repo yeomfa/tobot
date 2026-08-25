@@ -74,3 +74,20 @@ export const typeIcon: Record<LiteralKind, Icon> = {
   text: TextAa,
   boolean: ToggleLeft,
 };
+
+/**
+ * One icon per category, for places that name a group rather than a single
+ * statement — the canvas toolbar, and anything else that comes later.
+ *
+ * Each is the icon of the statement a student meets first in that group, so
+ * the shortcut and the thing it opens carry the same mark: the tag that names
+ * a variable, the speech bubble that says something, the fork that decides,
+ * the arrow that goes round again.
+ */
+export const categoryIcon: Record<Category, Icon> = {
+  variables: Tag,
+  io: ChatCircleText,
+  conditionals: ArrowsSplit,
+  loops: ArrowsClockwise,
+  notes: NoteBlank,
+};

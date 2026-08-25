@@ -25,6 +25,7 @@ import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
 import { Landing } from './components/Landing';
 import { ROUTES } from './routes';
+import { CanvasToolbar } from './components/CanvasToolbar';
 import { CodePanel } from './components/CodePanel';
 import { Console } from './components/Console';
 import { Editor } from './components/Editor';
@@ -390,9 +391,20 @@ function Workbench({
   /** Bumped on save so the library list picks up name and size changes. */
   const [libraryRevision, setLibraryRevision] = useState(0);
 
-  const [paletteOpen, setPaletteOpen] = useState(true);
+  /*
+   * The canvas starts alone with the robot.
+   *
+   * All three panels open meant an editor that was mostly panels, and the
+   * palette in particular was permanent furniture for something used a few
+   * times per algorithm. Instructions come from the toolbar on the canvas
+   * now, so the panel is a place to browse rather than the only way in.
+   *
+   * The robot stays: it is what runs the program and answers back, and
+   * without it the app opens mute.
+   */
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [robotOpen, setRobotOpen] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerView, setDrawerView] = useState<DrawerView>('natural');
   const [canvasView, setCanvasView] = useState<CanvasView>('blocks');
   // The tour opens itself on a first visit and can be replayed from the header.
@@ -794,6 +806,9 @@ function Workbench({
                 activeNodeId={activeNodeId}
                 erroredNodeId={erroredNodeId}
               />
+              {/* On the canvas rather than in a panel, so closing the palette
+                  no longer leaves the editor with no way to add anything. */}
+              <CanvasToolbar onAdd={appendStatement} />
             </div>
             <div
               className="app__canvas-pane"

@@ -1,0 +1,156 @@
+/**
+ * The toolbar that floats over the canvas.
+ *
+ * Centred at the bottom rather than pinned to an edge: it belongs to the
+ * canvas, not to a panel, and it has to stay reachable whether or not the side
+ * panels are open — which is the whole reason it exists.
+ */
+.canvas-toolbar {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-50%);
+}
+
+.canvas-toolbar__group {
+  position: relative;
+}
+
+.canvas-toolbar__button {
+  --group-hue: var(--slate-500);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.canvas-toolbar__button svg {
+  width: 18px;
+  height: 18px;
+  color: var(--group-hue);
+}
+
+.canvas-toolbar__button:hover,
+.canvas-toolbar__button[data-open] {
+  color: var(--group-hue);
+  background: color-mix(in srgb, var(--group-hue) 12%, transparent);
+}
+
+/* The category colours, the same ones the blocks carry. */
+.canvas-toolbar__group[data-category='variables'] .canvas-toolbar__button {
+  --group-hue: var(--hue-variable);
+}
+
+.canvas-toolbar__group[data-category='io'] .canvas-toolbar__button {
+  --group-hue: var(--hue-io);
+}
+
+.canvas-toolbar__group[data-category='conditionals'] .canvas-toolbar__button {
+  --group-hue: var(--hue-conditional);
+}
+
+.canvas-toolbar__group[data-category='loops'] .canvas-toolbar__button {
+  --group-hue: var(--hue-loop);
+}
+
+/* ---- The menu each group opens ---- */
+
+.canvas-toolbar__menu {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 232px;
+  padding: var(--space-2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-50%);
+  animation: toolbar-menu-in var(--duration-fast) var(--ease-out);
+}
+
+@keyframes toolbar-menu-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+}
+
+.canvas-toolbar__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.canvas-toolbar__item:hover {
+  background: var(--bg-app);
+}
+
+.canvas-toolbar__item svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-muted);
+}
+
+.canvas-toolbar__item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.canvas-toolbar__item-label {
+  font-size: var(--text-base);
+  font-weight: 620;
+  color: var(--text-primary);
+}
+
+.canvas-toolbar__item-hint {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+/* Narrow screens keep the icons and drop the words: five labels do not fit,
+   and a toolbar wider than the canvas is worse than a terser one. */
+@media (max-width: 860px) {
+  .canvas-toolbar__button-label {
+    display: none;
+  }
+
+  .canvas-toolbar__button {
+    padding: var(--space-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-toolbar__menu {
+    animation: none;
+  }
+}
