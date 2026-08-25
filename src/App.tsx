@@ -193,12 +193,16 @@ export default function App() {
               theme={preferences.theme}
               onThemeChange={(next) => setPreferences((current) => ({ ...current, theme: next }))}
               onTry={() => {
-                /* Trying it is the point of the page, so it opens the editor
-                   rather than the gate: a visitor who has to sign in before
-                   seeing anything mostly leaves. The account is offered once
-                   there is work worth keeping. */
+                /* Straight in without the gate: a visitor who has to sign in
+                   before seeing anything mostly leaves, and the account is
+                   offered once there is work worth keeping.
+
+                   To the library rather than the editor, so the first thing
+                   they meet is the examples and their own work — dropping
+                   someone into an empty canvas asks them to invent a problem
+                   before they have seen one solved. */
                 skipAuth();
-                navigate(ROUTES.editor);
+                navigate(ROUTES.library);
               }}
             />
           }

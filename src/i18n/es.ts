@@ -49,7 +49,7 @@ export const es = {
     title: 'Programar, sin pelear con la sintaxis',
     lead: 'Arma algoritmos con bloques y míralos cobrar vida al instante.',
     tryIt: 'Empezar ahora',
-    tryItLong: 'Armar mi primer algoritmo',
+    tryItLong: 'Entrar a Tobot',
     signIn: 'Entrar',
     noAccount: 'Sin instalar nada. Empieza en el navegador.',
     demoCaption: 'Tobot arma este algoritmo y lo ejecuta, igual que lo harás tú.',

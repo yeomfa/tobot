@@ -50,7 +50,7 @@ export const en: Dictionary = {
     title: 'Program, without fighting the syntax',
     lead: 'Build algorithms out of blocks and watch them come alive.',
     tryIt: 'Start now',
-    tryItLong: 'Build my first algorithm',
+    tryItLong: 'Open Tobot',
     signIn: 'Sign in',
     noAccount: 'Nothing to install. Start in the browser.',
     demoCaption: 'Tobot builds this algorithm and runs it, exactly as you will.',
