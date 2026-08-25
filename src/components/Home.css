@@ -638,11 +638,34 @@
   height: 22px;
 }
 
+/*
+  Two lines, then an ellipsis.
+
+  A name is written by a student and can be any length, so the card has to
+  decide what to do with one that does not fit. Left alone, a long name pushed
+  the date down and made its card taller than the rest, and a name with no
+  spaces had nowhere to break and ran out past the edge — the grid stopped
+  being a grid.
+
+  Two lines rather than one: most names that overflow do so by a word or two,
+  and a second line usually shows the whole thing. The full name is on the
+  card's `title`, so the ones that still get cut are readable on hover.
+*/
 .home__card-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   font-size: var(--text-md);
   font-weight: 650;
   line-height: 1.35;
   color: var(--text-primary);
+  /* A single unbroken word has no break opportunity; without this it grows
+     the card instead of wrapping inside it. */
+  overflow-wrap: anywhere;
+  /* Reserves both lines whether the name needs them or not, so a short name
+     and a long one leave their dates on the same baseline. */
+  min-height: calc(2 * 1.35em);
 }
 
 .home__card-meta {
