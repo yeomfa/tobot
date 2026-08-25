@@ -403,6 +403,30 @@ function Workbench({
    * The robot stays: it is what runs the program and answers back, and
    * without it the app opens mute.
    */
+  /*
+    Whether the name outgrew the field, which decides the fade at its edge.
+    Measured rather than guessed: only the browser knows whether this name,
+    in this font, at this window size, ran past the cap. Watched with a
+    `ResizeObserver` so a window resize is caught too, not just a rename.
+  */
+  const titleWrap = useRef<HTMLSpanElement>(null);
+  const [titleClipped, setTitleClipped] = useState(false);
+
+  useEffect(() => {
+    const wrap = titleWrap.current;
+    if (!wrap) return;
+
+    const measure = (): void => {
+      const input = wrap.querySelector('input');
+      if (input) setTitleClipped(input.scrollWidth > input.clientWidth + 1);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, [algorithm.name]);
+
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [robotOpen, setRobotOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -586,7 +610,7 @@ function Workbench({
           input is stretched over. It carries the placeholder when the name is
           empty, so a blank title still has somewhere to be typed.
         */}
-        <span className="app__doc-title-wrap">
+        <span className="app__doc-title-wrap" ref={titleWrap} data-clipped={titleClipped}>
           <span className="app__doc-title-mirror" aria-hidden="true">
             {algorithm.name || d.app.untitled}
           </span>
@@ -600,6 +624,24 @@ function Workbench({
             onChange={(event) => controller.setName(event.target.value)}
             aria-label={d.actions.rename}
             placeholder={d.app.untitled}
+            /* Readable on hover too, for a name long enough to be clipped —
+               otherwise checking which document this is means clicking into
+               it, and clicking into a name is how names get edited by
+               accident. */
+            title={algorithm.name || undefined}
+            /*
+              A click lands the caret mid-word and leaves the field scrolled
+              to that point, so a clipped name opens showing its middle — the
+              start lost, the end still out of view. Scrolling back to zero
+              means the name reads from the beginning the moment it is wide
+              enough to read at all.
+
+              Only on the way in: once someone is typing, moving their view is
+              the last thing they want.
+            */
+            onFocus={(event) => {
+              event.currentTarget.scrollLeft = 0;
+            }}
           />
         </span>
 

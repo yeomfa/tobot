@@ -75,8 +75,11 @@
   the input is stretched over the top. Both must carry identical typography
   and padding — the moment they disagree, the caret drifts out of the field.
 
-  `max-width` keeps a long name from pushing the header controls off screen;
-  past it the field stops growing and scrolls internally, as any input does.
+  `max-width` keeps a long name from pushing the header controls off screen.
+  A name longer than that is clipped at rest — but the moment it is clicked
+  the cap lifts to `--doc-title-open`, because a field you cannot read the
+  whole of is a field you cannot correct. It grows only while focused, so the
+  header keeps its calm width the rest of the time.
 */
 .app__doc-title-wrap {
   position: relative;
@@ -84,6 +87,27 @@
   flex: 0 1 auto;
   min-width: 0;
   max-width: 320px;
+  transition: max-width var(--duration-base) var(--ease-out);
+}
+
+/* Editing: show the whole name. `:focus-within` rather than `:focus` so the
+   wrapper reacts to the input inside it. */
+.app__doc-title-wrap:focus-within {
+  max-width: min(620px, 46vw);
+}
+
+/*
+  A clipped name ends mid-letter, which reads as a rendering fault rather
+  than as "there is more". Fading the last few pixels says it is cut on
+  purpose.
+
+  Masked rather than covered by a gradient, so it works over the hover
+  background in either theme without naming a colour. The flag is set by
+  measurement, since only the browser knows whether this particular name in
+  this particular font ran past the cap.
+*/
+.app__doc-title-wrap[data-clipped='true']:not(:focus-within) .app__doc-title {
+  mask-image: linear-gradient(to right, #000 calc(100% - 22px), transparent);
 }
 
 .app__doc-title-mirror,
@@ -118,6 +142,12 @@
   transition:
     background var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app__doc-title-wrap {
+    transition: none;
+  }
 }
 
 .app__doc-title:hover {
