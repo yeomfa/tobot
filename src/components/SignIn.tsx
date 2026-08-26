@@ -7,7 +7,7 @@ import { memo, useState } from 'react';
 
 import { useTranslation } from '../i18n/context';
 import { ROUTES } from '../routes';
-import { isGoogleEnabled, supabase } from '../state/supabase';
+import { getSupabase, isGoogleEnabled } from '../state/supabase';
 import { BrandMark } from './BrandMark';
 import './SignIn.css';
 
@@ -59,7 +59,10 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
 
   const submit = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
-    if (!supabase || busy) return;
+    if (busy) return;
+
+    const supabase = await getSupabase();
+    if (!supabase) return;
 
     setBusy(true);
     setError(null);
@@ -121,6 +124,7 @@ export const SignIn = memo(function SignIn({ onSkip }: SignInProps) {
   };
 
   const withGoogle = async (): Promise<void> => {
+    const supabase = await getSupabase();
     if (!supabase) return;
     setError(null);
 

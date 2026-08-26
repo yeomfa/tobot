@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
@@ -23,8 +22,24 @@ const publishableKey =
 
 export const isSupabaseConfigured = Boolean(url && publishableKey);
 
-export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(url as string, publishableKey as string, {
+/*
+ * The client, fetched the first time something asks for it.
+ *
+ * `@supabase/supabase-js` is around a third of the JavaScript this app ships,
+ * and a visitor reading the landing page needs none of it. Imported normally
+ * it was downloaded by everyone before anything appeared on screen; imported
+ * dynamically it is fetched only once an account is actually in play.
+ *
+ * The promise is cached rather than the client, so concurrent callers during
+ * startup share one download and one client instead of racing to create two.
+ */
+let clientPromise: Promise<SupabaseClient> | null = null;
+
+export function getSupabase(): Promise<SupabaseClient> | null {
+  if (!isSupabaseConfigured) return null;
+
+  clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) =>
+    createClient(url as string, publishableKey as string, {
       auth: {
         // Students move between the lab and home, so the session should
         // survive a closed tab.
@@ -32,8 +47,11 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
         autoRefreshToken: true,
         detectSessionInUrl: true,
       },
-    })
-  : null;
+    }),
+  );
+
+  return clientPromise;
+}
 
 /**
  * Whether Google sign-in should be offered.

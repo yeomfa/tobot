@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -23,17 +23,31 @@ import {
 import type { NodeId, Statement } from './core/ast/types';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
-import { Landing } from './components/Landing';
 import { ROUTES } from './routes';
+
+/*
+  The three screens load on demand.
+
+  Each one is a whole page that most visits never reach: someone reading the
+  landing has no use for the editor's palette, interpreter and flowchart
+  layout, and someone already signed in never loads the sign-in form. Bundled
+  together they were downloaded by everyone regardless, which on a slow
+  connection is time spent fetching pages that will not be opened.
+
+  The editor stays in the main bundle. It is the one screen that has to be
+  instant — it is where the work happens, and it is what `/app` links open
+  straight into.
+*/
+const Landing = lazy(async () => ({ default: (await import('./components/Landing')).Landing }));
+const Home = lazy(async () => ({ default: (await import('./components/Home')).Home }));
+const SignIn = lazy(async () => ({ default: (await import('./components/SignIn')).SignIn }));
 import { CanvasToolbar } from './components/CanvasToolbar';
 import { CodePanel } from './components/CodePanel';
 import { Console } from './components/Console';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
-import { Home } from './components/Home';
 import { Palette } from './components/Palette';
-import { SignIn } from './components/SignIn';
 import { SettingsMenu } from './components/SettingsMenu';
 import { Tour } from './components/Tour';
 import { ResizeHandle } from './components/ResizeHandle';
@@ -183,81 +197,86 @@ export default function App() {
 
   return (
     <I18nProvider language={language}>
-      <Routes>
-        <Route
-          path={ROUTES.landing}
-          element={
-            <Landing
-              language={language}
-              onLanguageChange={(next) =>
-                setPreferences((current) => ({ ...current, language: next }))
-              }
-              theme={preferences.theme}
-              onThemeChange={(next) => setPreferences((current) => ({ ...current, theme: next }))}
-              onTry={() => {
-                /* Straight in without the gate: a visitor who has to sign in
-                   before seeing anything mostly leaves, and the account is
-                   offered once there is work worth keeping.
+      {/* The same blank surface the session check already shows, so a slow
+          connection sees one continuous loading state rather than a flash of
+          one placeholder replaced by another. */}
+      <Suspense fallback={<div className="app app--loading" />}>
+        <Routes>
+          <Route
+            path={ROUTES.landing}
+            element={
+              <Landing
+                language={language}
+                onLanguageChange={(next) =>
+                  setPreferences((current) => ({ ...current, language: next }))
+                }
+                theme={preferences.theme}
+                onThemeChange={(next) => setPreferences((current) => ({ ...current, theme: next }))}
+                onTry={() => {
+                  /* Straight in without the gate: a visitor who has to sign in
+                     before seeing anything mostly leaves, and the account is
+                     offered once there is work worth keeping.
 
-                   To the library rather than the editor, so the first thing
-                   they meet is the examples and their own work — dropping
-                   someone into an empty canvas asks them to invent a problem
-                   before they have seen one solved. */
-                skipAuth();
-                navigate(ROUTES.library);
-              }}
-            />
-          }
-        />
-        <Route
-          path={ROUTES.login}
-          element={
-            // Someone already signed in has no business on the sign-in page.
-            needsAuth ? (
-              <SignIn onSkip={skipAuth} />
-            ) : (
-              // Back to wherever the gate interrupted them, not to a fixed
-              // page: someone sent to sign in from the editor wants the
-              // editor, not the library.
-              <Navigate to={redirectAfterAuth.current ?? ROUTES.library} replace />
-            )
-          }
-        />
-        <Route
-          path={ROUTES.library}
-          element={
-            needsAuth ? (
-              <RedirectToLogin to={ROUTES.library} remember={redirectAfterAuth} />
-            ) : (
-              <Workspace
-                preferences={preferences}
-                setPreferences={setPreferences}
-                auth={auth}
-                onSignOut={() => void auth.signOut()}
-                onSignIn={reopenAuth}
+                     To the library rather than the editor, so the first thing
+                     they meet is the examples and their own work — dropping
+                     someone into an empty canvas asks them to invent a problem
+                     before they have seen one solved. */
+                  skipAuth();
+                  navigate(ROUTES.library);
+                }}
               />
-            )
-          }
-        />
-        <Route
-          path={ROUTES.editor}
-          element={
-            needsAuth ? (
-              <RedirectToLogin to={ROUTES.editor} remember={redirectAfterAuth} />
-            ) : (
-              <Workspace
-                preferences={preferences}
-                setPreferences={setPreferences}
-                auth={auth}
-                onSignOut={() => void auth.signOut()}
-                onSignIn={reopenAuth}
-              />
-            )
-          }
-        />
-        {/* An unknown address is a typo, not an error worth a page. */}
-        <Route path="*" element={<Navigate to={ROUTES.landing} replace />} />
-      </Routes>
+            }
+          />
+          <Route
+            path={ROUTES.login}
+            element={
+              // Someone already signed in has no business on the sign-in page.
+              needsAuth ? (
+                <SignIn onSkip={skipAuth} />
+              ) : (
+                // Back to wherever the gate interrupted them, not to a fixed
+                // page: someone sent to sign in from the editor wants the
+                // editor, not the library.
+                <Navigate to={redirectAfterAuth.current ?? ROUTES.library} replace />
+              )
+            }
+          />
+          <Route
+            path={ROUTES.library}
+            element={
+              needsAuth ? (
+                <RedirectToLogin to={ROUTES.library} remember={redirectAfterAuth} />
+              ) : (
+                <Workspace
+                  preferences={preferences}
+                  setPreferences={setPreferences}
+                  auth={auth}
+                  onSignOut={() => void auth.signOut()}
+                  onSignIn={reopenAuth}
+                />
+              )
+            }
+          />
+          <Route
+            path={ROUTES.editor}
+            element={
+              needsAuth ? (
+                <RedirectToLogin to={ROUTES.editor} remember={redirectAfterAuth} />
+              ) : (
+                <Workspace
+                  preferences={preferences}
+                  setPreferences={setPreferences}
+                  auth={auth}
+                  onSignOut={() => void auth.signOut()}
+                  onSignIn={reopenAuth}
+                />
+              )
+            }
+          />
+          {/* An unknown address is a typo, not an error worth a page. */}
+          <Route path="*" element={<Navigate to={ROUTES.landing} replace />} />
+        </Routes>
+      </Suspense>
     </I18nProvider>
   );
 }

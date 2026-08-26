@@ -1,7 +1,7 @@
 import type { Algorithm } from '../core/ast/types';
 import { sanitizeStatements } from '../core/ast/validateShape';
 import type { AlgorithmStore } from './storage';
-import { supabase } from './supabase';
+import { getSupabase } from './supabase';
 
 /** One row of `public.algorithms`, as the database spells it. */
 interface Row {
@@ -49,12 +49,14 @@ export class SupabaseAlgorithmStore implements AlgorithmStore {
   readonly isRemote = true;
 
   private async userId(): Promise<string | null> {
+    const supabase = await getSupabase();
     if (!supabase) return null;
     const { data } = await supabase.auth.getUser();
     return data.user?.id ?? null;
   }
 
   async list(): Promise<Algorithm[]> {
+    const supabase = await getSupabase();
     if (!supabase) return [];
     const { data, error } = await supabase
       .from('algorithms')
@@ -69,6 +71,7 @@ export class SupabaseAlgorithmStore implements AlgorithmStore {
   }
 
   async get(id: string): Promise<Algorithm | null> {
+    const supabase = await getSupabase();
     if (!supabase) return null;
     const { data, error } = await supabase
       .from('algorithms')
@@ -84,6 +87,7 @@ export class SupabaseAlgorithmStore implements AlgorithmStore {
   }
 
   async save(algorithm: Algorithm): Promise<void> {
+    const supabase = await getSupabase();
     if (!supabase) return;
     const userId = await this.userId();
     // Without a session there is nobody to own the row; the caller keeps its
@@ -111,6 +115,7 @@ export class SupabaseAlgorithmStore implements AlgorithmStore {
   }
 
   async remove(id: string): Promise<void> {
+    const supabase = await getSupabase();
     if (!supabase) return;
     const { error } = await supabase.from('algorithms').delete().eq('id', id);
     if (error) console.error('[tobot] could not delete algorithm:', error.message);

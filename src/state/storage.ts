@@ -1,7 +1,6 @@
 import type { Algorithm } from '../core/ast/types';
 import { sanitizeStatements } from '../core/ast/validateShape';
 import { isSupabaseConfigured } from './supabase';
-import { SupabaseAlgorithmStore } from './supabaseStore';
 
 /**
  * Persistence seam.
@@ -161,7 +160,48 @@ export class LocalPreferenceStore implements PreferenceStore {
  * component knows or cares which one it is talking to.
  */
 export function createAlgorithmStore(): AlgorithmStore {
-  return hasSession() ? new SupabaseAlgorithmStore() : new LocalAlgorithmStore();
+  return hasStoredSession() ? new RemoteAlgorithmStore() : new LocalAlgorithmStore();
+}
+
+/**
+ * The remote store, loaded the first time it is used.
+ *
+ * `createAlgorithmStore` is synchronous — every caller depends on getting a
+ * store back immediately — but importing the Supabase implementation eagerly
+ * pulled the whole auth client into the first download, for every visitor,
+ * including the ones only reading the landing page.
+ *
+ * Every method on the interface already returns a promise, so the import can
+ * hide inside one: this stands in for the real store and fetches it on first
+ * use. Callers see the same four methods and cannot tell the difference.
+ */
+class RemoteAlgorithmStore implements AlgorithmStore {
+  readonly isRemote = true;
+
+  private real: Promise<AlgorithmStore> | null = null;
+
+  private load(): Promise<AlgorithmStore> {
+    this.real ??= import('./supabaseStore').then(
+      ({ SupabaseAlgorithmStore }) => new SupabaseAlgorithmStore(),
+    );
+    return this.real;
+  }
+
+  async list(): Promise<Algorithm[]> {
+    return (await this.load()).list();
+  }
+
+  async get(id: string): Promise<Algorithm | null> {
+    return (await this.load()).get(id);
+  }
+
+  async save(algorithm: Algorithm): Promise<void> {
+    return (await this.load()).save(algorithm);
+  }
+
+  async remove(id: string): Promise<void> {
+    return (await this.load()).remove(id);
+  }
 }
 
 /**
@@ -169,8 +209,12 @@ export function createAlgorithmStore(): AlgorithmStore {
  * chosen without awaiting. Supabase keeps the session in localStorage under a
  * key derived from the project ref, and reading it directly avoids making
  * every caller of `createAlgorithmStore` async.
+ *
+ * It also answers the question without loading the Supabase client, which is
+ * why `useSession` uses it to decide whether there is any point downloading
+ * one: a visitor who has never signed in has no session to restore.
  */
-function hasSession(): boolean {
+export function hasStoredSession(): boolean {
   if (!isSupabaseConfigured) return false;
   try {
     for (let i = 0; i < window.localStorage.length; i += 1) {
