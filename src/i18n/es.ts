@@ -472,6 +472,13 @@ export const es = {
     importError: 'No se pudo leer ese archivo. ¿Es un algoritmo exportado desde Tobot?',
     challenges: 'Retos',
     challengesHint: 'Ejercicios con partes por completar',
+    /* The challenge cards used to show the level as a bare digit, which
+       read as a position in a list — two level-1 challenges both showed
+       a 1 and looked like a numbering bug. */
+    level1: 'Fácil',
+    level2: 'Media',
+    level3: 'Difícil',
+    levelHint: 'Dificultad {level} de 3',
     duplicateSuffix: 'copia',
   },
   concepts: {

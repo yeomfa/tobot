@@ -561,8 +561,24 @@ export const Home = memo(function Home({
                       data-topic={challenge.topic}
                       onClick={() => onOpen(algorithmFromChallenge(challenge, language))}
                     >
-                      <span className="home__card-icon" data-level={challenge.level}>
-                        {challenge.level}
+                      {/*
+                        Difficulty as filled dots rather than a bare digit. The
+                        number alone read as a position — two level-1
+                        challenges both showed "1" and looked like a numbering
+                        mistake — and a digit in a circle is exactly how a list
+                        index is usually drawn.
+                      */}
+                      <span
+                        className="home__card-level"
+                        data-level={challenge.level}
+                        title={fill(d.library.levelHint, { level: challenge.level })}
+                      >
+                        <span className="home__card-dots" aria-hidden="true">
+                          <i />
+                          <i />
+                          <i />
+                        </span>
+                        {d.library[`level${challenge.level}` as const]}
                       </span>
                       <span className="home__card-name">{challenge.title[language]}</span>
                       <span className="home__card-meta">{challenge.goal[language]}</span>

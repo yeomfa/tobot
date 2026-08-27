@@ -621,9 +621,46 @@
 }
 
 /* Challenges show a level number in a dashed ring, examples a solid icon. */
-.home__card-icon[data-level] {
-  background: transparent;
-  border: 1px dashed color-mix(in srgb, var(--card-hue) 50%, transparent);
+/*
+  Difficulty, drawn as three dots with the level's worth filled in.
+
+  It replaced a single digit in a circle, which was indistinguishable from a
+  list index: two level-1 challenges both showed "1" and read as a numbering
+  bug. Dots carry "one of three" without a number to misread, and the word
+  beside them names what the scale measures.
+*/
+.home__card-level {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: start;
+  margin-bottom: var(--space-3);
+  padding: 4px 10px 4px 8px;
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--card-hue);
+  background: var(--card-soft);
+  border-radius: var(--radius-full);
+}
+
+.home__card-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.home__card-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.28;
+}
+
+/* Fill one dot per level. */
+.home__card-level[data-level='1'] .home__card-dots i:nth-child(-n + 1),
+.home__card-level[data-level='2'] .home__card-dots i:nth-child(-n + 2),
+.home__card-level[data-level='3'] .home__card-dots i:nth-child(-n + 3) {
+  opacity: 1;
 }
 
 .home__card-icon svg {

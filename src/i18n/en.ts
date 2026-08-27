@@ -462,6 +462,13 @@ export const en: Dictionary = {
     importError: 'That file could not be read. Is it an algorithm exported from Tobot?',
     challenges: 'Challenges',
     challengesHint: 'Exercises with parts to complete',
+    /* The challenge cards used to show the level as a bare digit, which
+       read as a position in a list — two level-1 challenges both showed
+       a 1 and looked like a numbering bug. */
+    level1: 'Easy',
+    level2: 'Medium',
+    level3: 'Hard',
+    levelHint: 'Difficulty {level} of 3',
     duplicateSuffix: 'copy',
   },
   concepts: {
