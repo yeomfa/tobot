@@ -21,8 +21,29 @@ const note = (text: string): Statement => ({ id: createId(), kind: 'comment', te
 export interface Challenge {
   id: string;
   topic: 'variables' | 'io' | 'conditionals' | 'loops';
-  /** Rough order of difficulty within the set. */
-  level: 1 | 2 | 3;
+  /**
+   * How much a student needs to know to attempt this, on a fixed five-point
+   * scale — not a ranking within the current set.
+   *
+   * The distinction matters because the set is going to grow. A scale of
+   * three, assigned relative to what existed, made "print the even numbers"
+   * the hardest challenge in Tobot; the day a recursion or async challenge
+   * arrives, every existing level would have to shift down to make room, and
+   * a challenge a student already saw as hard would silently become easy.
+   *
+   * Anchored to prerequisites instead, a level never moves:
+   *
+   * 1 — one concept, nothing combined. First contact.
+   * 2 — two concepts together, or one used with a twist.
+   * 3 — needs a plan before writing: several parts that must fit.
+   * 4 — needs data structures or functions, not just statements.
+   * 5 — needs an idea, not only technique: recursion, async, algorithms
+   *     whose approach is the actual difficulty.
+   *
+   * Levels 4 and 5 have nothing in them yet. That is the point: they are the
+   * room this scale leaves for what Tobot has not taught yet.
+   */
+  level: 1 | 2 | 3 | 4 | 5;
   title: Record<Language, string>;
   goal: Record<Language, string>;
   build: (language: Language) => Statement[];
@@ -67,6 +88,7 @@ export const challenges: Challenge[] = [
   {
     id: 'area',
     topic: 'variables',
+    // one concept: declare, compute, print
     level: 1,
     title: { es: 'Área de un rectángulo', en: 'Area of a rectangle' },
     goal: { es: COPY.es.goalArea, en: COPY.en.goalArea },
@@ -82,7 +104,8 @@ export const challenges: Challenge[] = [
   {
     id: 'temperature',
     topic: 'conditionals',
-    level: 1,
+    // a conditional over a value the student asked for: two things at once
+    level: 2,
     title: { es: '¿Hace calor?', en: 'Is it hot?' },
     goal: { es: COPY.es.goalTemp, en: COPY.en.goalTemp },
     build: (language) => {
@@ -96,6 +119,7 @@ export const challenges: Challenge[] = [
   {
     id: 'sum-to-n',
     topic: 'loops',
+    // a loop with an accumulator — standard shape, taught directly
     level: 2,
     title: { es: 'Suma del 1 al N', en: 'Sum from 1 to N' },
     goal: { es: COPY.es.goalSum, en: COPY.en.goalSum },
@@ -120,6 +144,7 @@ export const challenges: Challenge[] = [
   {
     id: 'evens',
     topic: 'loops',
+    // a loop plus a condition inside it: needs a plan before writing
     level: 3,
     title: { es: 'Solo los pares', en: 'Only the even ones' },
     goal: { es: COPY.es.goalEven, en: COPY.en.goalEven },

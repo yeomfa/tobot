@@ -656,10 +656,12 @@
   opacity: 0.28;
 }
 
-/* Fill one dot per level. */
+/* Fill one dot per level, out of five. */
 .home__card-level[data-level='1'] .home__card-dots i:nth-child(-n + 1),
 .home__card-level[data-level='2'] .home__card-dots i:nth-child(-n + 2),
-.home__card-level[data-level='3'] .home__card-dots i:nth-child(-n + 3) {
+.home__card-level[data-level='3'] .home__card-dots i:nth-child(-n + 3),
+.home__card-level[data-level='4'] .home__card-dots i:nth-child(-n + 4),
+.home__card-level[data-level='5'] .home__card-dots i:nth-child(-n + 5) {
   opacity: 1;
 }
 

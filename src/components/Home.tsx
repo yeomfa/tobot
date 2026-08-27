@@ -577,6 +577,8 @@ export const Home = memo(function Home({
                           <i />
                           <i />
                           <i />
+                          <i />
+                          <i />
                         </span>
                         {d.library[`level${challenge.level}` as const]}
                       </span>
