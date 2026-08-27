@@ -28,6 +28,7 @@ import {
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { concepts } from '../content/concepts';
 import type { ConceptId } from '../content/concepts';
@@ -37,6 +38,12 @@ import type { Algorithm } from '../core/ast/types';
 import { languageNames, LANGUAGES } from '../i18n';
 import type { Language } from '../i18n';
 import { useTranslation } from '../i18n/context';
+import {
+  DEFAULT_SECTION,
+  isLibrarySection,
+  sectionPath,
+  type LibrarySection,
+} from '../routes';
 import { createAlgorithmStore } from '../state/storage';
 import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
@@ -68,7 +75,9 @@ interface HomeProps {
   onSignIn: () => void;
 }
 
-type Section = 'mine' | 'challenges' | 'examples' | 'concepts';
+/* The sections are defined by the router, not here: they are addresses first
+   and a rail second, and duplicating the list is how the two drift apart. */
+type Section = LibrarySection;
 
 const EXAMPLE_ICONS: Record<string, Icon> = {
   greeting: HandWaving,
@@ -81,14 +90,14 @@ const EXAMPLE_ICONS: Record<string, Icon> = {
 };
 
 const SECTIONS: Array<{ id: Section; icon: Icon }> = [
-  { id: 'mine', icon: FolderOpen },
+  { id: 'algorithms', icon: FolderOpen },
   { id: 'challenges', icon: PuzzlePiece },
   { id: 'examples', icon: Lightbulb },
   { id: 'concepts', icon: BookOpenText },
 ];
 
 function sectionLabel(d: ReturnType<typeof useTranslation>['d'], id: Section): string {
-  if (id === 'mine') return d.library.saved;
+  if (id === 'algorithms') return d.library.saved;
   if (id === 'challenges') return d.library.challenges;
   if (id === 'examples') return d.library.examples;
   return d.concepts.title;
@@ -104,7 +113,7 @@ function sectionLabel(d: ReturnType<typeof useTranslation>['d'], id: Section): s
  * the app you are in.
  */
 function SectionArt({ section }: { section: Section }) {
-  if (section === 'mine') {
+  if (section === 'algorithms') {
     return (
       <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
         <line x1="60" y1="18" x2="60" y2="26" strokeWidth="3" strokeLinecap="round" />
@@ -226,8 +235,28 @@ export const Home = memo(function Home({
   const [saved, setSaved] = useState<Algorithm[]>([]);
   const [importError, setImportError] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
-  /** Which section the rail is showing; the page holds one at a time. */
-  const [section, setSection] = useState<Section>('mine');
+  /*
+    The section comes from the URL rather than from state, so /library/challenges
+    is a real address: it survives a reload, it can be linked to, and the back
+    button walks between sections the way it walks anywhere else.
+  */
+  const { section: sectionParam } = useParams();
+  const navigate = useNavigate();
+  const valid = isLibrarySection(sectionParam);
+  const section: Section = valid ? sectionParam : DEFAULT_SECTION;
+
+  /*
+    A section nobody recognises — a typo, an old link, a translated guess like
+    /library/retos — falls back to the default *and* corrects the address.
+    Rendering the default under the wrong URL would leave the two disagreeing,
+    and the next reload would land somewhere else again.
+  */
+  useEffect(() => {
+    if (!valid) void navigate(sectionPath(DEFAULT_SECTION), { replace: true });
+  }, [valid, navigate]);
+  const setSection = (next: Section): void => {
+    void navigate(sectionPath(next));
+  };
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -280,7 +309,7 @@ export const Home = memo(function Home({
       : 'out';
 
   const bannerTitle =
-    section === 'mine'
+    section === 'algorithms'
       ? d.banners.mineTitle
       : section === 'challenges'
         ? d.banners.challengesTitle
@@ -289,7 +318,7 @@ export const Home = memo(function Home({
           : d.banners.conceptsTitle;
 
   const bannerBody =
-    section === 'mine'
+    section === 'algorithms'
       ? d.banners.mineBody
       : section === 'challenges'
         ? d.banners.challengesBody
@@ -352,7 +381,7 @@ export const Home = memo(function Home({
                 >
                   <Glyph weight={section === entry.id ? 'fill' : 'regular'} />
                   <span>{sectionLabel(d, entry.id)}</span>
-                  {entry.id === 'mine' && saved.length > 0 && (
+                  {entry.id === 'algorithms' && saved.length > 0 && (
                     <span className="home__rail-count">{saved.length}</span>
                   )}
                 </button>
@@ -472,7 +501,7 @@ export const Home = memo(function Home({
           </header>
 
           <div className="home__content">
-            {section === 'mine' && (
+            {section === 'algorithms' && (
               <>
                 <div className="home__start">
                   <button type="button" className="home__start-card" onClick={onCreate}>

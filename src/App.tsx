@@ -23,7 +23,7 @@ import {
 import type { NodeId, Statement } from './core/ast/types';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
-import { ROUTES } from './routes';
+import { DEFAULT_SECTION, ROUTES, sectionPath } from './routes';
 
 /*
   The three screens load on demand.
@@ -241,8 +241,18 @@ export default function App() {
               )
             }
           />
+          {/*
+            The library's sections are addresses, not state. `/library` on its
+            own carries no information about what you are looking at, so it
+            redirects to the default section rather than rendering one — that
+            way every view of the library has a URL that names it.
+          */}
           <Route
             path={ROUTES.library}
+            element={<Navigate to={sectionPath(DEFAULT_SECTION)} replace />}
+          />
+          <Route
+            path={`${ROUTES.library}/:section`}
             element={
               needsAuth ? (
                 <RedirectToLogin to={ROUTES.library} remember={redirectAfterAuth} />
