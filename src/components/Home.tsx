@@ -27,7 +27,7 @@ import {
   UserCheckIcon as UserCheck,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 import { concepts } from '../content/concepts';
 import type { ConceptId } from '../content/concepts';
@@ -188,6 +188,23 @@ export const Home = memo(function Home({
   onSignIn,
 }: HomeProps) {
   const { d, fill, formatDate } = useTranslation();
+
+  /*
+    Challenge filters. `null` means "no filter", which is different from any
+    particular value and keeps the two controls independent of each other.
+  */
+  const [levelFilter, setLevelFilter] = useState<number | null>(null);
+  const [topicFilter, setTopicFilter] = useState<string | null>(null);
+
+  const visibleChallenges = useMemo(
+    () =>
+      challenges.filter(
+        (challenge) =>
+          (levelFilter === null || challenge.level === levelFilter) &&
+          (topicFilter === null || challenge.topic === topicFilter),
+      ),
+    [levelFilter, topicFilter],
+  );
   const [saved, setSaved] = useState<Algorithm[]>([]);
   const [importError, setImportError] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -552,8 +569,75 @@ export const Home = memo(function Home({
 
             {section === 'challenges' && (
               <>
+                {/*
+                  Two independent filters. Difficulty is a fixed five-point
+                  scale, so every level is offered whether or not a challenge
+                  currently sits there — a level that vanishes when empty
+                  hides the fact that the scale goes that high.
+                */}
+                <div className="home__filters" role="group" aria-label={d.library.filterLabel}>
+                  <div className="home__filter">
+                    <span className="home__filter-label">{d.library.levelLabel}</span>
+                    <div className="home__filter-options">
+                      <button
+                        type="button"
+                        className="home__chip"
+                        data-selected={levelFilter === null || undefined}
+                        onClick={() => setLevelFilter(null)}
+                      >
+                        {d.library.filterAll}
+                      </button>
+                      {([1, 2, 3, 4, 5] as const).map((level) => (
+                        <button
+                          key={level}
+                          type="button"
+                          className="home__chip"
+                          data-level={level}
+                          data-selected={levelFilter === level || undefined}
+                          onClick={() => setLevelFilter(levelFilter === level ? null : level)}
+                        >
+                          <span className="home__chip-dots" aria-hidden="true">
+                            <i />
+                            <i />
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                          {d.library[`level${level}` as const]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="home__filter">
+                    <span className="home__filter-label">{d.library.topicLabel}</span>
+                    <div className="home__filter-options">
+                      <button
+                        type="button"
+                        className="home__chip"
+                        data-selected={topicFilter === null || undefined}
+                        onClick={() => setTopicFilter(null)}
+                      >
+                        {d.library.filterAllTopics}
+                      </button>
+                      {(['variables', 'io', 'conditionals', 'loops'] as const).map((topic) => (
+                        <button
+                          key={topic}
+                          type="button"
+                          className="home__chip"
+                          data-topic={topic}
+                          data-selected={topicFilter === topic || undefined}
+                          onClick={() => setTopicFilter(topicFilter === topic ? null : topic)}
+                        >
+                          {d.palette.groups[topic]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="home__grid">
-                  {challenges.map((challenge) => (
+                  {visibleChallenges.map((challenge) => (
                     <button
                       key={challenge.id}
                       type="button"
@@ -587,6 +671,20 @@ export const Home = memo(function Home({
                     </button>
                   ))}
                 </div>
+                {visibleChallenges.length === 0 && (
+                  <p className="home__filter-empty">
+                    {d.library.filterEmpty}{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLevelFilter(null);
+                        setTopicFilter(null);
+                      }}
+                    >
+                      {d.library.filterClear}
+                    </button>
+                  </p>
+                )}
               </>
             )}
 

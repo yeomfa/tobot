@@ -463,17 +463,30 @@ export const en: Dictionary = {
     challenges: 'Challenges',
     challengesHint: 'Exercises with parts to complete',
     /*
-       Named by what the student is doing, not by how hard it feels. A scale
-       of adjectives (easy/medium/hard) has to be re-sorted every time a
-       harder challenge arrives; these names describe a stage, and a stage
-       does not move because something new sits above it.
+       Plain difficulty words, because that is what the badge has to say at a
+       glance. Naming the stage instead ("Practicando") described what the
+       student was doing and left the reader guessing what the scale even
+       measured.
+
+       Five of them rather than three: the levels stay anchored to what a
+       challenge requires, so "Muy difícil" is reserved for work Tobot cannot
+       set yet and nothing has to be re-ranked when it arrives.
     */
-    level1: 'First steps',
-    level2: 'Practising',
-    level3: 'Combining',
-    level4: 'Advanced',
-    level5: 'Challenge',
-    levelHint: 'Level {level} of 5',
+    level1: 'Very easy',
+    level2: 'Easy',
+    level3: 'Intermediate',
+    level4: 'Hard',
+    level5: 'Very hard',
+    levelLabel: 'Difficulty',
+    topicLabel: 'Topic',
+    filterAll: 'All',
+    filterAllTopics: 'All topics',
+    filterLabel: 'Filter challenges',
+    filterEmpty: 'No challenge matches that filter',
+    filterClear: 'Clear filters',
+    filterCount: '{count} of {total} challenges',
+    filterCountOne: '1 of {total} challenges',
+    levelHint: 'Difficulty {level} of 5',
     duplicateSuffix: 'copy',
   },
   concepts: {
