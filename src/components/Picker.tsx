@@ -34,7 +34,7 @@ interface PickerProps<T extends string> {
   onChange: (value: T) => void;
   label: string;
   /** Styling hook, so an operator reads differently from a variable name. */
-  variant?: 'operator' | 'value' | 'reference' | 'options' | 'boolean' | 'chip';
+  variant?: 'operator' | 'value' | 'reference' | 'options' | 'boolean' | 'chip' | 'filter';
 }
 
 /**
@@ -109,6 +109,11 @@ export function Picker<T extends string>({
             The options variant is the reverse — a caret is all it is.
             A reference already sits under an options caret of its own, so a
             second one beside it read as a stuttered "⌄⌄". */}
+        {/* The filter variant names what it filters, because its value alone is
+            ambiguous on a page: "Fácil" could be anything until something says
+            it is a difficulty. Inside a block the surrounding statement already
+            supplies that context. */}
+        {variant === 'filter' && <span className="picker__filter-label">{label}</span>}
         {variant !== 'options' && <span className="picker__current">{current?.label ?? '···'}</span>}
         {variant !== 'operator' && variant !== 'reference' && variant !== 'boolean' && (
           <CaretDown className="picker__caret" weight="bold" aria-hidden="true" />

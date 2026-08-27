@@ -260,3 +260,41 @@
   height: 12px;
   flex-shrink: 0;
 }
+
+/*
+  The filter variant, used above the challenge grid.
+
+  Wider and quieter than the in-block variants: a filter sits on a page rather
+  than inside a statement, so it takes the surface colour and a full border
+  instead of the tinted chip look that marks an editable part of an algorithm.
+*/
+.picker[data-variant='filter'] .picker__trigger {
+  gap: var(--space-2);
+  /* The in-block variants use the code face because they sit among code; a
+     filter is interface, so it takes the interface face. */
+  font-family: var(--font-ui);
+  padding: 7px 10px 7px 13px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+}
+
+.picker[data-variant='filter'] .picker__trigger:hover,
+.picker[data-variant='filter'] .picker__trigger[data-open] {
+  border-color: var(--border-strong);
+  background: var(--bg-inset);
+}
+
+/* The label names what is being filtered, so the value alone is never
+   ambiguous — "Fácil" on its own could be anything. */
+.picker__filter-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-right: 2px;
+}

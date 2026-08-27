@@ -42,6 +42,7 @@ import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
 import { APP_VERSION, MAKER } from '../brand';
 import { BrandMark } from './BrandMark';
+import { Picker } from './Picker';
 import './Home.css';
 
 interface HomeProps {
@@ -190,18 +191,35 @@ export const Home = memo(function Home({
   const { d, fill, formatDate } = useTranslation();
 
   /*
-    Challenge filters. `null` means "no filter", which is different from any
-    particular value and keeps the two controls independent of each other.
+    Challenge filters. `'all'` rather than `null` because the Picker holds a
+    string, and "no filter" is a real option in the list rather than an absence.
   */
-  const [levelFilter, setLevelFilter] = useState<number | null>(null);
-  const [topicFilter, setTopicFilter] = useState<string | null>(null);
+  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [topicFilter, setTopicFilter] = useState<string>('all');
+
+  /*
+    The options come from the challenges themselves, so the lists grow with the
+    content and never offer a filter that returns nothing. This is the part
+    that has to survive the set getting much bigger: a hard-coded list of
+    topics would need editing every time one is added, and would keep
+    advertising difficulties nothing sits at.
+  */
+  const availableLevels = useMemo(
+    () => [...new Set(challenges.map((challenge) => challenge.level))].sort((a, b) => a - b),
+    [],
+  );
+
+  const availableTopics = useMemo(
+    () => [...new Set(challenges.map((challenge) => challenge.topic))],
+    [],
+  );
 
   const visibleChallenges = useMemo(
     () =>
       challenges.filter(
         (challenge) =>
-          (levelFilter === null || challenge.level === levelFilter) &&
-          (topicFilter === null || challenge.topic === topicFilter),
+          (levelFilter === 'all' || String(challenge.level) === levelFilter) &&
+          (topicFilter === 'all' || challenge.topic === topicFilter),
       ),
     [levelFilter, topicFilter],
   );
@@ -570,70 +588,65 @@ export const Home = memo(function Home({
             {section === 'challenges' && (
               <>
                 {/*
-                  Two independent filters. Difficulty is a fixed five-point
-                  scale, so every level is offered whether or not a challenge
-                  currently sits there — a level that vanishes when empty
-                  hides the fact that the scale goes that high.
-                */}
-                <div className="home__filters" role="group" aria-label={d.library.filterLabel}>
-                  <div className="home__filter">
-                    <span className="home__filter-label">{d.library.levelLabel}</span>
-                    <div className="home__filter-options">
-                      <button
-                        type="button"
-                        className="home__chip"
-                        data-selected={levelFilter === null || undefined}
-                        onClick={() => setLevelFilter(null)}
-                      >
-                        {d.library.filterAll}
-                      </button>
-                      {([1, 2, 3, 4, 5] as const).map((level) => (
-                        <button
-                          key={level}
-                          type="button"
-                          className="home__chip"
-                          data-level={level}
-                          data-selected={levelFilter === level || undefined}
-                          onClick={() => setLevelFilter(levelFilter === level ? null : level)}
-                        >
-                          <span className="home__chip-dots" aria-hidden="true">
-                            <i />
-                            <i />
-                            <i />
-                            <i />
-                            <i />
-                          </span>
-                          {d.library[`level${level}` as const]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  Two dropdowns rather than a row of chips. Chips showed every
+                  option at once, which was fine for four topics and will not
+                  be for fifteen — and offering all five difficulties when only
+                  three have challenges made the filter advertise emptiness.
 
-                  <div className="home__filter">
-                    <span className="home__filter-label">{d.library.topicLabel}</span>
-                    <div className="home__filter-options">
-                      <button
-                        type="button"
-                        className="home__chip"
-                        data-selected={topicFilter === null || undefined}
-                        onClick={() => setTopicFilter(null)}
-                      >
-                        {d.library.filterAllTopics}
-                      </button>
-                      {(['variables', 'io', 'conditionals', 'loops'] as const).map((topic) => (
-                        <button
-                          key={topic}
-                          type="button"
-                          className="home__chip"
-                          data-topic={topic}
-                          data-selected={topicFilter === topic || undefined}
-                          onClick={() => setTopicFilter(topicFilter === topic ? null : topic)}
-                        >
-                          {d.palette.groups[topic]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  Both lists are built from what actually exists, so they grow
+                  with the content and never offer a choice that returns
+                  nothing.
+                */}
+                <div className="home__filters">
+                  <Picker
+                    value={levelFilter}
+                    onChange={setLevelFilter}
+                    label={d.library.levelLabel}
+                    variant="filter"
+                    groups={[
+                      {
+                        options: [
+                          { value: 'all' as const, label: d.library.filterAll },
+                          ...availableLevels.map((level) => ({
+                            value: String(level),
+                            label: d.library[`level${level}` as const],
+                            hint: fill(d.library.levelHint, { level }),
+                          })),
+                        ],
+                      },
+                    ]}
+                  />
+
+                  <Picker
+                    value={topicFilter}
+                    onChange={setTopicFilter}
+                    label={d.library.topicLabel}
+                    variant="filter"
+                    groups={[
+                      {
+                        options: [
+                          { value: 'all' as const, label: d.library.filterAllTopics },
+                          ...availableTopics.map((topic) => ({
+                            value: topic,
+                            label: d.palette.groups[topic],
+                          })),
+                        ],
+                      },
+                    ]}
+                  />
+
+                  {(levelFilter !== 'all' || topicFilter !== 'all') && (
+                    <button
+                      type="button"
+                      className="home__filter-reset"
+                      onClick={() => {
+                        setLevelFilter('all');
+                        setTopicFilter('all');
+                      }}
+                    >
+                      {d.library.filterClear}
+                    </button>
+                  )}
                 </div>
 
                 <div className="home__grid">
@@ -677,8 +690,8 @@ export const Home = memo(function Home({
                     <button
                       type="button"
                       onClick={() => {
-                        setLevelFilter(null);
-                        setTopicFilter(null);
+                        setLevelFilter('all');
+                        setTopicFilter('all');
                       }}
                     >
                       {d.library.filterClear}
