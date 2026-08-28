@@ -31,6 +31,9 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
     const clear = (): void => {
       active.current?.removeAttribute('data-over');
       active.current = null;
+      for (const zone of root.querySelectorAll('.drop-zone[data-own]')) {
+        zone.removeAttribute('data-own');
+      }
     };
 
     const nearest = (x: number, y: number): HTMLElement | null => {
@@ -65,6 +68,7 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
       */
       const lifted = root.querySelector<HTMLElement>('.statement-block[data-lifted]');
       const home = lifted?.getBoundingClientRect() ?? null;
+
       const isOwn = (box: DOMRect): boolean =>
         home !== null &&
         box.left < home.right &&
@@ -79,6 +83,15 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
 
       for (const zone of root.querySelectorAll<HTMLElement>('.drop-zone')) {
         const box = zone.getBoundingClientRect();
+
+        /*
+          Flagged in the DOM so the stylesheet can hide the label from the same
+          decision that hides it from the magnet. A separate CSS selector had
+          to guess the markup and got it wrong — the slots stayed visible while
+          the magnet was already refusing them, which is the worst of both.
+        */
+        if (home && (isOwn(box) || isOwnBelow(box))) zone.setAttribute('data-own', 'true');
+        else zone.removeAttribute('data-own');
         // A zone inside a collapsed branch has no size and cannot be a target.
         if (box.height === 0 && box.width === 0) continue;
 

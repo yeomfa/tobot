@@ -652,9 +652,16 @@ body[data-dragging] .drop-zone {
   height: 14px;
 }
 
-body[data-dragging] .drop-zone .drop-zone__hint {
-  opacity: 0.55;
-}
+/*
+  No slot announces itself during a drag; only the one the magnet chose does,
+  which `.drop-zone[data-over]` handles further down.
+
+  Every slot used to show "Suelta aquí" at once, which is exactly why the label
+  appeared directly above and below the block being dragged — those two are not
+  destinations at all. A row of identical invitations was also just noise: the
+  student is not picking from a list, they are moving a pointer and one slot
+  answers.
+*/
 
 /* The block being moved fades where it came from, so the canvas shows one
    block in flight rather than the same block apparently in two places. */
@@ -673,7 +680,13 @@ body[data-dragging] .drop-zone .drop-zone__hint {
   Leaving them in place and marking nothing says the true thing — hovering
   where you already are is not a move.
 */
-.statement-block[data-lifted] ~ .drop-zone__hint {
+/*
+  A slot the dragged block already sits between says nothing. `data-own` is set
+  by the magnet, from the same geometry that decides it is not a target — the
+  previous attempt used its own selector, guessed the markup wrong, and left
+  the labels showing while the magnet had already ruled them out.
+*/
+.drop-zone[data-own] .drop-zone__hint {
   opacity: 0;
 }
 
