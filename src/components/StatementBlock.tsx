@@ -15,6 +15,7 @@ import { conceptForStatement } from '../content/concepts';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
 import { Picker } from './Picker';
+import { PLACEHOLDER_NAME } from '../core/ast/factory';
 import { VariablePicker } from './VariablePicker';
 import { statementCategory, statementIcon, typeIcon } from './statementMeta';
 import './StatementBlock.css';
@@ -385,9 +386,28 @@ function StatementBody({
               value={currentName}
               variables={variables}
               onChange={setName}
+              /* What `createStatement` fills in when a block is dropped. Until
+                 the student picks something, the field shows empty rather than
+                 naming a variable no algorithm has. */
+              placeholder={PLACEHOLDER_NAME}
             />
           ) : (
-            nameField
+            /*
+              Nothing declared yet, so there is no list to choose from. The
+              field shows empty rather than the placeholder: `cambiar x` when
+              no `x` exists states something untrue, and the student would have
+              to notice and delete it before typing.
+            */
+            <input
+              className="statement-block__name"
+              value={currentName === PLACEHOLDER_NAME ? '' : currentName}
+              onChange={(event) => setName(event.target.value)}
+              onBlur={(event) => setName(sanitizeName(event.target.value, currentName || 'x'))}
+              aria-label={d.fields.name}
+              placeholder="···"
+              style={{ width: `${Math.max(currentName.length, 3) + 2}ch` }}
+              spellCheck={false}
+            />
           )}
           <Keyword muted>=</Keyword>
           <ExpressionEditor

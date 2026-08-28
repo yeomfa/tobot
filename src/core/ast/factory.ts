@@ -79,10 +79,25 @@ export function castExpression(expression: Expression, kind: LiteralKind): Expre
 type StatementKind = Statement['kind'];
 
 /**
- * Builds a ready-to-edit statement. New statements are always valid so the
- * student never sees a broken program mid-edit.
+ * The name a new statement carries until the student chooses one.
+ *
+ * Exported because the editor has to be able to recognise it: a placeholder is
+ * not a variable, and offering it in a list of variables suggests one exists.
  */
-export function createStatement(kind: StatementKind, suggestedName = 'x'): Statement {
+export const PLACEHOLDER_NAME = 'x';
+
+/**
+ * Builds a ready-to-edit statement.
+ *
+ * Most kinds come out valid. `assign` cannot: it refers to a variable, and
+ * whether one exists is not something this function knows — so it carries the
+ * placeholder, and the editor shows an empty field until the student picks a
+ * name that does exist.
+ */
+export function createStatement(
+  kind: StatementKind,
+  suggestedName = PLACEHOLDER_NAME,
+): Statement {
   const id = createId();
   switch (kind) {
     case 'comment':
