@@ -1,3 +1,4 @@
+import { isBlockStatement } from '../ast/types';
 import type { NodeId, Statement } from '../ast/types';
 
 /**
@@ -351,7 +352,58 @@ function measureLoop(
   };
 }
 
-export function layoutFlowchart(program: Statement[], labels: FlowLabels): FlowLayout {
+/**
+ * Rewrites `si no, si` arms as nested `si` statements inside the else branch.
+ *
+ * A flowchart is a binary diagram: a diamond has a true side and a false side,
+ * and that is exactly what an else-if arm means — try the next condition on
+ * the false path. Expanding here keeps the layout untouched, and produces the
+ * chain of diamonds a student would draw by hand.
+ *
+ * Ids are preserved, so highlighting the running statement still finds its
+ * shape while the interpreter walks the arms.
+ */
+function expandElseIfs(statements: Statement[]): Statement[] {
+  return statements.map((statement) => {
+    if (statement.kind !== 'if') {
+      if (isBlockStatement(statement)) {
+        const block = statement as Statement & { body: Statement[] };
+        return { ...block, body: expandElseIfs(block.body) };
+      }
+      return statement;
+    }
+
+    const arms = statement.elseIfs ?? [];
+    const tail = statement.otherwise ? expandElseIfs(statement.otherwise) : undefined;
+
+    // Built from the last arm backwards, so each one nests inside the previous
+    // one's else — which is the order the interpreter tries them in.
+    const otherwise = arms.reduceRight<Statement[] | undefined>((rest, arm) => {
+      const nested: Statement = {
+        id: arm.id,
+        kind: 'if',
+        condition: arm.condition,
+        then: expandElseIfs(arm.body),
+        ...(rest ? { otherwise: rest } : {}),
+      };
+      return [nested];
+    }, tail);
+
+    return {
+      id: statement.id,
+      kind: 'if',
+      condition: statement.condition,
+      then: expandElseIfs(statement.then),
+      ...(otherwise ? { otherwise } : {}),
+    };
+  });
+}
+
+export function layoutFlowchart(input: Statement[], labels: FlowLabels): FlowLayout {
+  // Else-if arms become nested decisions before anything is measured, so the
+  // rest of the layout keeps its two-branch assumption.
+  const program = expandElseIfs(input);
+
   const sink: Sink = {
     nodes: [],
     edges: [],

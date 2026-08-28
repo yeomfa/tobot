@@ -17,6 +17,7 @@ export interface Keywords {
   if: string;
   then: string;
   else: string;
+  elseIf: string;
   endIf: string;
   while: string;
   do: string;
@@ -49,6 +50,7 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     if: 'SI',
     then: 'ENTONCES',
     else: 'SI NO',
+    elseIf: 'SI NO, SI',
     endIf: 'FIN SI',
     while: 'MIENTRAS',
     do: 'HACER',
@@ -78,6 +80,7 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     if: 'IF',
     then: 'THEN',
     else: 'ELSE',
+    elseIf: 'ELSE IF',
     endIf: 'END IF',
     while: 'WHILE',
     do: 'DO',
@@ -184,6 +187,10 @@ function emitStatement(statement: Statement, indent: number, kw: Keywords): Emit
     case 'if': {
       const lines: EmittedLine[] = [line(`${kw.if} ${expr(statement.condition)} ${kw.then}`)];
       lines.push(...emitStatements(statement.then, indent + 1, kw));
+      for (const arm of statement.elseIfs ?? []) {
+        lines.push(closing(`${kw.elseIf} ${expr(arm.condition)} ${kw.then}`));
+        lines.push(...emitStatements(arm.body, indent + 1, kw));
+      }
       if (statement.otherwise) {
         lines.push(closing(kw.else));
         lines.push(...emitStatements(statement.otherwise, indent + 1, kw));

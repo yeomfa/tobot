@@ -119,10 +119,31 @@ export interface AskStatement extends StatementBase {
   expect: LiteralKind;
 }
 
+/**
+ * One `si no, si` arm: a condition and the statements it guards.
+ *
+ * Carries an id of its own so the editor can address an arm — a flowchart
+ * highlight, a drop target, a remove button all need to name one.
+ */
+export interface ElseIfBranch {
+  id: NodeId;
+  condition: Expression;
+  body: Statement[];
+}
+
 export interface IfStatement extends StatementBase {
   kind: 'if';
   condition: Expression;
   then: Statement[];
+  /**
+   * Further conditions, tried in order after the first fails.
+   *
+   * A list rather than a nested `if` inside `otherwise`: three alternatives
+   * are three arms of one decision, and nesting them buries the third under
+   * two levels of indentation that say nothing about the problem. Absent on
+   * statements written before this existed, so it is optional.
+   */
+  elseIfs?: ElseIfBranch[];
   /** `undefined` means the student never opened an "otherwise" branch. */
   otherwise?: Statement[];
 }

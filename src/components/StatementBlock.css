@@ -940,3 +940,72 @@ body[data-dragging] .drop-zone[data-over],
     animation: none;
   }
 }
+
+/*
+ * A `si no, si` arm.
+ *
+ * Sits at the same level as `entonces` and `si no` rather than indented inside
+ * the else, because that is what it is: another arm of one decision. Nesting
+ * it would say the third alternative is somehow deeper than the second, which
+ * is exactly the reading that made students nest conditionals by hand.
+ */
+.statement-block__arm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.statement-block__arm-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-left: var(--space-3);
+}
+
+.statement-block__arm-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--block-hue);
+  white-space: nowrap;
+}
+
+.statement-block__arm-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.statement-block__arm-remove svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Revealed with the block, like the other edit actions. */
+.statement-block:hover .statement-block__arm-remove,
+.statement-block__arm-remove:focus-visible {
+  opacity: 1;
+}
+
+.statement-block__arm-remove:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* The two "add a branch" buttons sit on one row rather than stacking, so a
+   conditional does not grow a column of controls under it. */
+.statement-block__branch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

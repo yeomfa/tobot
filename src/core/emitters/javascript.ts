@@ -95,6 +95,12 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
     case 'if': {
       const lines: EmittedLine[] = [line(`if (${expressionToJs(statement.condition)}) {`)];
       lines.push(...emitStatements(statement.then, indent + 1, scope));
+      /* `else if` on one line rather than a nested block, which is both what
+         JavaScript writes and what the blocks now show. */
+      for (const arm of statement.elseIfs ?? []) {
+        lines.push(closing(`} else if (${expressionToJs(arm.condition)}) {`));
+        lines.push(...emitStatements(arm.body, indent + 1, scope));
+      }
       if (statement.otherwise) {
         lines.push(closing('} else {'));
         lines.push(...emitStatements(statement.otherwise, indent + 1, scope));

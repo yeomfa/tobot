@@ -339,9 +339,25 @@ export class Interpreter {
       }
 
       case 'if': {
-        const branch = this.truthy(this.evaluate(statement.condition))
-          ? statement.then
-          : (statement.otherwise ?? []);
+        /*
+          The arms are tried in order and the first that holds wins, which is
+          what makes them alternatives rather than separate decisions: once one
+          runs, none of the others is even evaluated.
+        */
+        let branch: Statement[] | null = null;
+
+        if (this.truthy(this.evaluate(statement.condition))) {
+          branch = statement.then;
+        } else {
+          for (const arm of statement.elseIfs ?? []) {
+            if (this.truthy(this.evaluate(arm.condition))) {
+              branch = arm.body;
+              break;
+            }
+          }
+          branch ??= statement.otherwise ?? [];
+        }
+
         if (branch.length > 0) this.stack.push({ statements: branch, index: 0 });
         return;
       }

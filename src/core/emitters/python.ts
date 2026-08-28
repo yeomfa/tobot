@@ -72,6 +72,10 @@ function emitStatement(statement: Statement, indent: number): EmittedLine[] {
     case 'if': {
       const lines: EmittedLine[] = [line(`if ${expr(statement.condition)}:`)];
       lines.push(...emitStatements(statement.then, indent + 1));
+      for (const arm of statement.elseIfs ?? []) {
+        lines.push(closing(`elif ${expr(arm.condition)}:`));
+        lines.push(...emitStatements(arm.body, indent + 1));
+      }
       if (statement.otherwise) {
         lines.push(closing('else:'));
         lines.push(...emitStatements(statement.otherwise, indent + 1));

@@ -7,7 +7,7 @@ import {
 } from '@phosphor-icons/react';
 import { memo, useState } from 'react';
 
-import { castExpression, createStatement } from '../core/ast/factory';
+import { castExpression, createId, createStatement, literal } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
 import type { LiteralKind, NodeId, Statement } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
@@ -250,6 +250,70 @@ export const StatementBlock = memo(function StatementBlock({
             erroredNodeId={erroredNodeId}
             depth={depth + 1}
           />
+          {/*
+            Each alternative condition is an arm of this decision rather than a
+            decision nested inside it: three alternatives read as three arms,
+            where nesting buries the third under two levels of indentation that
+            say nothing about the problem.
+          */}
+          {statement.elseIfs?.map((arm) => (
+            <div className="statement-block__arm" key={arm.id}>
+              <div className="statement-block__arm-head">
+                <span className="statement-block__arm-label">{d.editor.elseIf}</span>
+                <ExpressionEditor
+                  value={arm.condition}
+                  onChange={(condition) =>
+                    callbacks.update(statement.id, (current) =>
+                      current.kind === 'if'
+                        ? {
+                            ...current,
+                            elseIfs: current.elseIfs?.map((each) =>
+                              each.id === arm.id ? { ...each, condition } : each,
+                            ),
+                          }
+                        : current,
+                    )
+                  }
+                  variables={variables}
+                  mode="condition"
+                  expect="boolean"
+                />
+                <button
+                  type="button"
+                  className="statement-block__arm-remove"
+                  onClick={() =>
+                    callbacks.update(statement.id, (current) =>
+                      current.kind === 'if'
+                        ? {
+                            ...current,
+                            elseIfs: current.elseIfs?.filter((each) => each.id !== arm.id),
+                          }
+                        : current,
+                    )
+                  }
+                  title={d.actions.removeElse}
+                  aria-label={d.actions.removeElse}
+                >
+                  <Trash weight="bold" />
+                </button>
+              </div>
+              <Branch
+                label={d.editor.then}
+                statements={arm.body}
+                /* The arm is the parent: it has an id of its own, so blocks
+                   drop into it like any other body. */
+                parentId={arm.id}
+                slot="body"
+                variables={variables}
+                problems={problems}
+                callbacks={callbacks}
+                activeNodeId={activeNodeId}
+                erroredNodeId={erroredNodeId}
+                depth={depth + 1}
+              />
+            </div>
+          ))}
+
           {statement.otherwise ? (
             <Branch
               label={d.editor.otherwise}
@@ -268,19 +332,45 @@ export const StatementBlock = memo(function StatementBlock({
                 )
               }
             />
-          ) : (
+          ) : null}
+
+          <div className="statement-block__branch-actions">
+            {/* Another condition, appended after the existing arms so the order
+                on screen is the order they are tried in. */}
             <button
               type="button"
               className="statement-block__add-else"
               onClick={() =>
                 callbacks.update(statement.id, (current) =>
-                  current.kind === 'if' ? { ...current, otherwise: [] } : current,
+                  current.kind === 'if'
+                    ? {
+                        ...current,
+                        elseIfs: [
+                          ...(current.elseIfs ?? []),
+                          { id: createId(), condition: literal(true, 'boolean'), body: [] },
+                        ],
+                      }
+                    : current,
                 )
               }
             >
-              + {d.actions.addElse}
+              + {d.actions.addElseIf}
             </button>
-          )}
+
+            {!statement.otherwise && (
+              <button
+                type="button"
+                className="statement-block__add-else"
+                onClick={() =>
+                  callbacks.update(statement.id, (current) =>
+                    current.kind === 'if' ? { ...current, otherwise: [] } : current,
+                  )
+                }
+              >
+                + {d.actions.addElse}
+              </button>
+            )}
+          </div>
         </div>
       )}
 

@@ -57,6 +57,19 @@ function mapSlot(
 
     if (statement.kind === 'if') {
       const next = { ...statement, then: mapSlot(statement.then, parentId, slot, transform) };
+      /*
+        An else-if arm is addressed by its own id with slot 'body', rather than
+        by adding a slot name per arm: the arms are a list, so their count is
+        not known to the Slot type, and giving each one an id makes it a parent
+        like any other block.
+      */
+      if (statement.elseIfs) {
+        next.elseIfs = statement.elseIfs.map((arm) =>
+          arm.id === parentId && slot === 'body'
+            ? { ...arm, body: transform(arm.body) }
+            : { ...arm, body: mapSlot(arm.body, parentId, slot, transform) },
+        );
+      }
       if (statement.otherwise) {
         next.otherwise = mapSlot(statement.otherwise, parentId, slot, transform);
       }
@@ -87,6 +100,12 @@ export function removeStatement(statements: Statement[], id: NodeId): Statement[
 
     if (statement.kind === 'if') {
       const next = { ...statement, then: removeStatement(statement.then, id) };
+      if (statement.elseIfs) {
+        next.elseIfs = statement.elseIfs.map((arm) => ({
+          ...arm,
+          body: removeStatement(arm.body, id),
+        }));
+      }
       if (statement.otherwise) next.otherwise = removeStatement(statement.otherwise, id);
       return [next];
     }
@@ -110,6 +129,12 @@ export function updateStatement(
 
     if (statement.kind === 'if') {
       const next = { ...statement, then: updateStatement(statement.then, id, update) };
+      if (statement.elseIfs) {
+        next.elseIfs = statement.elseIfs.map((arm) => ({
+          ...arm,
+          body: updateStatement(arm.body, id, update),
+        }));
+      }
       if (statement.otherwise) next.otherwise = updateStatement(statement.otherwise, id, update);
       return next;
     }
@@ -128,6 +153,10 @@ export function findStatement(statements: Statement[], id: NodeId): Statement | 
     if (statement.kind === 'if') {
       const hit =
         findStatement(statement.then, id) ??
+        statement.elseIfs?.reduce<Statement | null>(
+          (found, arm) => found ?? findStatement(arm.body, id),
+          null,
+        ) ??
         (statement.otherwise ? findStatement(statement.otherwise, id) : null);
       if (hit) return hit;
       continue;
@@ -229,6 +258,7 @@ export function collectVariables(statements: Statement[]): string[] {
       if (statement.kind === 'forEach') add(statement.variable);
       if (statement.kind === 'if') {
         walk(statement.then);
+        for (const arm of statement.elseIfs ?? []) walk(arm.body);
         if (statement.otherwise) walk(statement.otherwise);
       } else if (isBlockStatement(statement)) {
         walk((statement as { body: Statement[] }).body);
@@ -305,6 +335,11 @@ export function renameVariable(
             ...statement,
             condition: inExpression(statement.condition),
             then: walk(statement.then),
+            elseIfs: statement.elseIfs?.map((arm) => ({
+              ...arm,
+              condition: inExpression(arm.condition),
+              body: walk(arm.body),
+            })),
             otherwise: statement.otherwise ? walk(statement.otherwise) : statement.otherwise,
           };
         case 'while':
@@ -360,6 +395,10 @@ export function countReferences(statements: Statement[], name: string): number {
       else if (statement.kind === 'if') {
         inExpression(statement.condition);
         walk(statement.then);
+        for (const arm of statement.elseIfs ?? []) {
+          inExpression(arm.condition);
+          walk(arm.body);
+        }
         if (statement.otherwise) walk(statement.otherwise);
       } else if (statement.kind === 'while') {
         inExpression(statement.condition);

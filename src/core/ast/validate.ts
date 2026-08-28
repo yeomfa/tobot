@@ -75,6 +75,7 @@ function loopCanProgress(condition: Expression, body: Statement[]): boolean {
       if (statement.kind === 'ask') assigned.add(statement.target);
       if (statement.kind === 'if') {
         walk(statement.then);
+        for (const arm of statement.elseIfs ?? []) walk(arm.body);
         if (statement.otherwise) walk(statement.otherwise);
       } else if (isBlockStatement(statement)) {
         walk((statement as { body: Statement[] }).body);
@@ -166,14 +167,26 @@ export function validate(program: Statement[]): Problem[] {
           declared.add(statement.target);
           break;
 
-        case 'if':
+        case 'if': {
           checkExpression(statement.condition, statement.id);
-          if (statement.then.length === 0 && (statement.otherwise?.length ?? 0) === 0) {
+          const arms = statement.elseIfs ?? [];
+          // Every arm's condition is checked too, and against the statement's
+          // own id, so a problem inside one still marks the block it is in.
+          for (const arm of arms) checkExpression(arm.condition, statement.id);
+
+          const nothingAnywhere =
+            statement.then.length === 0 &&
+            arms.every((arm) => arm.body.length === 0) &&
+            (statement.otherwise?.length ?? 0) === 0;
+          if (nothingAnywhere) {
             problems.push({ nodeId: statement.id, severity: 'warning', messageKey: 'emptyBranches' });
           }
+
           walk(statement.then);
+          for (const arm of arms) walk(arm.body);
           if (statement.otherwise) walk(statement.otherwise);
           break;
+        }
 
         case 'while':
           checkExpression(statement.condition, statement.id);

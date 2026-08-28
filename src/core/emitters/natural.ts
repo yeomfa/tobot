@@ -14,6 +14,7 @@ interface Phrases {
   ask: (prompt: string, target: string) => string;
   if: (condition: string) => string;
   else: string;
+  elseIf: (condition: string) => string;
   endIf: string;
   while: (condition: string) => string;
   endWhile: string;
@@ -37,6 +38,7 @@ const PHRASES: Record<Language, Phrases> = {
     ask: (prompt, target) => `El robot pregunta ${prompt} y guarda la respuesta en ${target}.`,
     if: (condition) => `Si ${condition}, entonces:`,
     else: 'En caso contrario:',
+    elseIf: (condition) => `Si no, si ${condition}, entonces:`,
     endIf: 'Aquí termina la decisión.',
     while: (condition) => `Mientras ${condition}, repite lo siguiente:`,
     endWhile: 'Aquí termina el ciclo.',
@@ -75,6 +77,7 @@ const PHRASES: Record<Language, Phrases> = {
     ask: (prompt, target) => `The robot asks ${prompt} and stores the answer in ${target}.`,
     if: (condition) => `If ${condition}, then:`,
     else: 'Otherwise:',
+    elseIf: (condition) => `Otherwise, if ${condition}, then:`,
     endIf: 'The decision ends here.',
     while: (condition) => `While ${condition}, repeat the following:`,
     endWhile: 'The loop ends here.',
@@ -179,6 +182,10 @@ function emitStatement(
     case 'if': {
       const lines: EmittedLine[] = [line(phrases.if(expr(statement.condition)))];
       lines.push(...emitStatements(statement.then, indent + 1, number, phrases));
+      statement.elseIfs?.forEach((arm, index) => {
+        lines.push(closing(phrases.elseIf(expr(arm.condition))));
+        lines.push(...emitStatements(arm.body, indent + 1, `${number}.${index + 2}`, phrases));
+      });
       if (statement.otherwise) {
         lines.push(closing(phrases.else));
         lines.push(...emitStatements(statement.otherwise, indent + 1, `${number}b`, phrases));

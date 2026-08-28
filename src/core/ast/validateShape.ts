@@ -1,3 +1,4 @@
+import { createId } from './factory';
 import type { Expression, LiteralKind, Statement } from './types';
 
 /**
@@ -138,11 +139,29 @@ function sanitizeStatement(value: unknown, depth: number, budget: Budget): State
       const otherwise = Array.isArray(value.otherwise)
         ? sanitizeList(value.otherwise, next, budget)
         : undefined;
+      /*
+        Each arm is checked like the statement itself: an arm whose condition
+        is not a valid expression is dropped rather than kept with a broken
+        one, since imported JSON is the one place a malformed tree can arrive.
+      */
+      const elseIfs = Array.isArray(value.elseIfs)
+        ? value.elseIfs
+            .filter(
+              (arm): arm is Record<string, unknown> =>
+                typeof arm === 'object' && arm !== null && isExpression((arm as Record<string, unknown>).condition, next),
+            )
+            .map((arm) => ({
+              id: typeof arm.id === 'string' ? arm.id : createId(),
+              condition: arm.condition as Expression,
+              body: sanitizeList(arm.body, next, budget),
+            }))
+        : undefined;
       return {
         id,
         kind: 'if',
         condition: value.condition,
         then: sanitizeList(value.then, next, budget),
+        ...(elseIfs && elseIfs.length > 0 ? { elseIfs } : {}),
         ...(otherwise ? { otherwise } : {}),
       };
     }
