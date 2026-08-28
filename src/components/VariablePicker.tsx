@@ -7,12 +7,6 @@ interface VariablePickerProps {
   /** Names in scope at this point in the algorithm. */
   variables: string[];
   onChange: (name: string) => void;
-  /**
-   * A name the student never chose — the placeholder a freshly dropped
-   * statement carries. It is shown as empty rather than offered as an option,
-   * because listing it invites picking a variable that does not exist.
-   */
-  placeholder?: string;
 }
 
 /**
@@ -26,22 +20,16 @@ interface VariablePickerProps {
  * The styling lives with the component rather than under `.expr`, which is
  * what had confined the variable colour to expressions.
  */
-export function VariablePicker({
-  value,
-  variables,
-  onChange,
-  placeholder,
-}: VariablePickerProps) {
+export function VariablePicker({ value, variables, onChange }: VariablePickerProps) {
   const { d } = useTranslation();
 
   /*
-    Whether this name is one the student put there. A statement dropped from
-    the palette arrives holding the factory's placeholder, which nothing
-    declared and nobody typed — offering it as a choice made the list read as
-    if a variable called `x` existed somewhere.
+    A name that is set but declared nowhere. An unnamed statement holds the
+    empty string, which is not a reference to anything and so is not one of
+    these — new statements start unnamed rather than carrying a stand-in name,
+    which is what used to put a phantom `x` in scope.
   */
-  const chosen = value !== placeholder;
-  const dangling = value !== '' && chosen && !variables.includes(value);
+  const dangling = value !== '' && !variables.includes(value);
 
   return (
     <Picker
@@ -50,10 +38,9 @@ export function VariablePicker({
         {
           options: [
             /*
-              A name the student did choose stays listed even when nothing
-              declares it: the reference is broken either way, and quietly
-              repointing it hides which name was wrong. A placeholder is not
-              that — it was never a choice, so it is not offered as one.
+              A name the student typed that nothing declares stays listed: the
+              reference is broken either way, and quietly repointing it hides
+              which name was wrong.
             */
             ...(dangling ? [{ value, label: value }] : []),
             ...variables.map((name) => ({ value: name, label: name })),

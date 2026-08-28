@@ -15,7 +15,6 @@ import { conceptForStatement } from '../content/concepts';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
 import { Picker } from './Picker';
-import { PLACEHOLDER_NAME } from '../core/ast/factory';
 import { VariablePicker } from './VariablePicker';
 import { statementCategory, statementIcon, typeIcon } from './statementMeta';
 import './StatementBlock.css';
@@ -299,8 +298,15 @@ function StatementBody({
       className="statement-block__name"
       value={currentName}
       onChange={(event) => setName(event.target.value)}
-      onBlur={(event) => setName(sanitizeName(event.target.value, currentName || 'x'))}
+      /*
+        An empty name stays empty. Substituting a default here would put a
+        variable in scope that the student never wrote, which is exactly what
+        the `x` placeholder used to do — validation already reports the missing
+        name, and that is the honest way to say it.
+      */
+      onBlur={(event) => setName(sanitizeName(event.target.value, currentName))}
       aria-label={d.fields.name}
+      placeholder="···"
       style={{ width: `${Math.max(currentName.length, 3) + 2}ch` }}
       spellCheck={false}
     />
@@ -386,28 +392,10 @@ function StatementBody({
               value={currentName}
               variables={variables}
               onChange={setName}
-              /* What `createStatement` fills in when a block is dropped. Until
-                 the student picks something, the field shows empty rather than
-                 naming a variable no algorithm has. */
-              placeholder={PLACEHOLDER_NAME}
             />
           ) : (
-            /*
-              Nothing declared yet, so there is no list to choose from. The
-              field shows empty rather than the placeholder: `cambiar x` when
-              no `x` exists states something untrue, and the student would have
-              to notice and delete it before typing.
-            */
-            <input
-              className="statement-block__name"
-              value={currentName === PLACEHOLDER_NAME ? '' : currentName}
-              onChange={(event) => setName(event.target.value)}
-              onBlur={(event) => setName(sanitizeName(event.target.value, currentName || 'x'))}
-              aria-label={d.fields.name}
-              placeholder="···"
-              style={{ width: `${Math.max(currentName.length, 3) + 2}ch` }}
-              spellCheck={false}
-            />
+            /* Nothing declared yet, so there is no list to choose from. */
+            nameField
           )}
           <Keyword muted>=</Keyword>
           <ExpressionEditor

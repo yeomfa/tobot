@@ -79,12 +79,17 @@ export function castExpression(expression: Expression, kind: LiteralKind): Expre
 type StatementKind = Statement['kind'];
 
 /**
- * The name a new statement carries until the student chooses one.
+ * The name a new statement carries until the student names it: none.
  *
- * Exported because the editor has to be able to recognise it: a placeholder is
- * not a variable, and offering it in a list of variables suggests one exists.
+ * It used to be `'x'`, which `collectVariables` then reported as a declared
+ * variable — so dropping "crear variable" put an `x` in scope that nobody had
+ * written, and every other block offered it. Filtering it out at the picker
+ * only hid half of that: the name was still in the algorithm, still in the
+ * generated code, still in the natural-language view.
+ *
+ * Empty says the true thing. Nothing is declared until the student declares it.
  */
-export const PLACEHOLDER_NAME = 'x';
+export const PLACEHOLDER_NAME = '';
 
 /**
  * Builds a ready-to-edit statement.

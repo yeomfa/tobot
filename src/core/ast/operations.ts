@@ -209,14 +209,24 @@ export function moveStatement(
   return insertStatement(without, moving, { ...destination, index });
 }
 
-/** Collects declared variable names visible to the student, in document order. */
+/**
+ * Collects declared variable names visible to the student, in document order.
+ *
+ * A statement that has not been named yet contributes nothing. New statements
+ * arrive unnamed, and counting that as a declaration is what put a variable in
+ * scope that nobody had written — every other block then offered it as a real
+ * choice, because by then it was one.
+ */
 export function collectVariables(statements: Statement[]): string[] {
   const names: string[] = [];
+  const add = (name: string): void => {
+    if (name !== '') names.push(name);
+  };
   const walk = (list: Statement[]): void => {
     for (const statement of list) {
-      if (statement.kind === 'declare') names.push(statement.name);
-      if (statement.kind === 'ask') names.push(statement.target);
-      if (statement.kind === 'forEach') names.push(statement.variable);
+      if (statement.kind === 'declare') add(statement.name);
+      if (statement.kind === 'ask') add(statement.target);
+      if (statement.kind === 'forEach') add(statement.variable);
       if (statement.kind === 'if') {
         walk(statement.then);
         if (statement.otherwise) walk(statement.otherwise);
