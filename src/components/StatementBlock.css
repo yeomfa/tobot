@@ -663,25 +663,18 @@ body[data-dragging] .drop-zone .drop-zone__hint {
 }
 
 /*
-  The slots either side of the block being dragged lead back to where it
-  already is, so they are removed rather than merely disabled: showing "Suelta
-  aquí" immediately above and below the block in your hand offers two choices
-  that are really none.
+  The slots either side of the block being dragged stay in the layout but stop
+  being offered — `useMagneticDrop` returns no target while the pointer is over
+  the block's own position.
 
-  Both neighbours, and only one of them lives where you would expect. Each
-  `.editor__item` holds its block followed by the slot *after* it, so the slot
-  above a block belongs to the previous item — except for the first block,
-  whose slot is a direct child of the list. Three selectors, because the
-  markup gives the two neighbours three possible homes.
-
-  `display: none` rather than `pointer-events: none`: disabling a slot the
-  student can still see is the confusing half of the problem, not the useful
-  half.
+  Hiding them was the wrong fix, and worse than the problem: removing them made
+  the magnet reach for the next nearest, which sat up to a hundred pixels away,
+  so hovering your own block proposed dropping it somewhere else entirely.
+  Leaving them in place and marking nothing says the true thing — hovering
+  where you already are is not a move.
 */
-.editor__item:has(> .statement-block[data-lifted]) > .drop-zone,
-.editor__item:has(+ .editor__item > .statement-block[data-lifted]) > .drop-zone,
-.editor__list > .drop-zone:has(+ .editor__item > .statement-block[data-lifted]) {
-  display: none;
+.statement-block[data-lifted] ~ .drop-zone__hint {
+  opacity: 0;
 }
 
 /* An empty branch shows a persistent target so it never looks broken. */

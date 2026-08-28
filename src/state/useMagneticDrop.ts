@@ -36,6 +36,7 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
     const nearest = (x: number, y: number): HTMLElement | null => {
       let best: HTMLElement | null = null;
       let bestDistance = Infinity;
+      let bestIsOwn = false;
 
 
       /*
@@ -48,20 +49,35 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
         Only for a block already in the algorithm — dragging a new one from the
         palette has no current position, so every slot is a real destination.
       */
+      /*
+        While a block is over its own position, nothing is highlighted.
+
+        Its two neighbouring slots are where it already is, so neither is a
+        move — but skipping them and taking the next nearest is worse than
+        offering them: the winner then sits up to a hundred pixels away, and
+        the block would land somewhere the student never pointed at. Hovering
+        your own block means "I have not chosen yet", so the honest answer is
+        no target at all.
+
+        The slots are found by geometry rather than by walking the markup: the
+        list nests branches inside blocks, so "the slot above" is not reliably
+        a sibling, and a wrong guess here silently disables the wrong slot.
+      */
       const lifted = root.querySelector<HTMLElement>('.statement-block[data-lifted]');
-      const dead = new Set<Element>();
-      if (lifted) {
-        const item = lifted.closest('.editor__item') ?? lifted.parentElement;
-        const before = item?.previousElementSibling;
-        if (before?.classList.contains('drop-zone')) dead.add(before);
-        for (const child of item?.children ?? []) {
-          if (child.classList.contains('drop-zone')) dead.add(child);
-        }
-      }
+      const home = lifted?.getBoundingClientRect() ?? null;
+      const isOwn = (box: DOMRect): boolean =>
+        home !== null &&
+        box.left < home.right &&
+        box.right > home.left &&
+        Math.abs(box.top + box.height / 2 - home.top) < 24;
+
+      const isOwnBelow = (box: DOMRect): boolean =>
+        home !== null &&
+        box.left < home.right &&
+        box.right > home.left &&
+        Math.abs(box.top + box.height / 2 - home.bottom) < 24;
 
       for (const zone of root.querySelectorAll<HTMLElement>('.drop-zone')) {
-        if (dead.has(zone)) continue;
-
         const box = zone.getBoundingClientRect();
         // A zone inside a collapsed branch has no size and cannot be a target.
         if (box.height === 0 && box.width === 0) continue;
@@ -81,9 +97,13 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
         if (distance < bestDistance) {
           bestDistance = distance;
           best = zone;
+          bestIsOwn = isOwn(box) || isOwnBelow(box);
         }
       }
-      return best;
+
+      // The nearest slot is one the block already sits between: no move to
+      // offer, so nothing is marked rather than something far away.
+      return bestIsOwn ? null : best;
     };
 
     const onDragOver = (event: DragEvent): void => {
