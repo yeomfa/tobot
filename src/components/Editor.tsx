@@ -1,9 +1,10 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useRef } from 'react';
 
 import { collectVariables } from '../core/ast/operations';
 import { problemsByNode, validate } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
+import { useMagneticDrop } from '../state/useMagneticDrop';
 import { DropZone, StatementBlock } from './StatementBlock';
 import type { BlockCallbacks } from './StatementBlock';
 import './Editor.css';
@@ -35,9 +36,13 @@ export const Editor = memo(function Editor({
   // cheaper than tracking which statement changed.
   const problems = useMemo(() => problemsByNode(validate(algorithm.body)), [algorithm.body]);
 
+  const canvas = useRef<HTMLDivElement>(null);
+  useMagneticDrop(canvas);
+
   return (
     <section className="editor" aria-label={d.a11y.algorithmEditor}>
-      <div className="editor__canvas">
+      {/* The whole canvas accepts the drag; the nearest zone claims it. */}
+      <div className="editor__canvas" ref={canvas}>
         {count === 0 && (
           <div className="editor__empty">
             <p className="editor__empty-title">{d.editor.empty}</p>

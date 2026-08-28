@@ -593,13 +593,15 @@
   transition: height var(--duration-fast) var(--ease-out);
 }
 
-/**
- * An 8px gap is a hard target to hit mid-drag. While a drag is in progress the
- * body carries `data-dragging`, which grows every zone into a comfortable
- * target; at rest they stay thin so the algorithm reads as a tight list.
+/*
+ * Zones no longer need to grow to be hittable: the nearest one claims the
+ * drag wherever the pointer is, so aiming is not part of the interaction any
+ * more. They lift a little during a drag purely to show the list has places to
+ * go — and staying slim keeps the algorithm from reflowing under the block
+ * being moved, which used to make the drop point a moving target.
  */
 body[data-dragging] .drop-zone {
-  height: 26px;
+  height: 14px;
 }
 
 body[data-dragging] .drop-zone .drop-zone__hint {
