@@ -106,10 +106,15 @@ export const StatementBlock = memo(function StatementBlock({
         event.dataTransfer.setData('text/tobot-move', statement.id);
         event.dataTransfer.effectAllowed = 'move';
         event.stopPropagation();
-        // Widens every drop zone for the duration of the drag.
+        // Tells the canvas a drag is running, and marks this block as the one
+        // in flight so it can fade where it used to be.
         document.body.setAttribute('data-dragging', 'true');
+        event.currentTarget.setAttribute('data-lifted', 'true');
       }}
-      onDragEnd={() => document.body.removeAttribute('data-dragging')}
+      onDragEnd={(event) => {
+        event.currentTarget.removeAttribute('data-lifted');
+        document.body.removeAttribute('data-dragging');
+      }}
     >
       <div className="statement-block__row">
         <span className="statement-block__handle" aria-label={d.a11y.dragHandle}>
@@ -662,12 +667,15 @@ export function DropZone({ location, callbacks, empty }: DropZoneProps) {
     <li
       className="drop-zone"
       data-empty={empty || undefined}
-      onDragOver={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        event.currentTarget.setAttribute('data-over', 'true');
-      }}
-      onDragLeave={(event) => event.currentTarget.removeAttribute('data-over')}
+      /*
+        No dragover or dragleave of its own. `useMagneticDrop` decides which
+        zone is highlighted, and a zone that also managed its own `data-over`
+        fought that: crossing one cleared the mark the magnet had just set, so
+        the highlight vanished exactly when the pointer was nearest a slot.
+
+        The drop handler stays, because what a zone accepts is still a zone's
+        business — the magnet only forwards to it.
+      */
       onDrop={(event) => {
         event.preventDefault();
         event.stopPropagation();

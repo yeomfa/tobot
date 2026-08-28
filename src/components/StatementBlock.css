@@ -587,10 +587,15 @@
 .drop-zone {
   position: relative;
   height: 10px;
+  /* Opening and closing is the whole visual language of the magnet, so the
+     transition covers everything that changes, not just the height. */
   /* The hint is taller than the collapsed strip, so it is clipped rather than
      forcing the zone to grow. */
   overflow: hidden;
-  transition: height var(--duration-fast) var(--ease-out);
+  transition:
+    height var(--duration-base) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 /*
@@ -606,6 +611,12 @@ body[data-dragging] .drop-zone {
 
 body[data-dragging] .drop-zone .drop-zone__hint {
   opacity: 0.55;
+}
+
+/* The block being moved fades where it came from, so the canvas shows one
+   block in flight rather than the same block apparently in two places. */
+.statement-block[data-lifted] {
+  opacity: 0.4;
 }
 
 /* An empty branch shows a persistent target so it never looks broken. */
@@ -637,21 +648,63 @@ body[data-dragging] .drop-zone .drop-zone__hint {
   opacity: 1;
 }
 
+/*
+ * The winning slot: a gap that opens where the block will land.
+ *
+ * A dashed box was the wrong picture. It read as a container the block goes
+ * *into*, which is what a branch does, not what a position between two
+ * statements does — and it looked the same whether the magnet had chosen it or
+ * the pointer merely happened to be over it.
+ *
+ * Opening real space instead says the thing that matters: the list has already
+ * made room, and this is the shape of what is about to sit there. A solid bar
+ * marks the insertion line, and the whole slot animates open so the eye
+ * follows it from one gap to the next rather than seeing marks blink on and
+ * off at a distance from the cursor.
+ */
+/*
+  `body[data-dragging]` selects a zone just as specifically as `[data-over]`
+  and is declared earlier, so the highlighted slot needs the body qualifier
+  too — without it the collapsed 14px won and the "open slot" never opened,
+  which is what made the indicator look flat.
+*/
+body[data-dragging] .drop-zone[data-over],
 .drop-zone[data-over] {
-  height: 34px;
+  /* The height of a statement, so the gap is the size of what will fill it. */
+  height: 52px;
   display: flex;
   align-items: center;
-  padding-left: var(--space-2);
-  background: var(--accent-soft);
-  border: 1px dashed var(--accent);
-  border-radius: var(--radius-sm);
-  margin: var(--space-1) 0;
+  padding-left: var(--space-3);
+  margin: var(--space-2) 0;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: var(--radius-md);
+  /* The insertion line itself, thick enough to read as a landing edge. */
+  box-shadow: inset 4px 0 0 0 var(--accent);
 }
 
 .drop-zone[data-over] .drop-zone__hint {
   opacity: 1;
   color: var(--accent-strong);
-  font-weight: 600;
+  font-weight: 650;
+  /* Nudged with the slot as it opens, so the label arrives with the space
+     rather than sitting still while the gap grows around it. */
+  animation: drop-slot-label var(--duration-base) var(--ease-out);
+}
+
+@keyframes drop-slot-label {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-zone,
+  .drop-zone[data-over] .drop-zone__hint {
+    transition: none;
+    animation: none;
+  }
 }
 
 /*

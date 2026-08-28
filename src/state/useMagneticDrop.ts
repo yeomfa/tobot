@@ -37,6 +37,7 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
       let best: HTMLElement | null = null;
       let bestDistance = Infinity;
 
+
       for (const zone of root.querySelectorAll<HTMLElement>('.drop-zone')) {
         const box = zone.getBoundingClientRect();
         // A zone inside a collapsed branch has no size and cannot be a target.
@@ -44,7 +45,15 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
 
         const dy = y - (box.top + box.height / 2);
         const dx = x < box.left ? box.left - x : x > box.right ? x - box.right : 0;
-        const distance = Math.hypot(dx, dy);
+
+        /*
+          Horizontal distance counts for more than vertical. Slots are stacked,
+          so a few pixels sideways can mean a different branch entirely while a
+          few pixels up or down usually means the same place — weighting them
+          equally made the magnet jump into nested branches whose left edge the
+          pointer had merely drifted past.
+        */
+        const distance = Math.hypot(dx * 2.5, dy);
 
         if (distance < bestDistance) {
           bestDistance = distance;
@@ -107,9 +116,27 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
     };
 
     const onDragLeave = (event: DragEvent): void => {
-      // Only when the pointer actually leaves the canvas, not when it crosses
-      // between children — those fire dragleave too.
-      if (!root.contains(event.relatedTarget as Node)) clear();
+      /*
+        Only when the pointer leaves the canvas for good.
+
+        `dragleave` bubbles, so crossing from one child to another fires it
+        here too — and `relatedTarget` is null for a synthetic event or when
+        the pointer moves over a child that is not focusable, which made the
+        highlight vanish the moment the pointer entered a slot. Checking the
+        pointer against the canvas box is the reliable test: it does not
+        depend on what the browser reports as the element being entered.
+      */
+      // A leave carrying no position (0,0) is one bubbling up from a child
+      // rather than the pointer crossing the canvas edge; ignore it.
+      if (event.clientX === 0 && event.clientY === 0) return;
+
+      const box = root.getBoundingClientRect();
+      const inside =
+        event.clientX >= box.left &&
+        event.clientX <= box.right &&
+        event.clientY >= box.top &&
+        event.clientY <= box.bottom;
+      if (!inside) clear();
     };
 
     root.addEventListener('dragover', onDragOver);
