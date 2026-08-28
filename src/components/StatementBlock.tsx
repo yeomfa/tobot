@@ -15,6 +15,7 @@ import { conceptForStatement } from '../content/concepts';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
 import { Picker } from './Picker';
+import { VariablePicker } from './VariablePicker';
 import { statementCategory, statementIcon, typeIcon } from './statementMeta';
 import './StatementBlock.css';
 
@@ -380,27 +381,10 @@ function StatementBody({
             invented rather than referred to.
           */}
           {variables.length > 0 ? (
-            <Picker
+            <VariablePicker
               value={currentName}
-              groups={[
-                {
-                  options: [
-                    // A name that no longer exists stays listed so it can be
-                    // seen and corrected, instead of vanishing into the first
-                    // variable in scope.
-                    // A name nothing declares stays listed rather than being
-                    // swapped silently: the block is wrong, and the student
-                    // needs to see which name is the wrong one.
-                    ...(variables.includes(currentName)
-                      ? []
-                      : [{ value: currentName, label: currentName || '···' }]),
-                    ...variables.map((name) => ({ value: name, label: name })),
-                  ],
-                },
-              ]}
+              variables={variables}
               onChange={setName}
-              label={d.fields.name}
-              variant="value"
             />
           ) : (
             nameField

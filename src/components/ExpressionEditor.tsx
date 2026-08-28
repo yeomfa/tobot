@@ -14,6 +14,7 @@ import { useTranslation } from '../i18n/context';
 import { flattenChain, removeAt } from './chain';
 import { typeIcon } from './statementMeta';
 import { Picker } from './Picker';
+import { VariablePicker } from './VariablePicker';
 import type { PickerGroup } from './Picker';
 import './ExpressionEditor.css';
 
@@ -205,23 +206,10 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       )}
 
       {value.kind === 'variable' && (
-        <Picker
+        <VariablePicker
           value={value.name}
-          groups={[
-            {
-              options: [
-                // A dangling reference stays listed so it can be fixed rather
-                // than silently swapped for something else.
-                ...(variables.includes(value.name)
-                  ? []
-                  : [{ value: value.name, label: value.name || '···' }]),
-                ...variables.map((name) => ({ value: name, label: name })),
-              ],
-            },
-          ]}
+          variables={variables}
           onChange={(name) => onChange({ kind: 'variable', name })}
-          label={d.fields.name}
-          variant="reference"
         />
       )}
 

@@ -298,3 +298,19 @@
   color: var(--text-muted);
   margin-right: 2px;
 }
+
+/*
+  A variable reference keeps its own colour wherever it appears, which is what
+  lets a student pick one out of a sentence at a glance.
+
+  This used to be scoped to `.expr`, so the same control looked like an
+  ordinary field once it was used outside an expression — in `cambiar`, where
+  picking a variable is exactly the same act. Styling it here is what makes the
+  comment above true.
+*/
+.picker[data-variant='reference'] .picker__trigger {
+  color: var(--hue-variable);
+  font-weight: 600;
+  background: var(--hue-variable-soft);
+  border-color: var(--hue-variable-border);
+}
