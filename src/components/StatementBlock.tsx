@@ -97,8 +97,10 @@ export const StatementBlock = memo(function StatementBlock({
       className="statement-block"
       /* Lets the other views scroll this block into view when clicked. */
       data-node-id={statement.id}
-      data-statement-id={statement.id}
       data-category={category}
+      /* Distinguishes statements inside a family: `decir` and `preguntar` are
+         both io, and opposite operations, so they should not look identical. */
+      data-kind={statement.kind}
       data-active={isActive || undefined}
       data-errored={isErrored || undefined}
       data-problem={worst ?? undefined}
@@ -368,7 +370,41 @@ function StatementBody({
       return (
         <>
           <Keyword>{d.verbs.assign}</Keyword>
-          {nameField}
+          {/*
+            Chosen, not typed. `assign` always targets a variable that already
+            exists, so a free-text field could only ever get it right by the
+            student spelling it exactly — and a typo did not raise an error, it
+            quietly wrote to a name nothing had declared.
+
+            `declare` keeps its text field, because that is where a name is
+            invented rather than referred to.
+          */}
+          {variables.length > 0 ? (
+            <Picker
+              value={currentName}
+              groups={[
+                {
+                  options: [
+                    // A name that no longer exists stays listed so it can be
+                    // seen and corrected, instead of vanishing into the first
+                    // variable in scope.
+                    // A name nothing declares stays listed rather than being
+                    // swapped silently: the block is wrong, and the student
+                    // needs to see which name is the wrong one.
+                    ...(variables.includes(currentName)
+                      ? []
+                      : [{ value: currentName, label: currentName || '···' }]),
+                    ...variables.map((name) => ({ value: name, label: name })),
+                  ],
+                },
+              ]}
+              onChange={setName}
+              label={d.fields.name}
+              variant="value"
+            />
+          ) : (
+            nameField
+          )}
           <Keyword muted>=</Keyword>
           <ExpressionEditor
             value={statement.value}
@@ -671,7 +707,7 @@ interface DropZoneProps {
  */
 function announceLanding(id: string): void {
   requestAnimationFrame(() => {
-    const el = document.querySelector<HTMLElement>(`[data-statement-id="${id}"]`);
+    const el = document.querySelector<HTMLElement>(`[data-node-id="${id}"]`);
     if (!el) return;
     el.classList.remove('statement-block--landed');
     // Reading a layout property restarts the animation when the same block is

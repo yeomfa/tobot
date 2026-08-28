@@ -92,6 +92,43 @@
   --block-border: var(--hue-loop-border);
 }
 
+/*
+ * Tones within a family.
+ *
+ * Category colour alone made every statement in a family identical, so `decir`
+ * and `preguntar` — opposite operations, one sending out and one taking in —
+ * were the same block with different words. Reordering two of them looked like
+ * nothing had happened.
+ *
+ * These shift the hue slightly rather than introducing new colours: the family
+ * has to keep reading as one thing, which is what the category colour is for.
+ * Input is pulled toward the cool end and output toward the warm end of the
+ * same cyan, so the pair reads as a direction rather than as two unrelated
+ * kinds.
+ */
+.statement-block[data-kind='ask'] {
+  --block-hue: color-mix(in oklch, var(--hue-io) 82%, var(--hue-variable));
+  --block-soft: color-mix(in oklch, var(--hue-io-soft) 70%, var(--hue-variable-soft));
+  --block-border: color-mix(in oklch, var(--hue-io-border) 72%, var(--hue-variable-border));
+}
+
+/* The loop family splits the same way: a count-controlled repeat is a
+   different shape of thought from a condition-controlled one. */
+.statement-block[data-kind='while'] {
+  --block-hue: color-mix(in oklch, var(--hue-loop) 80%, var(--hue-conditional));
+  --block-soft: color-mix(in oklch, var(--hue-loop-soft) 72%, var(--hue-conditional-soft));
+  --block-border: color-mix(in oklch, var(--hue-loop-border) 72%, var(--hue-conditional-border));
+}
+
+/* Assignment changes a name that already exists; declaring introduces one.
+   The lighter tone marks the one that is not creating anything. */
+.statement-block[data-kind='assign'] {
+  --block-hue: color-mix(in oklch, var(--hue-variable) 84%, var(--hue-io));
+  --block-soft: color-mix(in oklch, var(--hue-variable-soft) 74%, var(--hue-io-soft));
+  --block-border: color-mix(in oklch, var(--hue-variable-border) 74%, var(--hue-io-border));
+}
+
+
 .statement-block:hover {
   border-color: var(--block-hue);
   box-shadow: var(--shadow-sm);
