@@ -50,6 +50,15 @@
   --success-soft: #d9f5ea;
   --danger: #dc2626;
   --danger-soft: #fdeaea;
+  /*
+    Warnings had no colour of their own. The badge borrowed the conditional
+    hue, which made a warning look like a `si` block, and the popover asked
+    for `--warning`, which did not exist — so the two halves of the same
+    message disagreed. Amber, distinct from both the conditional violet-orange
+    and the error red.
+  */
+  --warning: #b45309;
+  --warning-soft: #fdf3e3;
 
   /* Semantic surfaces. */
   --bg-app: var(--slate-50);
@@ -175,6 +184,8 @@
   --success-soft: rgba(5, 150, 105, 0.18);
   --danger: #f87171;
   --danger-soft: rgba(220, 38, 38, 0.18);
+  --warning: #fbbf24;
+  --warning-soft: rgba(180, 83, 9, 0.22);
 
   --code-bg: #0a0f1a;
   --code-surface: #121a2a;
@@ -227,6 +238,8 @@
     --success-soft: rgba(5, 150, 105, 0.18);
     --danger: #f87171;
     --danger-soft: rgba(220, 38, 38, 0.18);
+    --warning: #fbbf24;
+    --warning-soft: rgba(180, 83, 9, 0.22);
 
     --code-bg: #0a0f1a;
     --code-surface: #121a2a;

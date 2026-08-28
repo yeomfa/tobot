@@ -100,32 +100,43 @@
  * were the same block with different words. Reordering two of them looked like
  * nothing had happened.
  *
- * These shift the hue slightly rather than introducing new colours: the family
- * has to keep reading as one thing, which is what the category colour is for.
- * Input is pulled toward the cool end and output toward the warm end of the
- * same cyan, so the pair reads as a direction rather than as two unrelated
- * kinds.
+ * The first attempt mixed the neighbouring family in at 70–80%, which measured
+ * a colour distance of 5 against the 36 that separates two families: correct in
+ * principle, invisible in practice. These shift further, and lean on lightness
+ * as well as hue — a lighter or deeper version of the same colour separates
+ * more reliably at a glance than a small rotation around the wheel.
+ *
+ * They stay recognisably within the family: the category colour is what tells
+ * a student these belong together, and that has to survive.
  */
+
+/*
+  Input is a deeper, bluer version of the family; output stays light. Mixing
+  two neighbouring hues moved the colour only 9 units of RGB distance, against
+  36 between families — hue alone is too small a lever between colours this
+  close. Darkening does the work, and the direction still reads: what comes in
+  weighs more than what goes out.
+*/
 .statement-block[data-kind='ask'] {
-  --block-hue: color-mix(in oklch, var(--hue-io) 82%, var(--hue-variable));
-  --block-soft: color-mix(in oklch, var(--hue-io-soft) 70%, var(--hue-variable-soft));
-  --block-border: color-mix(in oklch, var(--hue-io-border) 72%, var(--hue-variable-border));
+  --block-hue: color-mix(in oklch, var(--hue-io) 72%, var(--hue-variable));
+  --block-soft: color-mix(in oklch, var(--hue-io) 16%, var(--bg-surface));
+  --block-border: color-mix(in oklch, var(--hue-io) 42%, var(--hue-variable-border));
 }
 
-/* The loop family splits the same way: a count-controlled repeat is a
-   different shape of thought from a condition-controlled one. */
+/* A condition-controlled loop is a different shape of thought from a counted
+   one, so `mientras` sits deeper in the same violet. */
 .statement-block[data-kind='while'] {
-  --block-hue: color-mix(in oklch, var(--hue-loop) 80%, var(--hue-conditional));
-  --block-soft: color-mix(in oklch, var(--hue-loop-soft) 72%, var(--hue-conditional-soft));
-  --block-border: color-mix(in oklch, var(--hue-loop-border) 72%, var(--hue-conditional-border));
+  --block-hue: color-mix(in oklch, var(--hue-loop) 70%, var(--hue-conditional));
+  --block-soft: color-mix(in oklch, var(--hue-loop) 15%, var(--bg-surface));
+  --block-border: color-mix(in oklch, var(--hue-loop) 40%, var(--hue-conditional-border));
 }
 
-/* Assignment changes a name that already exists; declaring introduces one.
-   The lighter tone marks the one that is not creating anything. */
+/* `cambiar` alters a name that exists; `declarar` introduces one. The deeper
+   tone marks the one doing something to what is already there. */
 .statement-block[data-kind='assign'] {
-  --block-hue: color-mix(in oklch, var(--hue-variable) 84%, var(--hue-io));
-  --block-soft: color-mix(in oklch, var(--hue-variable-soft) 74%, var(--hue-io-soft));
-  --block-border: color-mix(in oklch, var(--hue-variable-border) 74%, var(--hue-io-border));
+  --block-hue: color-mix(in oklch, var(--hue-variable) 74%, var(--hue-io));
+  --block-soft: color-mix(in oklch, var(--hue-variable) 15%, var(--bg-surface));
+  --block-border: color-mix(in oklch, var(--hue-variable) 42%, var(--hue-io-border));
 }
 
 
@@ -169,7 +180,7 @@
 }
 
 .statement-block[data-problem='warning'] {
-  border-color: color-mix(in srgb, var(--hue-conditional) 40%, var(--block-border));
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--block-border));
 }
 
 /* Brief flash when another view points at this block. */
@@ -389,15 +400,7 @@
 }
 
 
-.statement-block__badge[data-severity='error'] {
-  color: var(--danger);
-  background: var(--danger-soft);
-}
 
-.statement-block__badge[data-severity='warning'] {
-  color: var(--hue-conditional);
-  background: var(--hue-conditional-soft);
-}
 
 /* The badge stays visible even at rest — a problem should not need a hover
    to be noticed — while the edit actions keep hiding. */
@@ -463,14 +466,17 @@
   cursor: help;
 }
 
+/* Both severities are built the same way, from their own token — the warning
+   used to borrow the conditional hue, which made it look like a `si` block
+   rather than like a problem. */
 .statement-block__badge[data-severity='error'] {
   color: var(--danger);
   background: var(--danger-soft);
 }
 
 .statement-block__badge[data-severity='warning'] {
-  color: var(--hue-conditional);
-  background: var(--hue-conditional-soft);
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 /* The badge stays visible even at rest — a problem should not need a hover
