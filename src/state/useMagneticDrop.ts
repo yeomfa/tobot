@@ -38,7 +38,30 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
       let bestDistance = Infinity;
 
 
+      /*
+        The two slots touching the block being dragged are where it already is,
+        so dropping into either changes nothing. Offering them was confusing in
+        a specific way: the student saw "Suelta aquí" directly above and below
+        the block they were holding, which reads as two choices when it is
+        really none.
+
+        Only for a block already in the algorithm — dragging a new one from the
+        palette has no current position, so every slot is a real destination.
+      */
+      const lifted = root.querySelector<HTMLElement>('.statement-block[data-lifted]');
+      const dead = new Set<Element>();
+      if (lifted) {
+        const item = lifted.closest('.editor__item') ?? lifted.parentElement;
+        const before = item?.previousElementSibling;
+        if (before?.classList.contains('drop-zone')) dead.add(before);
+        for (const child of item?.children ?? []) {
+          if (child.classList.contains('drop-zone')) dead.add(child);
+        }
+      }
+
       for (const zone of root.querySelectorAll<HTMLElement>('.drop-zone')) {
+        if (dead.has(zone)) continue;
+
         const box = zone.getBoundingClientRect();
         // A zone inside a collapsed branch has no size and cannot be a target.
         if (box.height === 0 && box.width === 0) continue;

@@ -662,6 +662,22 @@ body[data-dragging] .drop-zone .drop-zone__hint {
   opacity: 0.4;
 }
 
+/*
+  The slots either side of the block being dragged lead back to where it
+  already is, so they stop being targets: the magnet skips them and they stay
+  collapsed. Showing "Suelta aquí" immediately above and below the block in
+  your hand offers two choices that are really none.
+*/
+.editor__item:has(> .statement-block[data-lifted]) > .drop-zone,
+.editor__item:has(> .statement-block[data-lifted]) + .drop-zone,
+.editor__item:has(> .statement-block[data-lifted]) ~ .drop-zone:first-of-type {
+  pointer-events: none;
+}
+
+.editor__item:has(> .statement-block[data-lifted]) > .drop-zone .drop-zone__hint {
+  opacity: 0;
+}
+
 /* An empty branch shows a persistent target so it never looks broken. */
 .drop-zone[data-empty] {
   height: 32px;

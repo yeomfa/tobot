@@ -1,4 +1,8 @@
-import { CaretDownIcon as CaretDown, CheckIcon as Check } from '@phosphor-icons/react';
+import {
+  CaretDownIcon as CaretDown,
+  CheckIcon as Check,
+  DotsThreeIcon as DotsThree,
+} from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 
@@ -115,8 +119,21 @@ export function Picker<T extends string>({
             supplies that context. */}
         {variant === 'filter' && <span className="picker__filter-label">{label}</span>}
         {variant !== 'options' && <span className="picker__current">{current?.label ?? '···'}</span>}
-        {variant !== 'operator' && variant !== 'reference' && variant !== 'boolean' && (
-          <CaretDown className="picker__caret" weight="bold" aria-hidden="true" />
+        {/*
+          The options variant shows three dots rather than a caret. A lone
+          caret said "there is a list here" without saying of what — and
+          students read it as belonging to the value beside it rather than as
+          the way to swap that value for a variable. Dots are the common mark
+          for "more actions", which is what this actually opens.
+        */}
+        {variant === 'options' ? (
+          <DotsThree className="picker__dots" weight="bold" aria-hidden="true" />
+        ) : (
+          variant !== 'operator' &&
+          variant !== 'reference' &&
+          variant !== 'boolean' && (
+            <CaretDown className="picker__caret" weight="bold" aria-hidden="true" />
+          )
         )}
       </button>
 

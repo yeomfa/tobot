@@ -114,12 +114,16 @@
   margin: 0;
 }
 
-/* A boolean keeps the conditional hue it had as a native select, since that
-   is what marks it out as the thing a `si` branches on. */
+/*
+  A boolean carries its own colour rather than the conditional hue it used to
+  borrow. Inside a `si` that made the value the same colour as the block around
+  it, so `verdadero` read as part of the keyword instead of as the data the
+  branch is testing — the one thing it needed to look like.
+*/
 .expr .picker[data-variant='boolean'] .picker__trigger {
-  color: var(--hue-conditional);
-  background: var(--hue-conditional-soft);
-  border-color: var(--hue-conditional-border);
+  color: var(--hue-boolean);
+  background: var(--hue-boolean-soft);
+  border-color: var(--hue-boolean-border);
   font-weight: 600;
 }
 

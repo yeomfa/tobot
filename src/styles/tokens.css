@@ -60,6 +60,18 @@
   --warning: #b45309;
   --warning-soft: #fdf3e3;
 
+  /*
+    Booleans. Their own colour rather than the conditional hue they used to
+    borrow: a `verdadero` sitting inside a `si` was the same colour as the
+    block holding it, so the value stopped reading as a value. Teal keeps it
+    clearly a piece of data — near the io family, unlike any statement
+    category, and distinct from `--success`, which means "this went well"
+    rather than "this is a boolean".
+  */
+  --hue-boolean: #0f766e;
+  --hue-boolean-soft: #dcf5f1;
+  --hue-boolean-border: #9fdcd3;
+
   /* Semantic surfaces. */
   --bg-app: var(--slate-50);
   --bg-surface: var(--slate-0);
@@ -186,6 +198,9 @@
   --danger-soft: rgba(220, 38, 38, 0.18);
   --warning: #fbbf24;
   --warning-soft: rgba(180, 83, 9, 0.22);
+  --hue-boolean: #5eead4;
+  --hue-boolean-soft: #0b3d3a;
+  --hue-boolean-border: rgba(94, 234, 212, 0.42);
 
   --code-bg: #0a0f1a;
   --code-surface: #121a2a;
@@ -240,6 +255,9 @@
     --danger-soft: rgba(220, 38, 38, 0.18);
     --warning: #fbbf24;
     --warning-soft: rgba(180, 83, 9, 0.22);
+    --hue-boolean: #5eead4;
+    --hue-boolean-soft: #0b3d3a;
+    --hue-boolean-border: rgba(94, 234, 212, 0.42);
 
     --code-bg: #0a0f1a;
     --code-surface: #121a2a;

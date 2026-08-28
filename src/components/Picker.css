@@ -83,17 +83,29 @@
   display: none;
 }
 
-.statement-block:hover .picker[data-variant='options'],
-.statement-block:focus-within .picker[data-variant='options'] {
-  display: inline-flex;
+/*
+  Revealed by the part, not by the block.
+  
+  Hovering the block showed every one at once — thirteen carets on the example
+  algorithm — which is the noise this was meant to avoid. Hovering the operand
+  shows the one that belongs to it, so the control appears where the student is
+  already looking. Focus keeps it visible for keyboard use, where there is no
+  pointer to hover with.
+*/
+.expr:hover > .picker[data-variant='options'],
+.expr:focus-within > .picker[data-variant='options'],
+.picker[data-variant='options']:focus-within {
+  display: flex;
 }
 
-/* The picker itself is a flex item beside the value; stretching it is what
-   gives the trigger inside a height to fill. Without this the button
-   collapsed to its 10px glyph, leaving almost nothing to click. */
+/* The picker is a flex item beside the value; stretching it is what gives the
+   trigger inside a height to fill. Without this the button collapsed to its
+   glyph, leaving almost nothing to click.
+
+   `display` belongs to the reveal rules above and must not be set again here —
+   declaring it later re-showed every control and undid the hover scoping. */
 .picker[data-variant='options'] {
   align-self: stretch;
-  display: flex;
 }
 
 .picker[data-variant='options'] .picker__trigger {
@@ -106,6 +118,13 @@
   background: transparent;
   border-color: transparent;
   border-radius: var(--radius-sm);
+}
+
+.picker__dots {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--text-muted);
 }
 
 .picker[data-variant='options'] .picker__caret {
