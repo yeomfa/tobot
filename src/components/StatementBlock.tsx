@@ -97,6 +97,7 @@ export const StatementBlock = memo(function StatementBlock({
       className="statement-block"
       /* Lets the other views scroll this block into view when clicked. */
       data-node-id={statement.id}
+      data-statement-id={statement.id}
       data-category={category}
       data-active={isActive || undefined}
       data-errored={isErrored || undefined}
@@ -657,6 +658,36 @@ interface DropZoneProps {
 }
 
 /**
+ * Marks a statement as just-landed, so the canvas shows something happened.
+ *
+ * Without it a drop can be invisible: moving a `say` between two other `say`
+ * blocks rearranges the tree and leaves the screen looking identical, so the
+ * student cannot tell the drag worked. The mark is a class rather than state
+ * because it belongs to one paint, not to the algorithm — nothing about the
+ * document changed, only what the eye needs pointing at.
+ *
+ * Applied after a frame so the element exists: React has not rendered the new
+ * position at the moment the drop handler runs.
+ */
+function announceLanding(id: string): void {
+  requestAnimationFrame(() => {
+    const el = document.querySelector<HTMLElement>(`[data-statement-id="${id}"]`);
+    if (!el) return;
+    el.classList.remove('statement-block--landed');
+    // Reading a layout property restarts the animation when the same block is
+    // dropped twice in a row; without it the class is already there and the
+    // browser skips it.
+    void el.offsetWidth;
+    el.classList.add('statement-block--landed');
+    el.addEventListener(
+      'animationend',
+      () => el.classList.remove('statement-block--landed'),
+      { once: true },
+    );
+  });
+}
+
+/**
  * Accepts both a new statement dragged from the palette and an existing
  * statement being reordered, distinguished by the drag data type.
  */
@@ -685,11 +716,14 @@ export function DropZone({ location, callbacks, empty }: DropZoneProps) {
         const moveId = event.dataTransfer.getData('text/tobot-move');
         if (moveId) {
           callbacks.move(moveId, location);
+          announceLanding(moveId);
           return;
         }
         const kind = event.dataTransfer.getData('text/tobot-new');
         if (kind) {
-          callbacks.add(createStatement(kind as Statement['kind']), location);
+          const created = createStatement(kind as Statement['kind']);
+          callbacks.add(created, location);
+          announceLanding(created.id);
         }
       }}
     >

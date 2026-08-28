@@ -707,6 +707,72 @@ body[data-dragging] .drop-zone[data-over],
   }
 }
 
+
+/*
+ * The block that just landed.
+ *
+ * A drop can otherwise be invisible: move a `say` between two other `say`
+ * blocks and the screen looks exactly as it did, so nothing confirms the drag
+ * did anything. This settles the block into place — a short drop and a wash of
+ * its own category colour, which also says *which* block moved when several
+ * look alike.
+ *
+ * The colour comes from the block's category rather than the accent, so the
+ * confirmation reads as "this statement" instead of as a generic flash.
+ */
+.statement-block--landed {
+  animation: statement-landed 480ms var(--ease-out);
+}
+
+@keyframes statement-landed {
+  0% {
+    transform: translateY(-7px) scale(0.985);
+    box-shadow: 0 6px 18px -8px var(--block-hue, var(--accent));
+  }
+  35% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--block-hue, var(--accent)) 45%, transparent);
+  }
+  100% {
+    transform: none;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/*
+ * The open slot carries a ghost of what is coming, so the gap reads as a space
+ * being held rather than as a hole in the list. Drawn with a repeating
+ * gradient instead of an element, which keeps it out of the markup and out of
+ * the way of the label.
+ */
+.drop-zone[data-over]::after {
+  content: '';
+  position: absolute;
+  inset: 8px 12px 8px auto;
+  left: 96px;
+  right: 16px;
+  border-radius: var(--radius-sm);
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--accent) 12%, transparent) 0 6px,
+    transparent 6px 12px
+  );
+  animation: drop-ghost-in var(--duration-base) var(--ease-out);
+  pointer-events: none;
+}
+
+@keyframes drop-ghost-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statement-block--landed,
+  .drop-zone[data-over]::after {
+    animation: none;
+  }
+}
+
 /*
  * The problem popover.
  *
