@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 
 import { createId } from '../core/ast/factory';
 import {
+  copyStatement,
+  findLocation,
+  findStatement,
   insertStatement,
   renameVariable,
   moveStatement,
@@ -112,6 +115,8 @@ export interface AlgorithmController {
   move: (id: NodeId, destination: Location) => void;
   /** Renames a variable across the whole algorithm, as one undoable edit. */
   renameVariable: (from: string, to: string) => void;
+  /** Copies a statement and drops the copy directly below the original. */
+  duplicate: (id: NodeId) => void;
   replaceBody: (body: Statement[]) => void;
   undo: () => void;
   redo: () => void;
@@ -221,6 +226,21 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
     remove: useCallback((id: NodeId) => edit((body) => removeStatement(body, id)), [edit]),
     renameVariable: useCallback(
       (from: string, to: string) => edit((body) => renameVariable(body, from, to)),
+      [edit],
+    ),
+    duplicate: useCallback(
+      (id: NodeId) =>
+        edit((body) => {
+          const original = findStatement(body, id);
+          const location = findLocation(body, id);
+          if (!original || !location) return body;
+          /* Directly below the original, which is where a copy is expected to
+             land — anywhere else and the student has to hunt for it. */
+          return insertStatement(body, copyStatement(original), {
+            ...location,
+            index: location.index + 1,
+          });
+        }),
       [edit],
     ),
     move: useCallback(

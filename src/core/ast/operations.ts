@@ -1,3 +1,4 @@
+import { createId } from './factory';
 import { isBlockStatement } from './types';
 import type { Expression, NodeId, Statement } from './types';
 
@@ -417,4 +418,38 @@ export function countReferences(statements: Statement[], name: string): number {
 
   walk(statements);
   return total;
+}
+
+/**
+ * Copies a statement, giving every node in it a fresh id.
+ *
+ * Ids address blocks — a drop target, a flowchart highlight, the statement the
+ * interpreter is on — so a copy sharing them would be a second block claiming
+ * to be the first. A conditional carries a whole subtree, and every node in it
+ * needs renaming, not just the root.
+ */
+export function copyStatement(statement: Statement): Statement {
+  const copied: Statement = { ...statement, id: createId() };
+
+  if (copied.kind === 'if') {
+    return {
+      ...copied,
+      then: copied.then.map(copyStatement),
+      elseIfs: copied.elseIfs?.map((arm) => ({
+        ...arm,
+        id: createId(),
+        body: arm.body.map(copyStatement),
+      })),
+      otherwise: copied.otherwise?.map(copyStatement),
+    };
+  }
+
+  if (isBlockStatement(copied)) {
+    return {
+      ...copied,
+      body: (copied as { body: Statement[] }).body.map(copyStatement),
+    } as Statement;
+  }
+
+  return copied;
 }

@@ -1,4 +1,5 @@
 import {
+  CopySimpleIcon as CopySimple,
   DotsSixVerticalIcon as DotsSixVertical,
   QuestionIcon as Question,
   TrashIcon as Trash,
@@ -32,6 +33,8 @@ export interface BlockCallbacks {
    * program in places the student is not looking at.
    */
   rename: (from: string, to: string) => void;
+  /** Copies this statement, with its whole body, directly below itself. */
+  duplicate: (id: NodeId) => void;
   onExplain: (conceptId: string) => void;
 }
 
@@ -212,6 +215,15 @@ export const StatementBlock = memo(function StatementBlock({
               </span>
             </span>
           )}
+          <button
+            type="button"
+            className="statement-block__action"
+            onClick={() => callbacks.duplicate(statement.id)}
+            title={d.actions.duplicate}
+            aria-label={d.actions.duplicate}
+          >
+            <CopySimple />
+          </button>
           {concept && (
             <button
               type="button"

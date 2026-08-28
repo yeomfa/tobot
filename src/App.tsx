@@ -565,6 +565,7 @@ function Workbench({
       add: controller.add,
       move: controller.move,
       rename: controller.renameVariable,
+      duplicate: controller.duplicate,
       onExplain: showConcept,
     }),
     [
@@ -573,6 +574,7 @@ function Workbench({
       controller.add,
       controller.move,
       controller.renameVariable,
+      controller.duplicate,
       showConcept,
     ],
   );
