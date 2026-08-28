@@ -564,9 +564,17 @@ function Workbench({
       remove: controller.remove,
       add: controller.add,
       move: controller.move,
+      rename: controller.renameVariable,
       onExplain: showConcept,
     }),
-    [controller.update, controller.remove, controller.add, controller.move, showConcept],
+    [
+      controller.update,
+      controller.remove,
+      controller.add,
+      controller.move,
+      controller.renameVariable,
+      showConcept,
+    ],
   );
 
   const appendStatement = useCallback(

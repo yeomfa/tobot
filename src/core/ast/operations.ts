@@ -1,5 +1,5 @@
 import { isBlockStatement } from './types';
-import type { NodeId, Statement } from './types';
+import type { Expression, NodeId, Statement } from './types';
 
 /**
  * Every block statement stores its children under one or two named slots.
@@ -237,4 +237,145 @@ export function collectVariables(statements: Statement[]): string[] {
   };
   walk(statements);
   return [...new Set(names)];
+}
+
+/**
+ * Renames a variable everywhere it appears.
+ *
+ * Renaming where a variable is declared used to change only that one word, so
+ * every use went on pointing at a name that no longer existed — the algorithm
+ * broke in places the student was not looking at, and nothing said so.
+ *
+ * A name at this level is a label rather than an identity: "call this
+ * something else" is what a student means, so every reference follows. Undo
+ * restores the whole rename at once, since it is one edit to the tree.
+ *
+ * Every site that can hold the name is covered: declarations, the target of
+ * `preguntar`, a loop counter, assignments, and any expression that reads it.
+ */
+export function renameVariable(
+  statements: Statement[],
+  from: string,
+  to: string,
+): Statement[] {
+  if (from === '' || from === to) return statements;
+
+  const inExpression = (expression: Expression): Expression => {
+    switch (expression.kind) {
+      case 'variable':
+        return expression.name === from ? { ...expression, name: to } : expression;
+      case 'unary':
+        return { ...expression, operand: inExpression(expression.operand) };
+      case 'binary':
+        return {
+          ...expression,
+          left: inExpression(expression.left),
+          right: inExpression(expression.right),
+        };
+      default:
+        return expression;
+    }
+  };
+
+  const walk = (list: Statement[]): Statement[] =>
+    list.map((statement) => {
+      switch (statement.kind) {
+        case 'declare':
+          return {
+            ...statement,
+            name: statement.name === from ? to : statement.name,
+            value: inExpression(statement.value),
+          };
+        case 'assign':
+          return {
+            ...statement,
+            name: statement.name === from ? to : statement.name,
+            value: inExpression(statement.value),
+          };
+        case 'ask':
+          return {
+            ...statement,
+            target: statement.target === from ? to : statement.target,
+            prompt: inExpression(statement.prompt),
+          };
+        case 'say':
+          return { ...statement, value: inExpression(statement.value) };
+        case 'if':
+          return {
+            ...statement,
+            condition: inExpression(statement.condition),
+            then: walk(statement.then),
+            otherwise: statement.otherwise ? walk(statement.otherwise) : statement.otherwise,
+          };
+        case 'while':
+          return {
+            ...statement,
+            condition: inExpression(statement.condition),
+            body: walk(statement.body),
+          };
+        case 'repeat':
+          return {
+            ...statement,
+            times: inExpression(statement.times),
+            body: walk(statement.body),
+          };
+        case 'forEach':
+          return {
+            ...statement,
+            variable: statement.variable === from ? to : statement.variable,
+            from: inExpression(statement.from),
+            to: inExpression(statement.to),
+            step: inExpression(statement.step),
+            body: walk(statement.body),
+          };
+        default:
+          return statement;
+      }
+    });
+
+  return walk(statements);
+}
+
+/** How many places a name is used, for telling the student what a rename did. */
+export function countReferences(statements: Statement[], name: string): number {
+  if (name === '') return 0;
+  let total = 0;
+
+  const inExpression = (expression: Expression): void => {
+    if (expression.kind === 'variable' && expression.name === name) total += 1;
+    else if (expression.kind === 'unary') inExpression(expression.operand);
+    else if (expression.kind === 'binary') {
+      inExpression(expression.left);
+      inExpression(expression.right);
+    }
+  };
+
+  const walk = (list: Statement[]): void => {
+    for (const statement of list) {
+      if (statement.kind === 'declare' || statement.kind === 'assign') {
+        if (statement.kind === 'assign' && statement.name === name) total += 1;
+        inExpression(statement.value);
+      } else if (statement.kind === 'ask') inExpression(statement.prompt);
+      else if (statement.kind === 'say') inExpression(statement.value);
+      else if (statement.kind === 'if') {
+        inExpression(statement.condition);
+        walk(statement.then);
+        if (statement.otherwise) walk(statement.otherwise);
+      } else if (statement.kind === 'while') {
+        inExpression(statement.condition);
+        walk(statement.body);
+      } else if (statement.kind === 'repeat') {
+        inExpression(statement.times);
+        walk(statement.body);
+      } else if (statement.kind === 'forEach') {
+        inExpression(statement.from);
+        inExpression(statement.to);
+        inExpression(statement.step);
+        walk(statement.body);
+      }
+    }
+  };
+
+  walk(statements);
+  return total;
 }

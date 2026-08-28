@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { createId } from '../core/ast/factory';
 import {
   insertStatement,
+  renameVariable,
   moveStatement,
   removeStatement,
   updateStatement,
@@ -109,6 +110,8 @@ export interface AlgorithmController {
   update: (id: NodeId, update: (statement: Statement) => Statement) => void;
   remove: (id: NodeId) => void;
   move: (id: NodeId, destination: Location) => void;
+  /** Renames a variable across the whole algorithm, as one undoable edit. */
+  renameVariable: (from: string, to: string) => void;
   replaceBody: (body: Statement[]) => void;
   undo: () => void;
   redo: () => void;
@@ -216,6 +219,10 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
       [edit],
     ),
     remove: useCallback((id: NodeId) => edit((body) => removeStatement(body, id)), [edit]),
+    renameVariable: useCallback(
+      (from: string, to: string) => edit((body) => renameVariable(body, from, to)),
+      [edit],
+    ),
     move: useCallback(
       (id: NodeId, destination: Location) =>
         edit((body) => moveStatement(body, id, destination)),

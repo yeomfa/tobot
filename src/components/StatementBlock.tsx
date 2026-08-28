@@ -5,7 +5,7 @@ import {
   WarningIcon as Warning,
   WarningCircleIcon as WarningCircle,
 } from '@phosphor-icons/react';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 
 import { castExpression, createStatement } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
@@ -24,6 +24,14 @@ export interface BlockCallbacks {
   remove: (id: NodeId) => void;
   add: (statement: Statement, location: Location) => void;
   move: (id: NodeId, destination: Location) => void;
+  /**
+   * Renames a variable across the whole algorithm.
+   *
+   * Separate from `update` because it is not an edit to one statement: every
+   * reference has to move with the declaration, or the rename breaks the
+   * program in places the student is not looking at.
+   */
+  rename: (from: string, to: string) => void;
   onExplain: (conceptId: string) => void;
 }
 
@@ -60,6 +68,8 @@ export const StatementBlock = memo(function StatementBlock({
   depth,
 }: StatementBlockProps) {
   const { d, t } = useTranslation();
+  /* Set on pointer down, so a press inside a field does not start a drag. */
+  const [draggable, setDraggable] = useState(true);
   const category = statementCategory[statement.kind];
   const concept = conceptForStatement.get(statement.kind);
 
@@ -72,7 +82,30 @@ export const StatementBlock = memo(function StatementBlock({
       ? 'warning'
       : null;
 
+  const currentName =
+    statement.kind === 'declare' || statement.kind === 'assign'
+      ? statement.name
+      : statement.kind === 'ask'
+        ? statement.target
+        : statement.kind === 'forEach'
+          ? statement.variable
+          : '';
+
   const setName = (name: string): void => {
+    /*
+      Renaming where a variable is declared carries every use with it. A name
+      here is a label, not an identity — "call this something else" is what the
+      student means, and leaving the references behind broke the algorithm
+      silently. Typing into the field is a rename in progress, so this runs on
+      every keystroke and undo restores the whole thing as one edit.
+    */
+    const declaresName =
+      statement.kind === 'declare' || statement.kind === 'ask' || statement.kind === 'forEach';
+    if (declaresName && currentName !== '' && name !== currentName) {
+      callbacks.rename(currentName, name);
+      return;
+    }
+
     callbacks.update(statement.id, (current) =>
       current.kind === 'declare' || current.kind === 'assign'
         ? { ...current, name }
@@ -83,15 +116,6 @@ export const StatementBlock = memo(function StatementBlock({
             : current,
     );
   };
-
-  const currentName =
-    statement.kind === 'declare' || statement.kind === 'assign'
-      ? statement.name
-      : statement.kind === 'ask'
-        ? statement.target
-        : statement.kind === 'forEach'
-          ? statement.variable
-          : '';
 
   return (
     <li
@@ -105,7 +129,21 @@ export const StatementBlock = memo(function StatementBlock({
       data-active={isActive || undefined}
       data-errored={isErrored || undefined}
       data-problem={worst ?? undefined}
-      draggable
+      /*
+        Only draggable when the gesture did not start inside a field.
+
+        The whole block carried `draggable`, and a draggable ancestor wins over
+        text selection: pressing inside an input and moving picked the block up
+        instead of selecting the words, so a value could not be selected to
+        replace it. `onPointerDown` decides per gesture — pressing a field
+        turns dragging off, pressing anywhere else leaves it on, which keeps
+        the block draggable from its own body rather than only from the grip.
+      */
+      draggable={draggable}
+      onPointerDown={(event) => {
+        const target = event.target as HTMLElement;
+        setDraggable(!target.closest('input, textarea, [contenteditable="true"]'));
+      }}
       onDragStart={(event) => {
         event.dataTransfer.setData('text/tobot-move', statement.id);
         event.dataTransfer.effectAllowed = 'move';
