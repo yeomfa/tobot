@@ -664,18 +664,24 @@ body[data-dragging] .drop-zone .drop-zone__hint {
 
 /*
   The slots either side of the block being dragged lead back to where it
-  already is, so they stop being targets: the magnet skips them and they stay
-  collapsed. Showing "Suelta aquí" immediately above and below the block in
-  your hand offers two choices that are really none.
+  already is, so they are removed rather than merely disabled: showing "Suelta
+  aquí" immediately above and below the block in your hand offers two choices
+  that are really none.
+
+  Both neighbours, and only one of them lives where you would expect. Each
+  `.editor__item` holds its block followed by the slot *after* it, so the slot
+  above a block belongs to the previous item — except for the first block,
+  whose slot is a direct child of the list. Three selectors, because the
+  markup gives the two neighbours three possible homes.
+
+  `display: none` rather than `pointer-events: none`: disabling a slot the
+  student can still see is the confusing half of the problem, not the useful
+  half.
 */
 .editor__item:has(> .statement-block[data-lifted]) > .drop-zone,
-.editor__item:has(> .statement-block[data-lifted]) + .drop-zone,
-.editor__item:has(> .statement-block[data-lifted]) ~ .drop-zone:first-of-type {
-  pointer-events: none;
-}
-
-.editor__item:has(> .statement-block[data-lifted]) > .drop-zone .drop-zone__hint {
-  opacity: 0;
+.editor__item:has(+ .editor__item > .statement-block[data-lifted]) > .drop-zone,
+.editor__list > .drop-zone:has(+ .editor__item > .statement-block[data-lifted]) {
+  display: none;
 }
 
 /* An empty branch shows a persistent target so it never looks broken. */

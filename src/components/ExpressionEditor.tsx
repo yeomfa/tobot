@@ -11,6 +11,7 @@ import { memo } from 'react';
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
+import { precedenceOf } from '../core/emitters/precedence';
 import { flattenChain, removeAt } from './chain';
 import { typeIcon } from './statementMeta';
 import { Picker } from './Picker';
@@ -33,6 +34,14 @@ interface ExpressionEditorProps {
    * without the bar that extends the expression, which belongs to the whole.
    */
   nested?: boolean;
+  /**
+   * Binding strength of the expression this one sits inside.
+   *
+   * Only used to mark what resolves first: an operand that binds tighter than
+   * its parent runs before it, which is the part of the order a flat row does
+   * not show.
+   */
+  parentPrecedence?: number;
   /**
    * Drops this operand from the expression containing it. Absent when there is
    * nothing to drop back to, which is what hides the option on a lone value.
@@ -87,6 +96,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   mode = 'value',
   placeholder,
   nested = false,
+  parentPrecedence,
   onRemove,
 }: ExpressionEditorProps) {
   const { d } = useTranslation();
@@ -128,6 +138,24 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   // Chains of one associative operator render as a flat row of values.
   const isChain = value.kind === 'binary' && ASSOCIATIVE.has(value.operator);
   const chain = isChain ? flattenChain(value, value.operator) : [];
+
+  /*
+    Whether this expression is resolved before the one containing it.
+
+    Nothing here changes the algorithm — the order was already decided when the
+    student built the tree, and the emitters have always written the right
+    parentheses. It was simply invisible: `a + b * c` looks like a row read
+    left to right, and nothing said the multiplication happens first.
+
+    Marked, not grouped. Grouping is the student's own action, and a mark that
+    rearranged things on its own would be the editor deciding an order the
+    student did not ask for.
+  */
+  const boundTighter =
+    nested &&
+    value.kind === 'binary' &&
+    parentPrecedence !== undefined &&
+    precedenceOf(value) > parentPrecedence;
 
   /**
    * Switches between typing a value and using a variable.
@@ -200,7 +228,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   };
 
   return (
-    <span className="expr" data-kind={value.kind}>
+    <span className="expr" data-kind={value.kind} data-first={boundTighter || undefined}>
       {value.kind === 'literal' && (
         <LiteralInput value={value} onChange={onChange} placeholder={placeholder} />
       )}
@@ -247,6 +275,10 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                 expect={operandExpect}
                 mode={mode === 'condition' ? 'value' : mode}
                 nested
+                /* `a + b * c` flattens to a row of `+` parts, one of which is
+                   the multiplication — the row is exactly where the tighter
+                   binding stops being visible, so the mark matters most here. */
+                parentPrecedence={precedenceOf(value)}
                 onRemove={
                   chain.length > 1
                     ? () => onChange(removeAt(chain, index, value.operator))
@@ -274,6 +306,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             expect={operandExpect}
             mode={mode === 'condition' ? 'value' : mode}
             nested
+            parentPrecedence={precedenceOf(value)}
             onRemove={() => onChange(value.right)}
           />
           <Picker
@@ -290,6 +323,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             expect={operandExpect}
             mode={mode === 'condition' ? 'value' : mode}
             nested
+            parentPrecedence={precedenceOf(value)}
             onRemove={() => onChange(value.left)}
           />
         </>
