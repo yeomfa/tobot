@@ -8,7 +8,7 @@ import {
   TrashIcon as Trash,
   XCircleIcon as XCircle,
 } from '@phosphor-icons/react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
@@ -145,6 +145,35 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     left them deleting the inner group by hand.
   */
   const [picking, setPicking] = useState<number[]>([]);
+
+  /*
+    Selection is a range: two clicks name its ends and everything between them
+    is included. Storing the two ends rather than every index is what makes
+    "click here, then there" behave the way it does in any list.
+  */
+  /* A selection nobody confirmed should not survive the student looking
+     elsewhere — otherwise the bar stays up over an expression they have moved
+     on from, and the next click extends a range they forgot they started. */
+  useEffect(() => {
+    if (picking.length === 0) return;
+    const clear = (event: PointerEvent): void => {
+      /* Anywhere that is not a part of this chain or its action bar. Checked
+         here rather than by stopping propagation on the part, because a click
+         that lands on a *different* expression should clear this one too. */
+      const target = event.target as HTMLElement;
+      if (target.closest('.expr__chain-item') || target.closest('.expr__action')) return;
+      setPicking([]);
+    };
+    document.addEventListener('pointerdown', clear);
+    return () => document.removeEventListener('pointerdown', clear);
+  }, [picking.length]);
+
+  const inRange = (index: number): boolean => {
+    if (picking.length === 0) return false;
+    const low = Math.min(...picking);
+    const high = Math.max(...picking);
+    return index >= low && index <= high;
+  };
 
   // Chains of one associative operator render as a flat row of values.
   const isChain = value.kind === 'binary' && ASSOCIATIVE.has(value.operator);
@@ -300,38 +329,44 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 
       {value.kind === 'binary' && isChain && (
         <>
+          {/*
+            The part itself is the selection target. Nothing appears between
+            the operands — a button there pushed the row when it showed, or
+            covered the operator when it did not, and the fix for one was the
+            other. Clicking a part selects it; clicking a second extends the
+            range between them, the way selecting works in every list.
+          */}
           {chain.map((part, index) => (
             <span
               key={index}
               className="expr__chain-item"
-              data-picked={picking.includes(index) || undefined}
-              data-picking={picking.length > 0 || undefined}
+              data-picked={inRange(index) || undefined}
+              /* Marks a part that can be selected, so the cursor never
+                 promises what a two-part chain cannot do. */
+              data-selectable={chain.length > 2 || undefined}
+              onClick={
+                chain.length > 2
+                  ? (event) => {
+                      /*
+                        Editing beats selecting. A click that lands on a field
+                        or a control inside the part is the student changing a
+                        value, and that has to keep working — so only clicks on
+                        the part's own chrome select it.
+
+                        `.picker__list` is included because an open dropdown
+                        renders inside the part: choosing an option from it
+                        would otherwise select the part underneath.
+                      */
+                      const hit = event.target as HTMLElement;
+                      if (hit.closest('input, textarea, button, .picker__list')) return;
+                      event.stopPropagation();
+                      setPicking((current) =>
+                        current.length === 1 && current[0] === index ? [] : [...current.slice(-1), index].slice(-2),
+                      );
+                    }
+                  : undefined
+              }
             >
-              {/*
-                Picking a part, offered once there is a third — with two, a
-                group says nothing the row does not already say. The student
-                clicks the parts that belong together and the range between
-                them is what gets bracketed, so three parts take one gesture
-                rather than two nested ones.
-              */}
-              {chain.length > 2 && (
-                <button
-                  type="button"
-                  className="expr__pick"
-                  onClick={() =>
-                    setPicking((current) =>
-                      current.includes(index)
-                        ? current.filter((each) => each !== index)
-                        : [...current, index],
-                    )
-                  }
-                  title={d.actions.group}
-                  aria-label={d.actions.group}
-                  aria-pressed={picking.includes(index)}
-                >
-                  <BracketsRound weight="bold" aria-hidden="true" />
-                </button>
-              )}
               {index > 0 && part.setOperator && (
                 <>
                   <Picker
@@ -366,10 +401,13 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 
           {/* Confirming the selection. Only once two parts are picked: one
               part is already a unit, so there is nothing to bracket. */}
+          {/* One bar for the whole expression, not a control per part. It only
+              exists while something is selected, so at rest the row is just
+              the algorithm. */}
           {picking.length > 1 && (
             <button
               type="button"
-              className="expr__confirm-group"
+              className="expr__action"
               onClick={() => {
                 const grouped = groupParts(
                   chain,
