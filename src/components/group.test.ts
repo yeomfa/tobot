@@ -27,8 +27,13 @@ function evaluate(expression: Expression): string {
   return state.output.map((entry) => entry.text).join('');
 }
 
-function group(expression: Expression, operator: BinaryOperator, index: number): Expression {
-  const grouped = groupParts(flattenChain(expression, operator), index, operator);
+function group(
+  expression: Expression,
+  operator: BinaryOperator,
+  from: number,
+  to = from + 1,
+): Expression {
+  const grouped = groupParts(flattenChain(expression, operator), from, to, operator);
   if (!grouped) throw new Error('nothing to group');
   return grouped;
 }
@@ -84,9 +89,29 @@ describe('grouping', () => {
     expect(part && expressionToJs(ungroup(part))).toBe('b + c');
   });
 
+  it('groups three parts into one bracket, not two nested ones', () => {
+    /*
+      What pairwise grouping could not do. Taking `a + b + c` two at a time
+      gives `((a + b) + c)` — the student asked for one group and got two, and
+      had to delete the inner one by hand.
+    */
+    const chain = bin('+', bin('+', a, b), c);
+    const grouped = group(chain, '+', 0, 2);
+
+    expect(expressionToJs(grouped)).toBe('(a + b + c)');
+    expect(flattenChain(grouped, '+')).toHaveLength(1);
+
+    const only = flattenChain(grouped, '+')[0]?.node;
+    expect(only?.kind).toBe('group');
+    // One group, not a group inside a group.
+    expect(only?.kind === 'group' && only.inner.kind).toBe('binary');
+  });
+
   it('refuses when there is no neighbour', () => {
     const parts = flattenChain(bin('+', bin('+', a, b), c), '+');
-    expect(groupParts(parts, parts.length - 1, '+')).toBeNull();
-    expect(groupParts(parts, -1, '+')).toBeNull();
+    // Past the end, before the start, and a range of one — all impossible.
+    expect(groupParts(parts, parts.length - 1, parts.length, '+')).toBeNull();
+    expect(groupParts(parts, -1, 0, '+')).toBeNull();
+    expect(groupParts(parts, 1, 1, '+')).toBeNull();
   });
 });

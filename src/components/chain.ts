@@ -85,34 +85,44 @@ export function removeAt(chain: ChainPart[], index: number, operator: BinaryOper
 }
 
 /**
- * Groups two neighbouring parts of a flattened chain so they resolve first.
+ * Groups a run of neighbouring parts so they resolve first.
  *
- * The pair becomes a `group` node, which is what survives the next render:
- * without it the editor flattens the same-operator chain straight back out and
- * the grouping disappears the moment it is made.
+ * A range rather than a pair, because pairs do not compose: grouping three
+ * parts two at a time leaves `((a + b) + c)`, which is a different tree from
+ * `(a + b + c)` — the student wanted one bracket and got two nested ones, then
+ * had to unpick the inner one by hand.
  *
- * Rebuilt folding left, the way the chain was read apart, so grouping the
- * first pair of an untouched chain leaves everything else exactly as it was.
+ * The group becomes a `group` node, which is what survives the next render:
+ * without it the editor flattens the chain straight back out and the grouping
+ * disappears the moment it is made.
  */
 export function groupParts(
   parts: ChainPart[],
-  index: number,
+  from: number,
+  to: number,
   operator: BinaryOperator,
 ): Expression | null {
-  if (index < 0 || index + 1 >= parts.length) return null;
+  const start = Math.min(from, to);
+  const end = Math.max(from, to);
+
+  // A single part is already a unit; a range must reach outside the chain to
+  // be impossible.
+  if (start < 0 || end >= parts.length || end - start < 1) return null;
 
   const nodes = parts.map((part) => part.node);
-  const pair: Expression = {
-    kind: 'group',
-    inner: {
-      kind: 'binary',
-      operator,
-      left: nodes[index] as Expression,
-      right: nodes[index + 1] as Expression,
-    },
-  };
 
-  const rebuilt = [...nodes.slice(0, index), pair, ...nodes.slice(index + 2)];
+  /* Folded left, the way a chain is read apart, so the inside of the group
+     keeps the shape it had before it was bracketed. */
+  const inner = nodes
+    .slice(start, end + 1)
+    .reduce((left, right) => ({ kind: 'binary', operator, left, right }));
+
+  const rebuilt = [
+    ...nodes.slice(0, start),
+    { kind: 'group', inner } as Expression,
+    ...nodes.slice(end + 1),
+  ];
+
   return rebuilt.reduce((left, right) => ({ kind: 'binary', operator, left, right }));
 }
 

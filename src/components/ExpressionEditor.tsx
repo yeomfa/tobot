@@ -7,7 +7,7 @@ import {
   TrashIcon as Trash,
   XCircleIcon as XCircle,
 } from '@phosphor-icons/react';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
@@ -100,7 +100,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   parentPrecedence,
   onRemove,
 }: ExpressionEditorProps) {
-  const { d } = useTranslation();
+  const { d, fill } = useTranslation();
 
   /**
    * Grouped rather than flat, and narrowed to what the slot is for.
@@ -135,6 +135,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       hint: d.operators[operator],
     })),
   }));
+
+  /*
+    Parts picked for grouping, as indices into the flattened chain.
+
+    A range rather than a pair: grouping three parts two at a time produces
+    `((a + b) + c)`, which is not the single bracket the student asked for, and
+    left them deleting the inner group by hand.
+  */
+  const [picking, setPicking] = useState<number[]>([]);
 
   // Chains of one associative operator render as a flat row of values.
   const isChain = value.kind === 'binary' && ASSOCIATIVE.has(value.operator);
@@ -289,7 +298,37 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       {value.kind === 'binary' && isChain && (
         <>
           {chain.map((part, index) => (
-            <span key={index} className="expr__chain-item">
+            <span
+              key={index}
+              className="expr__chain-item"
+              data-picked={picking.includes(index) || undefined}
+              data-picking={picking.length > 0 || undefined}
+            >
+              {/*
+                Picking a part, offered once there is a third — with two, a
+                group says nothing the row does not already say. The student
+                clicks the parts that belong together and the range between
+                them is what gets bracketed, so three parts take one gesture
+                rather than two nested ones.
+              */}
+              {chain.length > 2 && (
+                <button
+                  type="button"
+                  className="expr__pick"
+                  onClick={() =>
+                    setPicking((current) =>
+                      current.includes(index)
+                        ? current.filter((each) => each !== index)
+                        : [...current, index],
+                    )
+                  }
+                  title={d.actions.group}
+                  aria-label={d.actions.group}
+                  aria-pressed={picking.includes(index)}
+                >
+                  <BracketsRound weight="bold" aria-hidden="true" />
+                </button>
+              )}
               {index > 0 && part.setOperator && (
                 <>
                   <Picker
@@ -299,27 +338,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                     label={d.fields.operator}
                     variant="operator"
                   />
-                  {/*
-                    Grouping sits on the operator between two parts, which is
-                    where the student is deciding "these two, first". Offered
-                    from the second part on, since the first has nothing to its
-                    left to join with, and only once there is a third part —
-                    with two, grouping them says nothing new.
-                  */}
-                  {chain.length > 2 && (
-                    <button
-                      type="button"
-                      className="expr__group"
-                      onClick={() => {
-                        const grouped = groupParts(chain, index - 1, value.operator);
-                        if (grouped) onChange(grouped);
-                      }}
-                      title={d.actions.group}
-                      aria-label={d.actions.group}
-                    >
-                      <BracketsRound weight="bold" aria-hidden="true" />
-                    </button>
-                  )}
+
                 </>
               )}
               <ExpressionEditor
@@ -341,6 +360,29 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               />
             </span>
           ))}
+
+          {/* Confirming the selection. Only once two parts are picked: one
+              part is already a unit, so there is nothing to bracket. */}
+          {picking.length > 1 && (
+            <button
+              type="button"
+              className="expr__confirm-group"
+              onClick={() => {
+                const grouped = groupParts(
+                  chain,
+                  Math.min(...picking),
+                  Math.max(...picking),
+                  value.operator,
+                );
+                setPicking([]);
+                if (grouped) onChange(grouped);
+              }}
+            >
+              <BracketsRound weight="bold" aria-hidden="true" />
+              {fill(d.actions.groupCount, { count: Math.max(...picking) - Math.min(...picking) + 1 })}
+            </button>
+          )}
+
         </>
       )}
 

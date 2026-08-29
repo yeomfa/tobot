@@ -265,9 +265,15 @@
   color: color-mix(in srgb, var(--hue-loop) 75%, var(--text-muted));
 }
 
-/* Grouping and ungrouping share the same icon and the same reveal: the button
-   is in the same place whichever direction the student is going. */
-.expr__group,
+/*
+ * Picking parts to group.
+ *
+ * The bracket button belongs to each part rather than to the operator between
+ * two, because grouping is a range: the student marks the parts that go
+ * together and every one between them is included. Pairwise buttons could not
+ * express that — three parts took two clicks and produced two nested groups.
+ */
+.expr__pick,
 .expr__ungroup {
   display: none;
   align-items: center;
@@ -282,13 +288,73 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-.expr:hover > .expr__chain-item > .expr__group,
-.expr__chain-item:focus-within > .expr__group,
-.expr__group:focus-visible,
+.expr:hover > .expr__chain-item > .expr__pick,
+.expr__chain-item:focus-within > .expr__pick,
+.expr__pick:focus-visible,
 .expr__grouped:hover > .expr__ungroup,
 .expr__grouped:focus-within > .expr__ungroup,
 .expr__ungroup:focus-visible {
   display: inline-flex;
+}
+
+/* Once picking has started every marked part stays visible, or the selection
+   would vanish as soon as the pointer moved to the next one. */
+.expr__chain-item[data-picked] > .expr__pick {
+  display: inline-flex;
+  color: var(--hue-loop);
+  background: color-mix(in srgb, var(--hue-loop) 18%, transparent);
+}
+
+.expr__chain-item[data-picked] {
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--hue-loop) 8%, transparent);
+}
+
+.expr__pick svg,
+.expr__ungroup svg {
+  width: 13px;
+  height: 13px;
+}
+
+.expr__pick:hover,
+.expr__ungroup:hover {
+  background: color-mix(in srgb, var(--hue-loop) 16%, transparent);
+  color: var(--hue-loop);
+}
+
+.expr__pick:focus-visible,
+.expr__ungroup:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* The action that ends the gesture, next to the parts it will bracket. */
+.expr__confirm-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 3px 9px;
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--hue-loop);
+  background: color-mix(in srgb, var(--hue-loop) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hue-loop) 34%, transparent);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.expr__confirm-group svg {
+  width: 12px;
+  height: 12px;
+}
+
+.expr__confirm-group:hover {
+  background: color-mix(in srgb, var(--hue-loop) 20%, transparent);
+}
+
+.expr__confirm-group:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .expr__group svg,
