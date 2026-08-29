@@ -13,6 +13,10 @@ export function expressionToJs(expression: Expression): string {
       return String(expression.value);
     case 'variable':
       return expression.name;
+    case 'group':
+      /* Always bracketed, even where precedence would not require it: the
+         student asked for this grouping, so the code shows it. */
+      return `(${expressionToJs(expression.inner)})`;
     case 'unary':
       return `${expression.operator}${wrapUnaryOperand(expression.operand)}`;
     case 'binary': {

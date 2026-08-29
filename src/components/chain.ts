@@ -25,7 +25,12 @@ export interface ChainPart {
 }
 
 export function flattenChain(expression: Expression, operator: BinaryOperator): ChainPart[] {
-  if (expression.kind !== 'binary' || expression.operator !== operator) {
+  /*
+    A group is one part, whatever is inside it. That is the whole reason the
+    node exists: `a + b + c` and `(a + b) + c` are the same tree otherwise, so
+    flattening would open a grouping the moment the student made it.
+  */
+  if (expression.kind === 'group' || expression.kind !== 'binary' || expression.operator !== operator) {
     return [{ node: expression, replace: (next) => next }];
   }
 
@@ -77,4 +82,41 @@ export function removeAt(chain: ChainPart[], index: number, operator: BinaryOper
   // than everything that followed it.
   const rest = chain.slice(1).map((item) => item.node);
   return rest.reduce((left, right) => ({ kind: 'binary', operator, left, right }));
+}
+
+/**
+ * Groups two neighbouring parts of a flattened chain so they resolve first.
+ *
+ * The pair becomes a `group` node, which is what survives the next render:
+ * without it the editor flattens the same-operator chain straight back out and
+ * the grouping disappears the moment it is made.
+ *
+ * Rebuilt folding left, the way the chain was read apart, so grouping the
+ * first pair of an untouched chain leaves everything else exactly as it was.
+ */
+export function groupParts(
+  parts: ChainPart[],
+  index: number,
+  operator: BinaryOperator,
+): Expression | null {
+  if (index < 0 || index + 1 >= parts.length) return null;
+
+  const nodes = parts.map((part) => part.node);
+  const pair: Expression = {
+    kind: 'group',
+    inner: {
+      kind: 'binary',
+      operator,
+      left: nodes[index] as Expression,
+      right: nodes[index + 1] as Expression,
+    },
+  };
+
+  const rebuilt = [...nodes.slice(0, index), pair, ...nodes.slice(index + 2)];
+  return rebuilt.reduce((left, right) => ({ kind: 'binary', operator, left, right }));
+}
+
+/** Undoes a grouping, leaving the expression it held. */
+export function ungroup(expression: Expression): Expression {
+  return expression.kind === 'group' ? expression.inner : expression;
 }

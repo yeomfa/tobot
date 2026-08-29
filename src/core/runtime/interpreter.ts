@@ -454,6 +454,12 @@ export class Interpreter {
       case 'literal':
         return expression.value;
 
+      /* Transparent by design. The tree already puts this subexpression where
+         it is evaluated; the node only records that the student put it there
+         deliberately, which matters to the editor and to nothing else. */
+      case 'group':
+        return this.evaluate(expression.inner);
+
       case 'variable': {
         const entry = this.variables.get(expression.name);
         if (!entry) throw new ProgramError('errors.undefinedVariable', { name: expression.name });

@@ -59,6 +59,10 @@ function isExpression(value: unknown, depth: number): value is Expression {
       );
     case 'variable':
       return typeof value.name === 'string';
+    /* A group is only its contents, so the depth cap does the work here — a
+       file nesting groups a thousand deep is refused like any other. */
+    case 'group':
+      return isExpression(value.inner, depth + 1);
     case 'binary':
       return (
         BINARY_OPERATORS.has(value.operator as string) &&

@@ -295,6 +295,8 @@ export function renameVariable(
     switch (expression.kind) {
       case 'variable':
         return expression.name === from ? { ...expression, name: to } : expression;
+      case 'group':
+        return { ...expression, inner: inExpression(expression.inner) };
       case 'unary':
         return { ...expression, operand: inExpression(expression.operand) };
       case 'binary':
@@ -379,6 +381,7 @@ export function countReferences(statements: Statement[], name: string): number {
 
   const inExpression = (expression: Expression): void => {
     if (expression.kind === 'variable' && expression.name === name) total += 1;
+    else if (expression.kind === 'group') inExpression(expression.inner);
     else if (expression.kind === 'unary') inExpression(expression.operand);
     else if (expression.kind === 'binary') {
       inExpression(expression.left);

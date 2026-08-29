@@ -124,6 +124,11 @@ function expressionToNatural(expression: Expression, phrases: Phrases): string {
       return String(expression.value);
     case 'variable':
       return expression.name;
+    case 'group':
+      /* Spoken as a unit — "(a más b)" — because that is what the student
+         said it was. The brackets read naturally here: they are how anyone
+         writes "these together" on paper. */
+      return `(${expressionToNatural(expression.inner, phrases)})`;
     case 'unary':
       return expression.operator === '!'
         ? phrases.not(expressionToNatural(expression.operand, phrases))

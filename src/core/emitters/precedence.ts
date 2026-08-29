@@ -23,6 +23,9 @@ const ATOM_PRECEDENCE = 8;
 export function precedenceOf(expression: Expression): number {
   if (expression.kind === 'binary') return BINARY_PRECEDENCE[expression.operator];
   if (expression.kind === 'unary') return UNARY_PRECEDENCE;
+  /* A group binds like an atom: it carries its own brackets, so nothing around
+     it ever needs to add more. This is also what stops the precedence mark
+     appearing inside one — there is no hidden order left to reveal. */
   return ATOM_PRECEDENCE;
 }
 

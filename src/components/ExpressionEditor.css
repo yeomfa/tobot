@@ -238,3 +238,73 @@
   background: color-mix(in srgb, var(--hue-loop) 10%, transparent);
   box-shadow: inset 0 -1.5px 0 color-mix(in srgb, var(--hue-loop) 38%, transparent);
 }
+
+/*
+ * A grouping the student made.
+ *
+ * Drawn as brackets with a tinted ground, so it reads as one thing the way it
+ * evaluates as one thing. Deliberately different from the precedence mark,
+ * which is an underline and reports something the editor worked out: this one
+ * is a decision, and decisions get a shape.
+ */
+.expr__grouped {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--hue-loop) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-loop) 26%, transparent);
+}
+
+.expr__bracket {
+  font-family: var(--font-mono);
+  font-size: 1.05em;
+  font-weight: 700;
+  line-height: 1;
+  color: color-mix(in srgb, var(--hue-loop) 75%, var(--text-muted));
+}
+
+/* Grouping and ungrouping share the same icon and the same reveal: the button
+   is in the same place whichever direction the student is going. */
+.expr__group,
+.expr__ungroup {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.expr:hover > .expr__chain-item > .expr__group,
+.expr__chain-item:focus-within > .expr__group,
+.expr__group:focus-visible,
+.expr__grouped:hover > .expr__ungroup,
+.expr__grouped:focus-within > .expr__ungroup,
+.expr__ungroup:focus-visible {
+  display: inline-flex;
+}
+
+.expr__group svg,
+.expr__ungroup svg {
+  width: 13px;
+  height: 13px;
+}
+
+.expr__group:hover,
+.expr__ungroup:hover {
+  background: color-mix(in srgb, var(--hue-loop) 16%, transparent);
+  color: var(--hue-loop);
+}
+
+.expr__group:focus-visible,
+.expr__ungroup:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

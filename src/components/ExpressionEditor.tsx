@@ -1,4 +1,5 @@
 import {
+  BracketsRoundIcon as BracketsRound,
   CheckCircleIcon as CheckCircle,
   KeyboardIcon as Keyboard,
   PlusIcon as Plus,
@@ -12,7 +13,7 @@ import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { precedenceOf } from '../core/emitters/precedence';
-import { flattenChain, removeAt } from './chain';
+import { flattenChain, groupParts, removeAt, ungroup } from './chain';
 import { typeIcon } from './statementMeta';
 import { Picker } from './Picker';
 import { VariablePicker } from './VariablePicker';
@@ -241,6 +242,36 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         />
       )}
 
+      {value.kind === 'group' && (
+        <span className="expr__grouped">
+          <span className="expr__bracket" aria-hidden="true">
+            (
+          </span>
+          <ExpressionEditor
+            value={value.inner}
+            onChange={(inner) => onChange({ ...value, inner })}
+            variables={variables}
+            expect={expect}
+            mode={mode}
+            nested
+          />
+          <span className="expr__bracket" aria-hidden="true">
+            )
+          </span>
+          {/* Undoing a grouping has to be as reachable as making one, or the
+              student is stuck with a decision they were experimenting with. */}
+          <button
+            type="button"
+            className="expr__ungroup"
+            onClick={() => onChange(ungroup(value))}
+            title={d.actions.ungroup}
+            aria-label={d.actions.ungroup}
+          >
+            <BracketsRound weight="bold" aria-hidden="true" />
+          </button>
+        </span>
+      )}
+
       {value.kind === 'unary' && (
         <>
           <span className="expr__op">{value.operator === '!' ? '¬' : '−'}</span>
@@ -260,13 +291,36 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           {chain.map((part, index) => (
             <span key={index} className="expr__chain-item">
               {index > 0 && part.setOperator && (
-                <Picker
-                  value={value.operator}
-                  groups={operatorGroups}
-                  onChange={(operator) => onChange(part.setOperator?.(operator) ?? value)}
-                  label={d.fields.operator}
-                  variant="operator"
-                />
+                <>
+                  <Picker
+                    value={value.operator}
+                    groups={operatorGroups}
+                    onChange={(operator) => onChange(part.setOperator?.(operator) ?? value)}
+                    label={d.fields.operator}
+                    variant="operator"
+                  />
+                  {/*
+                    Grouping sits on the operator between two parts, which is
+                    where the student is deciding "these two, first". Offered
+                    from the second part on, since the first has nothing to its
+                    left to join with, and only once there is a third part —
+                    with two, grouping them says nothing new.
+                  */}
+                  {chain.length > 2 && (
+                    <button
+                      type="button"
+                      className="expr__group"
+                      onClick={() => {
+                        const grouped = groupParts(chain, index - 1, value.operator);
+                        if (grouped) onChange(grouped);
+                      }}
+                      title={d.actions.group}
+                      aria-label={d.actions.group}
+                    >
+                      <BracketsRound weight="bold" aria-hidden="true" />
+                    </button>
+                  )}
+                </>
               )}
               <ExpressionEditor
                 value={part.node}

@@ -133,6 +133,8 @@ export function expressionToPseudocode(expression: Expression, keywords: Keyword
       return String(expression.value);
     case 'variable':
       return expression.name;
+    case 'group':
+      return `(${expressionToPseudocode(expression.inner, keywords)})`;
     case 'unary': {
       const operand = expressionToPseudocode(expression.operand, keywords);
       if (expression.operator === '!') {

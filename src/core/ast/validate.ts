@@ -54,6 +54,12 @@ function referencedNames(expression: Expression, into: Set<string>): void {
     case 'unary':
       referencedNames(expression.operand, into);
       return;
+    /* Without this a variable inside a group is invisible to validation: an
+       undefined name would raise nothing here and fail at run time instead,
+       which is exactly the kind of error the static checks exist to catch. */
+    case 'group':
+      referencedNames(expression.inner, into);
+      return;
     default:
   }
 }

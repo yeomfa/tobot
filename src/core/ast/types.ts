@@ -16,7 +16,8 @@ export type Expression =
   | LiteralExpression
   | VariableExpression
   | BinaryExpression
-  | UnaryExpression;
+  | UnaryExpression
+  | GroupExpression;
 
 export interface LiteralExpression {
   kind: 'literal';
@@ -27,6 +28,25 @@ export interface LiteralExpression {
 export interface VariableExpression {
   kind: 'variable';
   name: string;
+}
+
+/**
+ * A grouping the student made on purpose: "work these out first".
+ *
+ * The shape of the tree already decides evaluation order, and the emitters
+ * derive parentheses from it — so for *running* a program this node changes
+ * nothing. It exists because the editor cannot otherwise tell the difference
+ * between an order the student chose and one that fell out of how a chain was
+ * built: `a + b + c` is stored as `(a + b) + c` either way, and the editor
+ * flattens same-operator chains into a row, which silently undid any grouping
+ * made inside one.
+ *
+ * So this marks intent, not arithmetic. Flattening stops here, the brackets
+ * stay visible in every view, and removing the node leaves the same result.
+ */
+export interface GroupExpression {
+  kind: 'group';
+  inner: Expression;
 }
 
 /**

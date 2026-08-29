@@ -21,6 +21,8 @@ function expressionToPython(expression: Expression): string {
       return String(expression.value);
     case 'variable':
       return expression.name;
+    case 'group':
+      return `(${expressionToPython(expression.inner)})`;
     case 'unary': {
       const operand = expressionToPython(expression.operand);
       const wrapped = expression.operand.kind === 'binary' ? `(${operand})` : operand;

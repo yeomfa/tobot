@@ -26,6 +26,8 @@ export const es = {
     copied: 'Copiado',
     export: 'Exportar',
     delete: 'Eliminar',
+    group: 'Agrupar con la siguiente',
+    ungroup: 'Quitar el grupo',
     duplicate: 'Duplicar',
     moveUp: 'Subir',
     moveDown: 'Bajar',
