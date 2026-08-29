@@ -89,12 +89,14 @@
 */
 .picker[data-variant='options'] {
   position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
+  /* Below the operand, where it covers nothing — beside it, the caret sat on
+     top of the operator that follows. */
+  top: calc(100% - 2px);
+  right: 2px;
   display: flex;
   opacity: 0;
   pointer-events: none;
+  z-index: 2;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 

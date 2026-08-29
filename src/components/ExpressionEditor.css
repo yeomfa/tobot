@@ -285,9 +285,14 @@
     shape: the button fades in where it was always going to be.
   */
   position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
+  /*
+    Below the part rather than beside it. Sitting to the right put the button
+    on top of the operator between two operands — the `+` disappeared behind
+    it, which is worse than the gap this replaced. Underneath there is nothing
+    to cover, and the row keeps its natural spacing.
+  */
+  top: calc(100% - 2px);
+  right: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -295,6 +300,7 @@
   height: 20px;
   opacity: 0;
   pointer-events: none;
+  z-index: 2;
   color: var(--text-muted);
   border-radius: var(--radius-sm);
   transition:
@@ -303,12 +309,19 @@
     color var(--duration-fast) var(--ease-out);
 }
 
-/* The reserved gutter the absolute buttons sit in. */
+/*
+  Positioning context only — no reserved gutter.
+
+  Reserving 22px on every part kept the row from reflowing, but paid for it
+  with a permanent gap between parts for a control that is almost never there.
+  The button overlaps the gap the layout already has instead: it sits past the
+  part's right edge, so nothing moves when it appears and nothing is held open
+  when it does not.
+*/
 .expr__chain-item,
 .expr__grouped,
 .expr:has(> .picker[data-variant='options']) {
   position: relative;
-  padding-right: 22px;
 }
 
 .expr:hover > .expr__chain-item > .expr__pick,
