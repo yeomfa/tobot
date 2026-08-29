@@ -1,4 +1,5 @@
 import {
+  ArrowsOutSimpleIcon as ArrowsOutSimple,
   BracketsRoundIcon as BracketsRound,
   CheckCircleIcon as CheckCircle,
   KeyboardIcon as Keyboard,
@@ -276,7 +277,9 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             title={d.actions.ungroup}
             aria-label={d.actions.ungroup}
           >
-            <BracketsRound weight="bold" aria-hidden="true" />
+            {/* Opening outward, not brackets again: sharing the grouping icon
+                made undoing look like doing it once more. */}
+            <ArrowsOutSimple weight="bold" aria-hidden="true" />
           </button>
         </span>
       )}

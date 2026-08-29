@@ -79,8 +79,23 @@
  * of "a + b + c" is reached — before it, the one bar on the whole expression
  * could only ever act on the last operand.
  */
+/*
+  Out of the flow, in space that is always reserved.
+
+  Appearing inline widened the operand the moment it was hovered, pushing
+  everything to its right — so moving the pointer toward the button moved the
+  button, the hover landed elsewhere, and the controls rearranged under the
+  cursor. Fading in place keeps the row still.
+*/
 .picker[data-variant='options'] {
-  display: none;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 /*
@@ -95,7 +110,8 @@
 .expr:hover > .picker[data-variant='options'],
 .expr:focus-within > .picker[data-variant='options'],
 .picker[data-variant='options']:focus-within {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* The picker is a flex item beside the value; stretching it is what gives the

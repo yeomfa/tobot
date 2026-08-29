@@ -275,17 +275,40 @@
  */
 .expr__pick,
 .expr__ungroup {
-  display: none;
+  /*
+    Taken out of the flow, and given room that is always there.
+
+    Appearing inline made each part 24px wider the moment it was hovered,
+    which pushed everything to its right — so aiming at a button moved it,
+    the hover landed on a different part, and the controls rearranged
+    underneath the cursor. Reserving the space means the row never changes
+    shape: the button fades in where it was always going to be.
+  */
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 20px;
   height: 20px;
-  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
   color: var(--text-muted);
   border-radius: var(--radius-sm);
   transition:
+    opacity var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
+}
+
+/* The reserved gutter the absolute buttons sit in. */
+.expr__chain-item,
+.expr__grouped,
+.expr:has(> .picker[data-variant='options']) {
+  position: relative;
+  padding-right: 22px;
 }
 
 .expr:hover > .expr__chain-item > .expr__pick,
@@ -294,13 +317,15 @@
 .expr__grouped:hover > .expr__ungroup,
 .expr__grouped:focus-within > .expr__ungroup,
 .expr__ungroup:focus-visible {
-  display: inline-flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Once picking has started every marked part stays visible, or the selection
    would vanish as soon as the pointer moved to the next one. */
 .expr__chain-item[data-picked] > .expr__pick {
-  display: inline-flex;
+  opacity: 1;
+  pointer-events: auto;
   color: var(--hue-loop);
   background: color-mix(in srgb, var(--hue-loop) 18%, transparent);
 }
