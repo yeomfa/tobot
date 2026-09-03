@@ -154,3 +154,26 @@
     animation: none;
   }
 }
+
+/*
+  Out of the way while a block is being dragged from it.
+
+  Hidden rather than unmounted: removing the element the pointer is holding
+  cancels the drag, so the menu stays in the tree and simply stops covering the
+  canvas the student is aiming at.
+*/
+body[data-dragging] .canvas-toolbar__menu {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The same grab cursor the palette uses, so the two places a statement comes
+   from behave alike — and so dragging is discoverable rather than a thing a
+   student happens to try. */
+.canvas-toolbar__item {
+  cursor: grab;
+}
+
+.canvas-toolbar__item:active {
+  cursor: grabbing;
+}

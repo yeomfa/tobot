@@ -64,6 +64,28 @@ export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
                       role="menuitem"
                       className="canvas-toolbar__item"
                       key={kind}
+                      /*
+                        Draggable as well as clickable, the same as the palette
+                        items: clicking appends to the end, which is right most
+                        of the time, but a statement that belongs inside a loop
+                        or between two others had to be added and then moved.
+                        The drag data type is what lets a drop zone tell a new
+                        statement from one being reordered.
+                      */
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.setData('text/tobot-new', kind);
+                        event.dataTransfer.effectAllowed = 'copy';
+                        document.body.setAttribute('data-dragging', 'true');
+                      }}
+                      onDragEnd={() => {
+                        document.body.removeAttribute('data-dragging');
+                        // Closed on the way out rather than on the way in:
+                        // unmounting the element mid-gesture cancels the drag,
+                        // so the menu stays mounted and `data-dragging` hides
+                        // it while the block is in the air.
+                        setOpen(null);
+                      }}
                       onClick={() => {
                         onAdd(createStatement(kind));
                         setOpen(null);
