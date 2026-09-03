@@ -181,3 +181,14 @@ body[data-dragging] .canvas-toolbar__menu {
 .canvas-toolbar__item:active {
   cursor: grabbing;
 }
+
+/*
+ * No lift mark on toolbar items.
+ *
+ * The whole menu fades out of the way while a block is in flight, so a fading
+ * item inside it would say nothing the menu is not already saying — and the
+ * menu has to go anyway, or it covers the canvas being aimed at.
+ *
+ * The palette is the opposite case: it stays on screen throughout, so there
+ * the mark is the only thing that shows where the block came from.
+ */

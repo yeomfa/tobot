@@ -87,8 +87,15 @@ function PaletteItem({ kind, onAdd }: PaletteItemProps) {
           event.dataTransfer.setData('text/tobot-new', kind);
           event.dataTransfer.effectAllowed = 'copy';
           document.body.setAttribute('data-dragging', 'true');
+          // The same mark a statement in the canvas gets while it is being
+          // moved: one visual language for "this is in your hand", wherever
+          // the block came from.
+          event.currentTarget.setAttribute('data-lifted', 'true');
         }}
-        onDragEnd={() => document.body.removeAttribute('data-dragging')}
+        onDragEnd={(event) => {
+          document.body.removeAttribute('data-dragging');
+          event.currentTarget.removeAttribute('data-lifted');
+        }}
         onClick={() => onAdd(createStatement(kind))}
         title={copy.hint}
       >

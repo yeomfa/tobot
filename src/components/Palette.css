@@ -246,3 +246,22 @@
   border-top: 1px solid var(--border-subtle);
   width: 100%;
 }
+
+/*
+ * The palette item a statement was pulled out of — the same treatment the
+ * toolbar and the canvas use, so one gesture reads the same everywhere.
+ */
+.palette__item[data-lifted] {
+  opacity: 0.4;
+  transform: scale(0.97);
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .palette__item[data-lifted] {
+    transform: none;
+    transition: none;
+  }
+}
