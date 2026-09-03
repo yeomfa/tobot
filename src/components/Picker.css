@@ -87,17 +87,30 @@
   button, the hover landed elsewhere, and the controls rearranged under the
   cursor. Fading in place keeps the row still.
 */
+/*
+  Back in the flow, beside the value it belongs to.
+  
+  It was moved out to stop the row growing when it appeared, then below the
+  part so it would not cover the operator — where it fell outside the block and
+  became unreachable, which cost more than the shifting ever did: swapping a
+  value for a variable is the control's whole job.
+  
+  Keeping its width reserved is what the position could not fix. The slot is
+  always there; only the glyph fades, so nothing moves and nothing is hidden.
+*/
 .picker[data-variant='options'] {
-  position: absolute;
-  /* Below the operand, where it covers nothing — beside it, the caret sat on
-     top of the operator that follows. */
-  top: calc(100% - 2px);
-  right: 2px;
   display: flex;
+  align-self: stretch;
+  width: 16px;
+  flex-shrink: 0;
   opacity: 0;
-  pointer-events: none;
-  z-index: 2;
   transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* Reserved but inert until shown, so a click in the gap does not open a menu
+   the student cannot see. */
+.picker[data-variant='options']:not(:focus-within) {
+  pointer-events: none;
 }
 
 /*

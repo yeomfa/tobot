@@ -8,7 +8,7 @@ import {
   TrashIcon as Trash,
   XCircleIcon as XCircle,
 } from '@phosphor-icons/react';
-import { memo, useEffect, useState } from 'react';
+import { memo } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
@@ -44,6 +44,13 @@ interface ExpressionEditorProps {
    * not show.
    */
   parentPrecedence?: number;
+  /**
+   * Groups this part with the one after it, when there is one to group with.
+   *
+   * Passed down rather than decided here: only the chain knows how many parts
+   * there are and which of them this is.
+   */
+  groupWithNext?: () => void;
   /**
    * Drops this operand from the expression containing it. Absent when there is
    * nothing to drop back to, which is what hides the option on a lone value.
@@ -99,9 +106,10 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   placeholder,
   nested = false,
   parentPrecedence,
+  groupWithNext,
   onRemove,
 }: ExpressionEditorProps) {
-  const { d, fill } = useTranslation();
+  const { d } = useTranslation();
 
   /**
    * Grouped rather than flat, and narrowed to what the slot is for.
@@ -144,37 +152,6 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     `((a + b) + c)`, which is not the single bracket the student asked for, and
     left them deleting the inner group by hand.
   */
-  const [picking, setPicking] = useState<number[]>([]);
-
-  /*
-    Selection is a range: two clicks name its ends and everything between them
-    is included. Storing the two ends rather than every index is what makes
-    "click here, then there" behave the way it does in any list.
-  */
-  /* A selection nobody confirmed should not survive the student looking
-     elsewhere — otherwise the bar stays up over an expression they have moved
-     on from, and the next click extends a range they forgot they started. */
-  useEffect(() => {
-    if (picking.length === 0) return;
-    const clear = (event: PointerEvent): void => {
-      /* Anywhere that is not a part of this chain or its action bar. Checked
-         here rather than by stopping propagation on the part, because a click
-         that lands on a *different* expression should clear this one too. */
-      const target = event.target as HTMLElement;
-      if (target.closest('.expr__chain-item') || target.closest('.expr__action')) return;
-      setPicking([]);
-    };
-    document.addEventListener('pointerdown', clear);
-    return () => document.removeEventListener('pointerdown', clear);
-  }, [picking.length]);
-
-  const inRange = (index: number): boolean => {
-    if (picking.length === 0) return false;
-    const low = Math.min(...picking);
-    const high = Math.max(...picking);
-    return index >= low && index <= high;
-  };
-
   // Chains of one associative operator render as a flat row of values.
   const isChain = value.kind === 'binary' && ASSOCIATIVE.has(value.operator);
   const chain = isChain ? flattenChain(value, value.operator) : [];
@@ -340,32 +317,9 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             <span
               key={index}
               className="expr__chain-item"
-              data-picked={inRange(index) || undefined}
               /* Marks a part that can be selected, so the cursor never
                  promises what a two-part chain cannot do. */
               data-selectable={chain.length > 2 || undefined}
-              onClick={
-                chain.length > 2
-                  ? (event) => {
-                      /*
-                        Editing beats selecting. A click that lands on a field
-                        or a control inside the part is the student changing a
-                        value, and that has to keep working — so only clicks on
-                        the part's own chrome select it.
-
-                        `.picker__list` is included because an open dropdown
-                        renders inside the part: choosing an option from it
-                        would otherwise select the part underneath.
-                      */
-                      const hit = event.target as HTMLElement;
-                      if (hit.closest('input, textarea, button, .picker__list')) return;
-                      event.stopPropagation();
-                      setPicking((current) =>
-                        current.length === 1 && current[0] === index ? [] : [...current.slice(-1), index].slice(-2),
-                      );
-                    }
-                  : undefined
-              }
             >
               {index > 0 && part.setOperator && (
                 <>
@@ -390,6 +344,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                    the multiplication — the row is exactly where the tighter
                    binding stops being visible, so the mark matters most here. */
                 parentPrecedence={precedenceOf(value)}
+                /* Every part but the last can join the one after it. */
+                groupWithNext={
+                  chain.length > 2 && index < chain.length - 1
+                    ? () => {
+                        const grouped = groupParts(chain, index, index + 1, value.operator);
+                        if (grouped) onChange(grouped);
+                      }
+                    : undefined
+                }
                 onRemove={
                   chain.length > 1
                     ? () => onChange(removeAt(chain, index, value.operator))
@@ -401,28 +364,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 
           {/* Confirming the selection. Only once two parts are picked: one
               part is already a unit, so there is nothing to bracket. */}
-          {/* One bar for the whole expression, not a control per part. It only
-              exists while something is selected, so at rest the row is just
-              the algorithm. */}
-          {picking.length > 1 && (
-            <button
-              type="button"
-              className="expr__action"
-              onClick={() => {
-                const grouped = groupParts(
-                  chain,
-                  Math.min(...picking),
-                  Math.max(...picking),
-                  value.operator,
-                );
-                setPicking([]);
-                if (grouped) onChange(grouped);
-              }}
-            >
-              <BracketsRound weight="bold" aria-hidden="true" />
-              {fill(d.actions.groupCount, { count: Math.max(...picking) - Math.min(...picking) + 1 })}
-            </button>
-          )}
+
 
         </>
       )}
@@ -508,6 +450,28 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   },
                 ]
               : []),
+            /*
+              Grouping lives in this menu rather than on a click.
+
+              A click on a part could mean three things — type in the field,
+              swap the value for a variable, or pick it for grouping — and
+              nothing told the student which. The menu already answers "what do
+              I do with this part", so the third answer belongs beside the
+              other two, where it is named instead of guessed.
+            */
+            ...(groupWithNext
+              ? [
+                  {
+                    options: [
+                      {
+                        value: 'group' as const,
+                        label: d.actions.group,
+                        icon: BracketsRound,
+                      },
+                    ],
+                  },
+                ]
+              : []),
             ...(onRemove
               ? [
                   {
@@ -524,7 +488,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               : []),
           ]}
           onChange={(choice) => {
-            if (choice === 'remove') onRemove?.();
+            if (choice === 'group') groupWithNext?.();
+            else if (choice === 'remove') onRemove?.();
             else if (choice === 'literal' || choice === 'variable') setSource(choice);
             else onChange(castExpression(value, choice.slice('kind:'.length) as LiteralKind));
           }}
