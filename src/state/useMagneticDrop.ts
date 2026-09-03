@@ -205,13 +205,24 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
     root.addEventListener('dragover', onDragOver);
     root.addEventListener('drop', onDrop);
     root.addEventListener('dragleave', onDragLeave);
-    root.addEventListener('dragend', clear);
+
+    /*
+      `dragend` fires on the element the drag *started* from, not on whatever
+      the pointer is over — so listening on the canvas missed every drag that
+      began in the palette or the toolbar. Cancel one of those with Escape and
+      the highlighted slot stayed open forever, inviting a drop that was no
+      longer happening.
+
+      On the document it is heard wherever the gesture began. `dragend` runs
+      after a successful drop too, where clearing again is harmless.
+    */
+    document.addEventListener('dragend', clear);
 
     return () => {
       root.removeEventListener('dragover', onDragOver);
       root.removeEventListener('drop', onDrop);
       root.removeEventListener('dragleave', onDragLeave);
-      root.removeEventListener('dragend', clear);
+      document.removeEventListener('dragend', clear);
       clear();
     };
   }, [container]);
