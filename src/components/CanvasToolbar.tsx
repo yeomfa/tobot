@@ -80,12 +80,16 @@ export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
                         event.dataTransfer.setData('text/tobot-new', kind);
                         event.dataTransfer.effectAllowed = 'copy';
                         document.body.setAttribute('data-dragging', 'true');
+                        // Marks the item the instruction is being pulled out
+                        // of, so it can rise while the menu withdraws.
+                        event.currentTarget.setAttribute('data-lifted', 'true');
                         // A drag ends in a click too, and both would add a
                         // statement — two blocks for one gesture.
                         dragged.current = true;
                       }}
-                      onDragEnd={() => {
+                      onDragEnd={(event) => {
                         document.body.removeAttribute('data-dragging');
+                        event.currentTarget.removeAttribute('data-lifted');
                         // Cleared on the next tick: the click that follows a
                         // drag has not fired yet.
                         setTimeout(() => {

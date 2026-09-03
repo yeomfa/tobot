@@ -167,8 +167,24 @@
   which is what stopped this working at all: the menu vanished and the block
   never left the toolbar.
 */
+/*
+ * The menu withdraws while the instruction is pulled out of it.
+ *
+ * It used to blink out — correct in that it stopped covering the canvas, but
+ * it read as the menu being dismissed rather than as the block being taken
+ * from it. Retreating back toward the toolbar it came from, in the reverse of
+ * its opening move, makes the two halves of one gesture: the block rises out,
+ * the drawer slides shut behind it.
+ *
+ * `pointer-events` stays untouched here: taking events from the element the
+ * pointer is holding cancels the drag outright.
+ */
 body[data-dragging] .canvas-toolbar__menu {
   opacity: 0;
+  transform: translate(-50%, 8px) scale(0.96);
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
 }
 
 /* The same grab cursor the palette uses, so the two places a statement comes
@@ -183,12 +199,24 @@ body[data-dragging] .canvas-toolbar__menu {
 }
 
 /*
- * No lift mark on toolbar items.
+ * The item the instruction was pulled out of, rising as the menu withdraws.
  *
- * The whole menu fades out of the way while a block is in flight, so a fading
- * item inside it would say nothing the menu is not already saying — and the
- * menu has to go anyway, or it covers the canvas being aimed at.
- *
- * The palette is the opposite case: it stays on screen throughout, so there
- * the mark is the only thing that shows where the block came from.
+ * Opposite directions on purpose: the block goes up toward the canvas, the
+ * drawer goes down toward the toolbar, so the two movements read as one thing
+ * leaving another rather than as everything fading at once.
  */
+.canvas-toolbar__item[data-lifted] {
+  opacity: 0;
+  transform: translateY(-10px) scale(1.02);
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-dragging] .canvas-toolbar__menu,
+  .canvas-toolbar__item[data-lifted] {
+    transform: none;
+    transition: none;
+  }
+}

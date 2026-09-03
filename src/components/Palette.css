@@ -251,9 +251,19 @@
  * The palette item a statement was pulled out of — the same treatment the
  * toolbar and the canvas use, so one gesture reads the same everywhere.
  */
+/*
+ * The item slides out toward the canvas as the block is taken from it.
+ *
+ * The palette sits at the left edge and the canvas is to its right, so the
+ * instruction leaves rightwards — the direction it is actually going. Fading
+ * in place said only "this one is busy"; moving says where it went.
+ *
+ * The row keeps its height, so nothing below it jumps: what is left behind is
+ * the empty space the instruction came out of, which is the point.
+ */
 .palette__item[data-lifted] {
-  opacity: 0.4;
-  transform: scale(0.97);
+  opacity: 0.25;
+  transform: translateX(10px) scale(0.98);
   transition:
     opacity var(--duration-base) var(--ease-out),
     transform var(--duration-base) var(--ease-out);
@@ -261,6 +271,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .palette__item[data-lifted] {
+    /* The fade still marks the source; only the travel goes. */
     transform: none;
     transition: none;
   }
