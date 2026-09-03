@@ -1037,3 +1037,16 @@ body[data-dragging] .drop-zone[data-over],
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/*
+ * The type chip: its icon, and a caret.
+ *
+ * It used to spell the type out — "# número" — which read as a label on
+ * whatever sat beside it and took more room than the variable name it
+ * describes. The icon carries the meaning at a glance; the words are still
+ * there in the menu, where a student who does not yet know the icons finds
+ * them, and in the chip's tooltip.
+ */
+.statement-block__type .picker__current {
+  display: none;
+}

@@ -487,17 +487,14 @@ function StatementBody({
         <>
           <Keyword>{d.verbs.declare}</Keyword>
           {nameField}
-          <Keyword muted>=</Keyword>
-          <ExpressionEditor
-            value={statement.value}
-            onChange={(value) =>
-              callbacks.update(statement.id, (current) =>
-                current.kind === 'declare' ? { ...current, value } : current,
-              )
-            }
-            variables={variables}
-            expect={statement.valueKind}
-          />
+          {/*
+            The type sits with the name it describes, not after the value.
+
+            At the end of the row it read as belonging to whatever part came
+            last — `variable = 0 + 0  número` looks like the second zero is the
+            number, when it is the variable that is declared as one. Beside the
+            name there is nothing else for it to attach to.
+          */}
           <TypeSelect
             value={statement.valueKind}
             onChange={(valueKind) =>
@@ -511,6 +508,18 @@ function StatementBody({
               )
             }
           />
+          <Keyword muted>=</Keyword>
+          <ExpressionEditor
+            value={statement.value}
+            onChange={(value) =>
+              callbacks.update(statement.id, (current) =>
+                current.kind === 'declare' ? { ...current, value } : current,
+              )
+            }
+            variables={variables}
+            expect={statement.valueKind}
+          />
+
         </>
       );
 

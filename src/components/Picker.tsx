@@ -118,7 +118,12 @@ export function Picker<T extends string>({
             it is a difficulty. Inside a block the surrounding statement already
             supplies that context. */}
         {variant === 'filter' && <span className="picker__filter-label">{label}</span>}
-        {variant !== 'options' && <span className="picker__current">{current?.label ?? '···'}</span>}
+        {/* The chip variant is drawn by its container, which already shows the
+            type's own icon — repeating the word beside it competes with the
+            variable name, which is the part of the block that matters. */}
+        {variant !== 'options' && variant !== 'chip' && (
+          <span className="picker__current">{current?.label ?? '···'}</span>
+        )}
         {/*
           The options variant shows three dots rather than a caret. A lone
           caret said "there is a list here" without saying of what — and
