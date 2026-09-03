@@ -161,10 +161,14 @@
   Hidden rather than unmounted: removing the element the pointer is holding
   cancels the drag, so the menu stays in the tree and simply stops covering the
   canvas the student is aiming at.
+
+  Opacity only — no `pointer-events: none`. Taking events away from the element
+  the pointer is holding cancels the drag just as surely as unmounting it,
+  which is what stopped this working at all: the menu vanished and the block
+  never left the toolbar.
 */
 body[data-dragging] .canvas-toolbar__menu {
   opacity: 0;
-  pointer-events: none;
 }
 
 /* The same grab cursor the palette uses, so the two places a statement comes

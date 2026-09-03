@@ -157,6 +157,13 @@ export function useMagneticDrop(container: React.RefObject<HTMLElement | null>):
       */
       event.preventDefault();
       /*
+        Stopped here so the native drop never reaches React. When the pointer
+        happens to be over a zone's own label, the browser delivers the drop to
+        that zone as well as the magnet forwarding one — two drops, two
+        statements added for a single gesture.
+      */
+      event.stopPropagation();
+      /*
         `bubbles: true` is required, not cosmetic: React listens at the root
         and matches the event to a component by its path, so an event that
         does not bubble never reaches the zone's `onDrop` — the DOM node

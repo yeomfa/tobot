@@ -27,6 +27,9 @@ export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
   const { d } = useTranslation();
   const [open, setOpen] = useState<Category | null>(null);
   const root = useRef<HTMLDivElement>(null);
+  /* A completed drag is followed by a click on the same element, and both
+     would add a statement. This remembers which gesture it was. */
+  const dragged = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -77,9 +80,17 @@ export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
                         event.dataTransfer.setData('text/tobot-new', kind);
                         event.dataTransfer.effectAllowed = 'copy';
                         document.body.setAttribute('data-dragging', 'true');
+                        // A drag ends in a click too, and both would add a
+                        // statement — two blocks for one gesture.
+                        dragged.current = true;
                       }}
                       onDragEnd={() => {
                         document.body.removeAttribute('data-dragging');
+                        // Cleared on the next tick: the click that follows a
+                        // drag has not fired yet.
+                        setTimeout(() => {
+                          dragged.current = false;
+                        }, 0);
                         // Closed on the way out rather than on the way in:
                         // unmounting the element mid-gesture cancels the drag,
                         // so the menu stays mounted and `data-dragging` hides
@@ -87,6 +98,10 @@ export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
                         setOpen(null);
                       }}
                       onClick={() => {
+                        if (dragged.current) {
+                          dragged.current = false;
+                          return;
+                        }
                         onAdd(createStatement(kind));
                         setOpen(null);
                       }}
