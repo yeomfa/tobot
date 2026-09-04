@@ -373,10 +373,10 @@
   and its padding is the chip's own.
 */
 .statement-block__type .picker__trigger {
-  height: auto;
+  height: 26px;
   gap: 3px;
-  padding: 2px 9px 2px 7px;
-  margin: -2px -9px -2px -7px;
+  padding: 0 9px 0 7px;
+  margin: -2px -9px;
   font-family: var(--font-ui);
   font-size: var(--text-xs);
   font-weight: 600;

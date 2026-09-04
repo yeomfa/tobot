@@ -197,7 +197,17 @@ export const ExpressionEditor = memo(function ExpressionEditor({
    * these can be swapped for a variable or dropped, so only these carry the
    * options caret.
    */
-  const isOperand = value.kind === 'literal' || value.kind === 'variable';
+  /*
+    A group counts as an operand for the options menu, which is what lets it be
+    grouped again: `(1 + 2) + 3 + 4` could not become `((1 + 2) + 3) + 4`
+    because the capsule offered no menu of its own, so grouping was a
+    once-only move on any given pair.
+
+    Its type options are hidden separately — a group has no literal kind to
+    change — leaving the actions, which is all it needs.
+  */
+  const isOperand =
+    value.kind === 'literal' || value.kind === 'variable' || value.kind === 'group';
 
   /**
    * What the parts *inside* this expression hold, which is not what the
@@ -346,7 +356,14 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                 parentPrecedence={precedenceOf(value)}
                 /* Every part but the last can join the one after it. */
                 groupWithNext={
-                  chain.length > 2 && index < chain.length - 1
+                  /*
+                    Offered whenever there is a next part to join, however few
+                    remain. The old `> 2` guard meant that after grouping once
+                    the option vanished — with three parts left it read as
+                    "nothing more to group", when `(1 + 2) + 3 + 4` still has
+                    two more joins available.
+                  */
+                  index < chain.length - 1
                     ? () => {
                         const grouped = groupParts(chain, index, index + 1, value.operator);
                         if (grouped) onChange(grouped);
@@ -416,7 +433,13 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       */}
       {isOperand && (
         <Picker
-          value={value.kind === 'variable' ? 'variable' : `kind:${value.valueKind}`}
+          value={
+            value.kind === 'variable'
+              ? 'variable'
+              : value.kind === 'group'
+                ? 'group'
+                : `kind:${value.valueKind}`
+          }
           groups={[
             /*
               The type of the value itself. Only `declare` used to offer this,
@@ -425,7 +448,9 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               slot dictates the type — a `repetir N veces` is always a number,
               and offering to make it text would be offering a mistake.
             */
-            ...(expect === 'any'
+            /* A group has no literal kind of its own to change — its type is
+               whatever the expression inside it produces. */
+            ...(expect === 'any' && value.kind !== 'group'
               ? [
                   {
                     label: d.fields.expect,
@@ -439,7 +464,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   },
                 ]
               : []),
-            ...(canReference
+            ...(canReference && value.kind !== 'group'
               ? [
                   {
                     label: expect === 'any' ? d.fields.value : undefined,

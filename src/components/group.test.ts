@@ -115,3 +115,30 @@ describe('grouping', () => {
     expect(groupParts(parts, 1, 1, '+')).toBeNull();
   });
 });
+
+describe('grouping more than once', () => {
+  const n = (value: number): Expression => literal(value, 'number');
+
+  it('can group a group with what follows it', () => {
+    /*
+      The reported gap: after grouping a pair, the option disappeared. With
+      `(1 + 2) + 3 + 4` there are still two joins available, and refusing them
+      made grouping a once-only move on any chain.
+    */
+    const chain = bin('+', bin('+', bin('+', n(1), n(2)), n(3)), n(4));
+
+    const once = group(chain, '+', 0);
+    expect(expressionToJs(once)).toBe('(1 + 2) + 3 + 4');
+
+    const twice = group(once, '+', 0);
+    expect(expressionToJs(twice)).toBe('((1 + 2) + 3) + 4');
+  });
+
+  it('keeps the same answer however it is nested', () => {
+    // Regrouping an associative chain changes shape, never the result.
+    const chain = bin('+', bin('+', bin('+', n(1), n(2)), n(3)), n(4));
+    expect(evaluate(chain)).toBe('10');
+    expect(evaluate(group(chain, '+', 0))).toBe('10');
+    expect(evaluate(group(group(chain, '+', 0), '+', 0))).toBe('10');
+  });
+});

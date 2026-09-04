@@ -10,12 +10,21 @@
   display: inline-flex;
 }
 
+/*
+  Sized to match the fields it sits beside.
+  
+  At 22px against a 26px input the pickers read as a slightly different row of
+  controls rather than as part of the same one, and each variant had drifted to
+  its own padding — 0 2px, 0 3px, 0 3px 0 5px — so nothing lined up with
+  anything. One height and one horizontal rhythm, adjusted per variant only
+  where a variant genuinely needs it.
+*/
 .picker__trigger {
   display: inline-flex;
   align-items: center;
-  gap: 1px;
-  height: 22px;
-  padding: 0 3px 0 5px;
+  gap: 2px;
+  height: 26px;
+  padding: 0 6px;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -37,9 +46,10 @@
 /* Operators are punctuation between values, so they carry no chrome of their
    own until reached for. */
 .picker[data-variant='operator'] .picker__trigger {
-  min-width: 20px;
+  min-width: 24px;
   justify-content: center;
-  padding: 0 2px;
+  /* Punctuation: tighter than a value, but the same height as one. */
+  padding: 0 4px;
   color: var(--text-secondary);
   background: transparent;
 }
