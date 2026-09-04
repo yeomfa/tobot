@@ -17,22 +17,10 @@
   row-gap: 4px;
   min-width: 0;
   vertical-align: middle;
+  /* Anchors the options control, which is laid over this part's right edge
+     rather than given room of its own in the row. */
+  position: relative;
 }
-
-/*
- * The options caret sits *beside* the value, in the row's own gap.
- *
- * It used to be drawn on top of the value's right edge, which looked tidy
- * while a field was short and collided with the text as soon as it was not:
- * "nombre" and "Hola mundo" both ran straight under the glyph. Overlapping a
- * box whose width follows its content can only ever work by luck, so it does
- * not overlap any more — the caret is a sibling with its own space, and the
- * value keeps every pixel of its own.
- */
-.expr > .picker[data-variant='options'] {
-  margin-left: -2px;
-}
-
 
 
 /**

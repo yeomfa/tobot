@@ -34,8 +34,6 @@ export const en: Dictionary = {
     ungroup: 'Remove the group',
     undo: 'Undo',
     redo: 'Redo',
-    clearCanvas: 'Clear the canvas',
-    confirmClear: 'Clear the canvas? This removes {count} statements.',
     duplicate: 'Duplicate',
     moveUp: 'Move up',
     moveDown: 'Move down',

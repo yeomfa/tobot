@@ -33,8 +33,6 @@ export const es = {
     ungroup: 'Quitar el grupo',
     undo: 'Deshacer',
     redo: 'Rehacer',
-    clearCanvas: 'Vaciar el lienzo',
-    confirmClear: '¿Vaciar el lienzo? Se eliminarán {count} instrucciones.',
     duplicate: 'Duplicar',
     moveUp: 'Subir',
     moveDown: 'Bajar',

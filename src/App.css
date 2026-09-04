@@ -396,6 +396,12 @@
   visibility: visible;
   pointer-events: auto;
   height: 100%;
+  /*
+    The floating toolbar sizes itself against this pane, not the window: with
+    the palette open the pane is a few hundred pixels narrower, and a media
+    query would have read the window and left the bar overhanging anyway.
+  */
+  container-type: inline-size;
 }
 
 .app__canvas-tabs {

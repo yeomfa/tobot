@@ -18,6 +18,36 @@
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-lg);
   transform: translateX(-50%);
+  /*
+    Never wider than the window.
+
+    The bar is centred on the canvas pane, which is narrower than the window
+    once the palette is open — so on a 900px screen its five categories ran 22px
+    past the right edge and took the page with them.
+
+    Not `overflow: auto`. Scrolling was the first fix and it made the bar a
+    scroll container, which then had to account for the open menu — a 232px
+    absolutely-positioned child — and grew right back past the edge. The bar
+    holds a menu; it cannot also be a scroll container.
+
+    So it sheds its labels instead. Below the width where all five fit, the
+    buttons keep their icons and drop their text, which is enough to halve the
+    bar. The names stay reachable through the `title` on each button and are
+    repeated at the head of every menu the button opens.
+  */
+  max-width: calc(100vw - var(--space-6));
+}
+
+/* Groups must not be squeezed — a crushed category button is harder to read
+   than one whose label has been dropped deliberately. */
+.canvas-toolbar__group {
+  flex-shrink: 0;
+}
+
+@container (max-width: 620px) {
+  .canvas-toolbar__button-label {
+    display: none;
+  }
 }
 
 .canvas-toolbar__group {
@@ -221,57 +251,3 @@ body[data-dragging] .canvas-toolbar__menu {
   }
 }
 
-/*
- * Instructions on one side, tools on the other.
- *
- * They answer different questions — what can I build with, and what can I do
- * to what I have built — and only one of the two grows: functions, arrays and
- * objects are all still to come. Mixed into a single row the tools would drift
- * right with every category added, ending up wherever the instructions happen
- * to stop.
- */
-.canvas-toolbar__rule {
-  width: 1px;
-  align-self: stretch;
-  margin: var(--space-2) var(--space-1);
-  background: var(--border-subtle);
-}
-
-.canvas-toolbar__tools {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.canvas-toolbar__tool {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  color: var(--text-muted);
-  border-radius: var(--radius-md);
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.canvas-toolbar__tool svg {
-  width: 17px;
-  height: 17px;
-}
-
-.canvas-toolbar__tool:hover:not(:disabled) {
-  background: var(--bg-app);
-  color: var(--text-primary);
-}
-
-.canvas-toolbar__tool:disabled {
-  color: var(--border-default);
-  cursor: default;
-}
-
-.canvas-toolbar__tool:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}

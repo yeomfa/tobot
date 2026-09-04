@@ -368,7 +368,7 @@ function Workbench({
   onThemeChange,
   onLanguageChange,
 }: WorkbenchProps) {
-  const { d, fill, language } = useTranslation();
+  const { d, language } = useTranslation();
 
   /**
    * A newcomer starts with the welcome example; anyone returning starts blank
@@ -905,20 +905,14 @@ function Workbench({
               the export to find it.
             */}
             <div className="app__canvas-pane" data-visible={canvasView === 'blocks' || undefined}>
-              {/* Right-clicking the canvas offered the browser's own menu —
-                  reload, view source, save image — none of which has anything
-                  to do with an algorithm. */}
+              {/* Right-clicking a block reaches its own actions. The icons on
+                  the block do the same, but they are small, three of them, and
+                  only there while the pointer is over the row. */}
               <CanvasMenu
-                canUndo={controller.canUndo}
-                canRedo={controller.canRedo}
-                onUndo={controller.undo}
-                onRedo={controller.redo}
-                hasStatements={algorithm.body.length > 0}
-                onClear={() => {
-                  if (window.confirm(fill(d.actions.confirmClear, { count: algorithm.body.length }))) {
-                    controller.replaceBody([]);
-                  }
-                }}
+                body={algorithm.body}
+                onDuplicate={controller.duplicate}
+                onRemove={controller.remove}
+                onExplain={showConcept}
               >
                 <Editor
                   algorithm={algorithm}
@@ -929,13 +923,7 @@ function Workbench({
               </CanvasMenu>
               {/* On the canvas rather than in a panel, so closing the palette
                   no longer leaves the editor with no way to add anything. */}
-              <CanvasToolbar
-                onAdd={appendStatement}
-                canUndo={controller.canUndo}
-                canRedo={controller.canRedo}
-                onUndo={controller.undo}
-                onRedo={controller.redo}
-              />
+              <CanvasToolbar onAdd={appendStatement} />
             </div>
             <div
               className="app__canvas-pane"

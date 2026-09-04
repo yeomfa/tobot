@@ -1,5 +1,5 @@
 /**
- * The canvas's right-click menu.
+ * A block's right-click menu.
  *
  * Positioned where the click landed, like every context menu, so it appears
  * under the pointer rather than somewhere the student then has to travel to.
@@ -24,6 +24,17 @@
   animation: canvas-menu-in var(--duration-fast) var(--ease-out);
 }
 
+/* Which block the menu belongs to. It opens over a stack of them, and from a
+   distance one row of blocks looks much like another. */
+.canvas-menu__head {
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
 .canvas-menu__item {
   display: flex;
   align-items: center;
@@ -46,31 +57,18 @@
   color: var(--text-muted);
 }
 
-.canvas-menu__item:hover:not(:disabled) {
+.canvas-menu__item:hover {
   background: var(--bg-inset);
 }
 
-/* Dimmed rather than hidden: an action that is missing reads as a menu that
-   changes shape, while one that is visibly unavailable says why nothing
-   happened — there is no history to step back through yet. */
-.canvas-menu__item:disabled {
-  color: var(--text-faint);
-  cursor: default;
-}
-
-.canvas-menu__item:disabled svg {
-  color: var(--text-faint);
-}
-
-.canvas-menu__item--danger:not(:disabled) {
+/* Every item here acts on the block under the pointer, so none of them can be
+   unavailable — the disabled state went out with undo and redo. */
+.canvas-menu__item--danger,
+.canvas-menu__item--danger svg {
   color: var(--danger);
 }
 
-.canvas-menu__item--danger:not(:disabled) svg {
-  color: var(--danger);
-}
-
-.canvas-menu__item--danger:hover:not(:disabled) {
+.canvas-menu__item--danger:hover {
   background: var(--danger-soft);
 }
 
