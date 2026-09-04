@@ -266,50 +266,6 @@
 }
 
 /*
- * Picking parts to group.
- *
- * The bracket button belongs to each part rather than to the operator between
- * two, because grouping is a range: the student marks the parts that go
- * together and every one between them is included. Pairwise buttons could not
- * express that — three parts took two clicks and produced two nested groups.
- */
-.expr__pick,
-.expr__ungroup {
-  /*
-    Taken out of the flow, and given room that is always there.
-
-    Appearing inline made each part 24px wider the moment it was hovered,
-    which pushed everything to its right — so aiming at a button moved it,
-    the hover landed on a different part, and the controls rearranged
-    underneath the cursor. Reserving the space means the row never changes
-    shape: the button fades in where it was always going to be.
-  */
-  position: absolute;
-  /*
-    Below the part rather than beside it. Sitting to the right put the button
-    on top of the operator between two operands — the `+` disappeared behind
-    it, which is worse than the gap this replaced. Underneath there is nothing
-    to cover, and the row keeps its natural spacing.
-  */
-  top: calc(100% - 2px);
-  right: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2;
-  color: var(--text-muted);
-  border-radius: var(--radius-sm);
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-/*
  * Grouping is an option in the part's own menu, not a click on the part.
  *
  * A click could have meant three things — type in the field, swap the value
@@ -321,16 +277,24 @@
  * control appears between the operands.
  */
 
-/* Ungrouping stays on the capsule, where the group is. */
+/*
+ * Ungrouping sits on the capsule and stays visible.
+ *
+ * Hidden until hover, a group was a one-way door: a student who made one by
+ * accident had nothing on screen telling them it could be undone. It is the
+ * only control the capsule has, so it is not competing with anything by being
+ * there — and grouping is exactly the kind of thing someone tries in order to
+ * see what it does.
+ */
 .expr__ungroup {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   margin-left: 1px;
-  color: color-mix(in srgb, var(--hue-loop) 70%, var(--text-muted));
+  color: color-mix(in srgb, var(--hue-loop) 55%, var(--text-muted));
   border-radius: var(--radius-sm);
   transition:
     background var(--duration-fast) var(--ease-out),
@@ -352,20 +316,4 @@
   outline-offset: 1px;
 }
 
-.expr__group svg,
-.expr__ungroup svg {
-  width: 13px;
-  height: 13px;
-}
 
-.expr__group:hover,
-.expr__ungroup:hover {
-  background: color-mix(in srgb, var(--hue-loop) 16%, transparent);
-  color: var(--hue-loop);
-}
-
-.expr__group:focus-visible,
-.expr__ungroup:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}

@@ -101,7 +101,12 @@
 .picker[data-variant='options'] {
   display: flex;
   align-self: stretch;
-  width: 16px;
+  /*
+    Wide enough for the glyph to sit inside its own hover background. At 16px
+    the 15px dots filled the box edge to edge, so the highlight looked like a
+    box the icon had outgrown rather than a target it sits in.
+  */
+  width: 22px;
   flex-shrink: 0;
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -151,9 +156,11 @@
   border-radius: var(--radius-sm);
 }
 
+/* Smaller than the slot that holds it, so the hover background reads as a
+   target around the glyph rather than a box it is bursting out of. */
 .picker__dots {
-  width: 15px;
-  height: 15px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
   color: var(--text-muted);
 }

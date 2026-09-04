@@ -459,9 +459,16 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               I do with this part", so the third answer belongs beside the
               other two, where it is named instead of guessed.
             */
+            /*
+              Headed, because the menu holds two unlike things: what kind of
+              value this is, and what to do with the part. Without a heading
+              "Agrupar con la siguiente" sat in the same list as "número" and
+              read like another type.
+            */
             ...(groupWithNext
               ? [
                   {
+                    label: d.actions.partActions,
                     options: [
                       {
                         value: 'group' as const,

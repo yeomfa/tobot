@@ -27,6 +27,7 @@ export const en: Dictionary = {
     copied: 'Copied',
     export: 'Export',
     delete: 'Delete',
+    partActions: 'With this part',
     group: 'Group with the next',
     groupCount: 'Group {count} parts',
     ungroup: 'Remove the group',

@@ -26,6 +26,7 @@ export const es = {
     copied: 'Copiado',
     export: 'Exportar',
     delete: 'Eliminar',
+    partActions: 'Con esta parte',
     group: 'Agrupar con la siguiente',
     groupCount: 'Agrupar {count} partes',
     ungroup: 'Quitar el grupo',
