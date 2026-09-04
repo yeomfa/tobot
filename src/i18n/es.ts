@@ -29,6 +29,14 @@ export const es = {
     partActions: 'Con esta parte',
     groupCancel: 'Cancelar',
     group: 'Agrupar con la siguiente',
+    /* Nombra la mitad del menú del lienzo que no actúa sobre un bloque, sino
+       sobre el trabajo: por ahora agrupar, y luego lo que venga. */
+    tools: 'Herramientas',
+    /* La herramienta arma un modo, no hace nada de inmediato — sin esto el
+       estudiante hace clic y parece que el menú no respondió. */
+    groupTool: 'Agrupar partes',
+    groupHint: 'Arrastra sobre las partes que van juntas',
+    groupUnavailable: 'Necesitas una expresión de tres partes o más',
     groupCount: 'Agrupar {count} partes',
     ungroup: 'Quitar el grupo',
     undo: 'Deshacer',

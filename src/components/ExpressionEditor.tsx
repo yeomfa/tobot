@@ -14,7 +14,8 @@ import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { precedenceOf } from '../core/emitters/precedence';
-import { flattenChain, groupParts, removeAt, ungroup } from './chain';
+import { ASSOCIATIVE, flattenChain, groupParts, removeAt, ungroup } from './chain';
+import { onGroupingArmed } from './grouping';
 import { typeIcon } from './statementMeta';
 import { Picker } from './Picker';
 import { VariablePicker } from './VariablePicker';
@@ -72,8 +73,6 @@ interface ExpressionEditorProps {
  * as one flat row instead of nested boxes. Subtraction and division are absent
  * on purpose: their grouping is significant.
  */
-const ASSOCIATIVE = new Set<BinaryOperator>(['+', '*', '&&', '||']);
-
 const ARITHMETIC: BinaryOperator[] = ['+', '-', '*', '/', '%'];
 const COMPARISON: BinaryOperator[] = ['==', '!=', '<', '<=', '>', '>='];
 const LOGICAL: BinaryOperator[] = ['&&', '||'];
@@ -200,6 +199,27 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     document.body.setAttribute('data-grouping', 'true');
     return () => document.body.removeAttribute('data-grouping');
   }, [grouping]);
+
+  /*
+    Arming from outside the block.
+
+    The canvas menu offers grouping as a tool, and a menu opened on empty
+    canvas has no expression to point at — so it arms every chain that has
+    something to group, and the student drags over whichever one they meant.
+    Chains too short to group ignore it: there is nothing there to bracket.
+
+    An event rather than a prop threaded down from the app: the alternative was
+    passing a token through Editor, StatementBlock and every nesting level of
+    this component to reach a piece of state that is otherwise entirely local.
+  */
+  useEffect(() => {
+    if (nested || !isChain || chain.length <= 2) return;
+    const arm = (): void => {
+      setGrouping(true);
+      setSpan(null);
+    };
+    return onGroupingArmed(arm);
+  }, [nested, isChain, chain.length]);
 
   useEffect(() => {
     if (!grouping) return;

@@ -57,12 +57,22 @@
   color: var(--text-muted);
 }
 
-.canvas-menu__item:hover {
+.canvas-menu__item:hover:not(:disabled) {
   background: var(--bg-inset);
 }
 
-/* Every item here acts on the block under the pointer, so none of them can be
-   unavailable — the disabled state went out with undo and redo. */
+/* Dimmed rather than hidden: a tool that disappears leaves the student
+   looking for it, while one that is visibly unavailable — with the reason
+   printed under it — says what grouping needs. */
+.canvas-menu__item:disabled {
+  color: var(--text-faint);
+  cursor: default;
+}
+
+.canvas-menu__item:disabled svg {
+  color: var(--text-faint);
+}
+
 .canvas-menu__item--danger,
 .canvas-menu__item--danger svg {
   color: var(--danger);
@@ -75,6 +85,16 @@
 .canvas-menu__item:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
+}
+
+/* What the tool does once it is armed. It arms a mode rather than acting at
+   once, and without saying so the click reads as a menu that did nothing. */
+.canvas-menu__hint {
+  max-width: 190px;
+  padding: 2px var(--space-3) var(--space-1);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--text-muted);
 }
 
 .canvas-menu__rule {

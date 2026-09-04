@@ -1,4 +1,13 @@
-import type { BinaryOperator, Expression } from '../core/ast/types';
+import type { BinaryOperator, Expression, Statement } from '../core/ast/types';
+
+/**
+ * The operators whose chains render as a flat row, and so can be grouped.
+ *
+ * `a + b + c` reads as three values in a row because `+` associates; `a - b -
+ * c` does not, and flattening it would let the student rebracket it into a
+ * different sum.
+ */
+export const ASSOCIATIVE = new Set<BinaryOperator>(['+', '*', '&&', '||']);
 
 /**
  * Collects the operands of a left-leaning chain of one associative operator,
@@ -129,4 +138,72 @@ export function groupParts(
 /** Undoes a grouping, leaving the expression it held. */
 export function ungroup(expression: Expression): Expression {
   return expression.kind === 'group' ? expression.inner : expression;
+}
+
+/**
+ * Whether an expression holds a chain long enough to be worth grouping.
+ *
+ * Two parts are already a unit — bracketing them says nothing the row does not
+ * — so three is the threshold, the same one the block's own tool uses.
+ */
+function hasGroupableChain(expression: Expression): boolean {
+  if (expression.kind === 'binary') {
+    if (ASSOCIATIVE.has(expression.operator) && flattenChain(expression, expression.operator).length > 2) {
+      return true;
+    }
+    return hasGroupableChain(expression.left) || hasGroupableChain(expression.right);
+  }
+  if (expression.kind === 'unary') return hasGroupableChain(expression.operand);
+  if (expression.kind === 'group') return hasGroupableChain(expression.inner);
+  return false;
+}
+
+/** Every expression a statement holds, ignoring the statements nested in it. */
+function ownExpressions(statement: Statement): Expression[] {
+  switch (statement.kind) {
+    case 'declare':
+    case 'assign':
+    case 'say':
+      return [statement.value];
+    case 'if':
+      return [statement.condition, ...(statement.elseIfs?.map((arm) => arm.condition) ?? [])];
+    case 'while':
+      return [statement.condition];
+    case 'repeat':
+      return [statement.times];
+    case 'forEach':
+      return [statement.from, statement.to, statement.step];
+    default:
+      return [];
+  }
+}
+
+/** The statement lists a block statement holds. */
+function ownBodies(statement: Statement): Statement[][] {
+  if (statement.kind === 'if') {
+    return [
+      statement.then,
+      ...(statement.elseIfs?.map((arm) => arm.body) ?? []),
+      ...(statement.otherwise ? [statement.otherwise] : []),
+    ];
+  }
+  if (statement.kind === 'while' || statement.kind === 'repeat' || statement.kind === 'forEach') {
+    return [statement.body];
+  }
+  return [];
+}
+
+/**
+ * Whether anything in the algorithm can be grouped.
+ *
+ * The canvas menu offers grouping as a tool, and a tool that does nothing is
+ * worse than one that is missing: the student clicks it, no part lights up,
+ * and nothing says why. This is what lets the menu leave it out instead.
+ */
+export function canGroupAnything(statements: Statement[]): boolean {
+  return statements.some(
+    (statement) =>
+      ownExpressions(statement).some(hasGroupableChain) ||
+      ownBodies(statement).some(canGroupAnything),
+  );
 }

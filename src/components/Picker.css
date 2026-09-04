@@ -101,13 +101,17 @@
 
   Absolute is the position that has neither problem: nothing moves when it
   appears, because it was never in the row; and nothing is reserved, because it
-  takes no room in the row either. It overlaps the last few pixels of its part,
-  which is safe here — it is only ever shown while that one part is hovered,
-  and it sits over the part's padding rather than its text.
+  takes no room in the row either.
+
+  Placed fully outside its part, not overlapping it. At `right: -3px` seventeen
+  of its twenty pixels lay over the value — measured — so the dots covered the
+  last letter of `nombre` and sat on top of a `3`. Shifting it by its own width
+  puts it in the gap after the part instead, where it hides nothing and still
+  costs the row no space.
 */
 .picker[data-variant='options'] {
   position: absolute;
-  right: -3px;
+  right: -21px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
