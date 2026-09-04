@@ -328,6 +328,25 @@
   cursor: pointer;
 }
 
+/*
+  While armed, a part's own field gives up its background.
+
+  The tint is painted on the part, and a field fills it: the first operand is
+  a bare input covering 100% of its part's area, so it stayed white and looked
+  like the one part that had not been picked up. The others only looked lit
+  because their operator sits outside the field and let the tint through — 70%
+  covered rather than 100%.
+
+  Cleared rather than tinted to match. Repainting each control in the grouping
+  colour would mean keeping four controls in step with one highlight; letting
+  the part's own tint show through keeps it to one.
+*/
+.expr__chain-item[data-grouping] .expr__literal,
+.expr__chain-item[data-grouping] .picker__trigger {
+  background: transparent;
+  border-color: transparent;
+}
+
 /* Staggered so the row ripples rather than pulsing as one block, which reads
    as several separate things to choose between. */
 .expr__chain-item[data-grouping]:nth-child(2n) {
@@ -399,12 +418,6 @@
   50% {
     transform: rotate(0.6deg);
   }
-}
-
-/* The tool that arms it, and its armed state. */
-.expr__tool--group[data-armed] {
-  color: var(--hue-loop);
-  background: color-mix(in srgb, var(--hue-loop) 16%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

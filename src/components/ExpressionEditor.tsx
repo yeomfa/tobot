@@ -240,8 +240,25 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       // sticky one that keeps catching later drags.
       setGrouping(false);
     };
+    /*
+      Escape backs out without grouping anything.
+
+      The block used to carry a "Cancelar" button, which was also the way in;
+      both are gone, since grouping is offered by the canvas menu now and the
+      pair of them took a permanent strip of every expression. Escape is the
+      conventional way out of a mode and costs the block no space at all.
+    */
+    const cancel = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      setSpan(null);
+      setGrouping(false);
+    };
     window.addEventListener('pointerup', commit);
-    return () => window.removeEventListener('pointerup', commit);
+    window.addEventListener('keydown', cancel);
+    return () => {
+      window.removeEventListener('pointerup', commit);
+      window.removeEventListener('keydown', cancel);
+    };
   }, [grouping, value, onChange]);
 
   /*
@@ -653,30 +670,6 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       {/* Extending belongs to the expression as a whole, so it appears once. */}
       {!nested && (
         <span className="expr__tools">
-          {/*
-            Arming grouping. It sits with "+ otra parte" because both act on
-            the expression as a whole rather than on one part of it.
-
-            Only where there is something to group: two parts are already a
-            unit, so bracketing them says nothing the row does not.
-          */}
-          {isChain && chain.length > 2 && (
-            <button
-              type="button"
-              className="expr__tool expr__tool--group"
-              data-armed={grouping || undefined}
-              onClick={() => {
-                setGrouping(!grouping);
-                setSpan(null);
-              }}
-              aria-pressed={grouping}
-            >
-              <BracketsRound weight="bold" aria-hidden="true" />
-              <span className="expr__tool-label">
-                {grouping ? d.actions.groupCancel : d.actions.group}
-              </span>
-            </button>
-          )}
           <button
             type="button"
             className="expr__tool expr__tool--add"

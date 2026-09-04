@@ -27,7 +27,6 @@ export const es = {
     export: 'Exportar',
     delete: 'Eliminar',
     partActions: 'Con esta parte',
-    groupCancel: 'Cancelar',
     group: 'Agrupar con la siguiente',
     /* Nombra la mitad del menú del lienzo que no actúa sobre un bloque, sino
        sobre el trabajo: por ahora agrupar, y luego lo que venga. */
