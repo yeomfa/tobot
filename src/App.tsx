@@ -41,6 +41,7 @@ import { DEFAULT_SECTION, ROUTES, sectionPath } from './routes';
 const Landing = lazy(async () => ({ default: (await import('./components/Landing')).Landing }));
 const Home = lazy(async () => ({ default: (await import('./components/Home')).Home }));
 const SignIn = lazy(async () => ({ default: (await import('./components/SignIn')).SignIn }));
+import { CanvasMenu } from './components/CanvasMenu';
 import { CanvasToolbar } from './components/CanvasToolbar';
 import { CodePanel } from './components/CodePanel';
 import { Console } from './components/Console';
@@ -367,7 +368,7 @@ function Workbench({
   onThemeChange,
   onLanguageChange,
 }: WorkbenchProps) {
-  const { d, language } = useTranslation();
+  const { d, fill, language } = useTranslation();
 
   /**
    * A newcomer starts with the welcome example; anyone returning starts blank
@@ -709,8 +710,8 @@ function Workbench({
               className="app__icon-button"
               onClick={controller.undo}
               disabled={!controller.canUndo}
-              title="⌘Z"
-              aria-label="Undo"
+              title={`${d.actions.undo} · ⌘Z`}
+              aria-label={d.actions.undo}
             >
               <ArrowCounterClockwise weight="bold" />
             </button>
@@ -719,8 +720,8 @@ function Workbench({
               className="app__icon-button"
               onClick={controller.redo}
               disabled={!controller.canRedo}
-              title="⇧⌘Z"
-              aria-label="Redo"
+              title={`${d.actions.redo} · ⇧⌘Z`}
+              aria-label={d.actions.redo}
             >
               <ArrowClockwise weight="bold" />
             </button>
@@ -904,15 +905,37 @@ function Workbench({
               the export to find it.
             */}
             <div className="app__canvas-pane" data-visible={canvasView === 'blocks' || undefined}>
-              <Editor
-                algorithm={algorithm}
-                callbacks={callbacks}
-                activeNodeId={activeNodeId}
-                erroredNodeId={erroredNodeId}
-              />
+              {/* Right-clicking the canvas offered the browser's own menu —
+                  reload, view source, save image — none of which has anything
+                  to do with an algorithm. */}
+              <CanvasMenu
+                canUndo={controller.canUndo}
+                canRedo={controller.canRedo}
+                onUndo={controller.undo}
+                onRedo={controller.redo}
+                hasStatements={algorithm.body.length > 0}
+                onClear={() => {
+                  if (window.confirm(fill(d.actions.confirmClear, { count: algorithm.body.length }))) {
+                    controller.replaceBody([]);
+                  }
+                }}
+              >
+                <Editor
+                  algorithm={algorithm}
+                  callbacks={callbacks}
+                  activeNodeId={activeNodeId}
+                  erroredNodeId={erroredNodeId}
+                />
+              </CanvasMenu>
               {/* On the canvas rather than in a panel, so closing the palette
                   no longer leaves the editor with no way to add anything. */}
-              <CanvasToolbar onAdd={appendStatement} />
+              <CanvasToolbar
+                onAdd={appendStatement}
+                canUndo={controller.canUndo}
+                canRedo={controller.canRedo}
+                onUndo={controller.undo}
+                onRedo={controller.redo}
+              />
             </div>
             <div
               className="app__canvas-pane"

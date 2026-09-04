@@ -220,3 +220,58 @@ body[data-dragging] .canvas-toolbar__menu {
     transition: none;
   }
 }
+
+/*
+ * Instructions on one side, tools on the other.
+ *
+ * They answer different questions — what can I build with, and what can I do
+ * to what I have built — and only one of the two grows: functions, arrays and
+ * objects are all still to come. Mixed into a single row the tools would drift
+ * right with every category added, ending up wherever the instructions happen
+ * to stop.
+ */
+.canvas-toolbar__rule {
+  width: 1px;
+  align-self: stretch;
+  margin: var(--space-2) var(--space-1);
+  background: var(--border-subtle);
+}
+
+.canvas-toolbar__tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.canvas-toolbar__tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.canvas-toolbar__tool svg {
+  width: 17px;
+  height: 17px;
+}
+
+.canvas-toolbar__tool:hover:not(:disabled) {
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
+.canvas-toolbar__tool:disabled {
+  color: var(--border-default);
+  cursor: default;
+}
+
+.canvas-toolbar__tool:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

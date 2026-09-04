@@ -1,3 +1,7 @@
+import {
+  ArrowCounterClockwiseIcon as Undo,
+  ArrowClockwiseIcon as Redo,
+} from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { createStatement } from '../core/ast/factory';
@@ -9,6 +13,10 @@ import './CanvasToolbar.css';
 
 interface CanvasToolbarProps {
   onAdd: (statement: Statement) => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 /**
@@ -23,7 +31,13 @@ interface CanvasToolbarProps {
  * meets in the palette, in the block colours, and in the concept list. The
  * toolbar teaches that grouping every time it is opened.
  */
-export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
+export function CanvasToolbar({
+  onAdd,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+}: CanvasToolbarProps) {
   const { d } = useTranslation();
   const [open, setOpen] = useState<Category | null>(null);
   const root = useRef<HTMLDivElement>(null);
@@ -138,6 +152,40 @@ export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
           </div>
         );
       })}
+
+      {/*
+        Tools, kept apart from the instructions.
+
+        The two halves answer different questions — what can I build with, and
+        what can I do to what I have built — and the categories are going to
+        grow: functions, arrays and objects are all coming. Mixed into one row
+        they would push the tools further right every time a category is added,
+        until they are wherever the instructions happen to end.
+      */}
+      <span className="canvas-toolbar__rule" aria-hidden="true" />
+
+      <div className="canvas-toolbar__tools">
+        <button
+          type="button"
+          className="canvas-toolbar__tool"
+          onClick={onUndo}
+          disabled={!canUndo}
+          title={d.actions.undo}
+          aria-label={d.actions.undo}
+        >
+          <Undo weight="bold" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="canvas-toolbar__tool"
+          onClick={onRedo}
+          disabled={!canRedo}
+          title={d.actions.redo}
+          aria-label={d.actions.redo}
+        >
+          <Redo weight="bold" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   );
 }
