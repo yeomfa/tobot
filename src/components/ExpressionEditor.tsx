@@ -178,6 +178,16 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   */
   const [grouping, setGrouping] = useState(false);
   const [span, setSpan] = useState<[number, number] | null>(null);
+  /*
+    Whether the pointer is down, which is what separates the two ways to pick a
+    run: dragging across the parts, or clicking the first and then the last.
+
+    Without it the two collide — moving the pointer toward the second part
+    extends the selection on the way, so by the time the click lands the range
+    is already open and the click reads as the start of a third gesture rather
+    than the end of this one.
+  */
+  const [dragging, setDragging] = useState(false);
 
   const inSpan = (index: number): boolean =>
     span !== null && index >= Math.min(...span) && index <= Math.max(...span);
@@ -224,18 +234,44 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   useEffect(() => {
     if (!grouping) return;
     const commit = (): void => {
-      setSpan((current) => {
-        if (current && Math.abs(current[0] - current[1]) > 0 && value.kind === 'binary') {
-          const grouped = groupParts(
-            flattenChain(value, value.operator),
-            current[0],
-            current[1],
-            value.operator,
-          );
-          if (grouped) onChange(grouped);
-        }
-        return null;
-      });
+      /*
+        Only a gesture that actually covered parts ends the mode.
+
+        Releasing anywhere used to disarm, so a click on a field — or anywhere
+        on the canvas — switched grouping off with nothing to show for it: the
+        parts stopped glowing and nothing said why. Now a release that touched
+        no part leaves the mode exactly as it was, and Escape is the way out.
+      */
+      setDragging(false);
+
+      // Read straight from state rather than from inside a setter: the
+      // updater runs during render, so a flag set in there is not readable
+      // here, and the decisions below need it now.
+      if (span === null) return;
+
+      /*
+        A release that covered only one part leaves the mode armed with that
+        part still picked.
+
+        Releasing used to end the mode whatever it had covered, so a click on a
+        part — which is a press and a release on the same one — switched
+        grouping off with nothing grouped and nothing said. One part is not a
+        group; it is half a selection, and the student is mid-gesture. Clicking
+        a second part extends the range, which is how selecting works in every
+        list, and is what the span was built for.
+      */
+      if (Math.abs(span[0] - span[1]) === 0) return;
+
+      if (value.kind === 'binary') {
+        const grouped = groupParts(
+          flattenChain(value, value.operator),
+          span[0],
+          span[1],
+          value.operator,
+        );
+        if (grouped) onChange(grouped);
+      }
+      setSpan(null);
       // One grouping per arming: the mode is a deliberate state, not a
       // sticky one that keeps catching later drags.
       setGrouping(false);
@@ -251,6 +287,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     const cancel = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
       setSpan(null);
+      setDragging(false);
       setGrouping(false);
     };
     window.addEventListener('pointerup', commit);
@@ -259,7 +296,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       window.removeEventListener('pointerup', commit);
       window.removeEventListener('keydown', cancel);
     };
-  }, [grouping, value, onChange]);
+  }, [grouping, span, value, onChange]);
 
   /*
     Whether this expression is resolved before the one containing it.
@@ -455,11 +492,26 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   ? (event) => {
                       event.preventDefault();
                       event.stopPropagation();
-                      setSpan([index, index]);
+                      /*
+                        A press with one part already picked extends to here,
+                        rather than starting over. That is what makes clicking
+                        two parts work as well as dragging across them — the
+                        comment above promised it, and restarting the span on
+                        every press meant only the drag ever did.
+                      */
+                      setDragging(true);
+                      setSpan((current) =>
+                        current ? [current[0], index] : [index, index],
+                      );
                     }
                   : undefined
               }
-              onPointerEnter={grouping && span ? () => setSpan([span[0], index]) : undefined}
+              /* Only while the button is down: hovering used to extend the
+                 range, which made the preview follow the pointer around after
+                 a click and swallowed the click that was meant to close it. */
+              onPointerEnter={
+                grouping && dragging && span ? () => setSpan([span[0], index]) : undefined
+              }
               /* Marks a part that can be selected, so the cursor never
                  promises what a two-part chain cannot do. */
               data-selectable={chain.length > 2 || undefined}

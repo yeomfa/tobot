@@ -329,6 +329,81 @@
 }
 
 /*
+ * Grouping is modal, so while it is armed the canvas stops offering anything
+ * else.
+ *
+ * It was modal only in name before: the block would not drag, and everything
+ * else stayed live. Measured on the example algorithm mid-mode — 24 action
+ * buttons, 8 drag handles, 14 text fields, 12 drop zones and the whole toolbar
+ * still responding, and unrelated blocks still lighting up their controls on
+ * hover. The three parts the student is meant to pick were competing with all
+ * of it.
+ *
+ * Turned off at the canvas rather than per control, so a control added later
+ * is covered without anyone remembering this rule. The parts themselves are
+ * switched back on below, and the block's own hover states are suppressed
+ * because `pointer-events: none` stops clicks but not `:hover`.
+ */
+body[data-grouping] .editor__canvas,
+/* The bar floats over the canvas rather than inside it, so it needs saying
+   separately — adding an instruction mid-selection is exactly the kind of
+   half-finished gesture the mode exists to prevent. */
+body[data-grouping] .canvas-toolbar {
+  pointer-events: none;
+  cursor: default;
+}
+
+/* The bar recedes with everything else, so the lit parts are what is left. */
+body[data-grouping] .canvas-toolbar {
+  opacity: 0.55;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/*
+  The one thing there is to do. Re-enabled on the part, not on the block, so a
+  chain too short to group stays as inert as everything else.
+
+  The part takes the events, and its contents give them straight back: a field
+  or a picker inside an armed part would otherwise inherit the re-enabling and
+  swallow the press that is meant to start the selection.
+*/
+body[data-grouping] .expr__chain-item[data-grouping] {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+body[data-grouping] .expr__chain-item[data-grouping] * {
+  pointer-events: none;
+}
+
+/*
+  Hover states are suppressed separately.
+
+  `pointer-events: none` stops the click but the element still matches
+  `:hover`, so without this the action buttons and the "+ otra parte" strip
+  went on appearing under the pointer — visibly offered, silently dead, which
+  is worse than either.
+*/
+/* `__action`, not `__actions`: the buttons carry the opacity, the container
+   around them is always opaque so the problem badge stays visible. */
+body[data-grouping] .statement-block:hover > .statement-block__row .statement-block__action,
+body[data-grouping] .statement-block:focus-within > .statement-block__row .statement-block__action {
+  opacity: 0;
+}
+
+body[data-grouping] .statement-block:hover .expr__tools,
+body[data-grouping] .statement-block:focus-within .expr__tools {
+  display: none;
+}
+
+/* Everything that is not part of the decision recedes, so the parts that are
+   lit read as the only thing on the canvas. */
+body[data-grouping] .statement-block:not(:has(.expr__chain-item[data-grouping])) {
+  opacity: 0.55;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/*
   While armed, a part's own field gives up its background.
 
   The tint is painted on the part, and a field fills it: the first operand is

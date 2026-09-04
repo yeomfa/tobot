@@ -455,8 +455,7 @@
   opacity: 1;
 }
 
-.statement-block:hover > .statement-block__row > .statement-block__actions,
-.statement-block:focus-within > .statement-block__row > /* Problem badge: a quiet marker, with the explanation in its tooltip. */
+/* Problem badge: a quiet marker, with the explanation in its tooltip. */
 .statement-block__badge svg {
   width: 15px;
   height: 15px;
