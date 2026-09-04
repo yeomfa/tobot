@@ -155,6 +155,12 @@ export const StatementBlock = memo(function StatementBlock({
           toolbar are made of buttons that are *themselves* draggable, and
           excluding those stopped a statement being dragged out of them at all.
         */
+        /* Grouping mode owns the pointer: a drag across the parts is the
+           selection, not a request to move the statement. */
+        if (document.body.hasAttribute('data-grouping')) {
+          setDraggable(false);
+          return;
+        }
         setDraggable(
           !target.closest(
             '.statement-block input, .statement-block textarea, .statement-block button, .statement-block [contenteditable="true"]',

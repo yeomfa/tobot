@@ -8,7 +8,7 @@ import {
   TrashIcon as Trash,
   XCircleIcon as XCircle,
 } from '@phosphor-icons/react';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
@@ -164,6 +164,65 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   // Chains of one associative operator render as a flat row of values.
   const isChain = value.kind === 'binary' && ASSOCIATIVE.has(value.operator);
   const chain = isChain ? flattenChain(value, value.operator) : [];
+
+  /*
+    Grouping mode: armed from the block's toolbar, then the student drags
+    across the parts that belong together and lets go.
+
+    A mode rather than a menu choice because the menu could say "three parts"
+    but never show which three — you had to count. Dragging over them is the
+    selection and the preview at once.
+
+    It is deliberately modal: while it is on the block does not drag, which is
+    what makes a drag across the parts unambiguous. Every earlier attempt at
+    selecting parts failed on exactly that collision.
+  */
+  const [grouping, setGrouping] = useState(false);
+  const [span, setSpan] = useState<[number, number] | null>(null);
+
+  const inSpan = (index: number): boolean =>
+    span !== null && index >= Math.min(...span) && index <= Math.max(...span);
+
+  /*
+    Letting go anywhere ends the gesture. On the window rather than the parts,
+    so releasing past the end of the row still commits what was covered —
+    otherwise a drag that overshoots leaves the mode armed and the selection
+    hanging.
+  */
+  /*
+    While grouping is armed the block must not drag, or a drag across the parts
+    picks the whole statement up instead — the collision that defeated every
+    previous attempt at selecting parts. Set on the body so the block can see
+    it without the two components having to know about each other.
+  */
+  useEffect(() => {
+    if (!grouping) return;
+    document.body.setAttribute('data-grouping', 'true');
+    return () => document.body.removeAttribute('data-grouping');
+  }, [grouping]);
+
+  useEffect(() => {
+    if (!grouping) return;
+    const commit = (): void => {
+      setSpan((current) => {
+        if (current && Math.abs(current[0] - current[1]) > 0 && value.kind === 'binary') {
+          const grouped = groupParts(
+            flattenChain(value, value.operator),
+            current[0],
+            current[1],
+            value.operator,
+          );
+          if (grouped) onChange(grouped);
+        }
+        return null;
+      });
+      // One grouping per arming: the mode is a deliberate state, not a
+      // sticky one that keeps catching later drags.
+      setGrouping(false);
+    };
+    window.addEventListener('pointerup', commit);
+    return () => window.removeEventListener('pointerup', commit);
+  }, [grouping, value, onChange]);
 
   /*
     Whether this expression is resolved before the one containing it.
@@ -336,6 +395,18 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             <span
               key={index}
               className="expr__chain-item"
+              data-grouping={grouping || undefined}
+              data-in-span={inSpan(index) || undefined}
+              onPointerDown={
+                grouping
+                  ? (event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      setSpan([index, index]);
+                    }
+                  : undefined
+              }
+              onPointerEnter={grouping && span ? () => setSpan([span[0], index]) : undefined}
               /* Marks a part that can be selected, so the cursor never
                  promises what a two-part chain cannot do. */
               data-selectable={chain.length > 2 || undefined}
@@ -546,6 +617,30 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       {/* Extending belongs to the expression as a whole, so it appears once. */}
       {!nested && (
         <span className="expr__tools">
+          {/*
+            Arming grouping. It sits with "+ otra parte" because both act on
+            the expression as a whole rather than on one part of it.
+
+            Only where there is something to group: two parts are already a
+            unit, so bracketing them says nothing the row does not.
+          */}
+          {isChain && chain.length > 2 && (
+            <button
+              type="button"
+              className="expr__tool expr__tool--group"
+              data-armed={grouping || undefined}
+              onClick={() => {
+                setGrouping(!grouping);
+                setSpan(null);
+              }}
+              aria-pressed={grouping}
+            >
+              <BracketsRound weight="bold" aria-hidden="true" />
+              <span className="expr__tool-label">
+                {grouping ? d.actions.groupCancel : d.actions.group}
+              </span>
+            </button>
+          )}
           <button
             type="button"
             className="expr__tool expr__tool--add"

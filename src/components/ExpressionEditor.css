@@ -317,3 +317,65 @@
 }
 
 
+
+/*
+ * Grouping mode.
+ *
+ * Armed from the expression's own toolbar, the parts announce that they are
+ * now targets: they take the grouping colour and shiver, which is the
+ * difference between "these are values" and "these are things you can pick".
+ * The wobble is small and slow — enough to read as an invitation, not enough
+ * to make the numbers hard to read while choosing.
+ */
+/*
+  The whole part, not the expression box inside it: that box starts after the
+  value's own field, so highlighting it painted the right half of each part and
+  left the number outside its own selection.
+*/
+.expr__chain-item[data-grouping] {
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--hue-loop) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-loop) 32%, transparent);
+  animation: expr-shiver 1.6s ease-in-out infinite;
+  cursor: pointer;
+}
+
+/* Staggered so the row ripples rather than pulsing as one block, which reads
+   as several separate things to choose between. */
+.expr__chain-item[data-grouping]:nth-child(2n) {
+  animation-delay: 0.2s;
+}
+
+.expr__chain-item[data-grouping]:nth-child(3n) {
+  animation-delay: 0.4s;
+}
+
+/* Covered by the drag: solid, because these are the ones being taken. */
+.expr__chain-item[data-in-span] {
+  background: color-mix(in srgb, var(--hue-loop) 22%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--hue-loop);
+  animation: none;
+}
+
+@keyframes expr-shiver {
+  0%,
+  100% {
+    transform: rotate(-0.6deg);
+  }
+  50% {
+    transform: rotate(0.6deg);
+  }
+}
+
+/* The tool that arms it, and its armed state. */
+.expr__tool--group[data-armed] {
+  color: var(--hue-loop);
+  background: color-mix(in srgb, var(--hue-loop) 16%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expr__chain-item[data-grouping] {
+    /* The colour still says they are selectable; only the movement goes. */
+    animation: none;
+  }
+}

@@ -28,6 +28,7 @@ export const en: Dictionary = {
     export: 'Export',
     delete: 'Delete',
     partActions: 'With this part',
+    groupCancel: 'Cancel',
     group: 'Group with the next',
     groupCount: 'Group {count} parts',
     ungroup: 'Remove the group',
