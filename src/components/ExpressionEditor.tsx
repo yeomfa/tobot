@@ -396,7 +396,23 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               key={index}
               className="expr__chain-item"
               data-grouping={grouping || undefined}
-              data-in-span={inSpan(index) || undefined}
+              /*
+                Where in the run this part falls, so the highlight can close
+                only at the ends and run straight through the middle — a row of
+                separately outlined parts reads as several selections rather
+                than the one group they are about to become.
+              */
+              data-in-span={
+                inSpan(index)
+                  ? span && index === Math.min(...span)
+                    ? index === Math.max(...span)
+                      ? 'only'
+                      : 'start'
+                    : span && index === Math.max(...span)
+                      ? 'end'
+                      : 'middle'
+                  : undefined
+              }
               onPointerDown={
                 grouping
                   ? (event) => {
