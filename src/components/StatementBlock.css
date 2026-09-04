@@ -321,7 +321,6 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
   /* Matches the 26px of the name field and the value beside it. At 23px the
      chip sat visibly shorter than the rest of the row, which read as the
      caret being cramped rather than the pill being short. */
@@ -365,9 +364,19 @@
 /* The chip is now the Picker's trigger rather than a span with a hidden
    select over it, so it inherits the chip's colour instead of imposing its
    own surface. */
+/*
+  The trigger fills the chip, so pressing anywhere on it opens the menu.
+
+  With the icon outside the button, the chip's biggest element was the one part
+  that did nothing: the target was the caret alone, which is both smaller than
+  it looks and not what a student aims at. Now the whole pill is the control,
+  and its padding is the chip's own.
+*/
 .statement-block__type .picker__trigger {
   height: auto;
-  padding: 0;
+  gap: 3px;
+  padding: 2px 9px 2px 7px;
+  margin: -2px -9px -2px -7px;
   font-family: var(--font-ui);
   font-size: var(--text-xs);
   font-weight: 600;

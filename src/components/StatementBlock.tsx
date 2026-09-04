@@ -145,7 +145,21 @@ export const StatementBlock = memo(function StatementBlock({
       draggable={draggable}
       onPointerDown={(event) => {
         const target = event.target as HTMLElement;
-        setDraggable(!target.closest('input, textarea, [contenteditable="true"]'));
+        /*
+          Controls inside the block are excluded along with fields: a draggable
+          ancestor turns a press on one into the start of a drag, so pressing
+          the type chip picked the block up instead of opening its menu — the
+          same way it swallowed text selection before.
+
+          Scoped to this block rather than to any button: the palette and the
+          toolbar are made of buttons that are *themselves* draggable, and
+          excluding those stopped a statement being dragged out of them at all.
+        */
+        setDraggable(
+          !target.closest(
+            '.statement-block input, .statement-block textarea, .statement-block button, .statement-block [contenteditable="true"]',
+          ),
+        );
       }}
       onDragStart={(event) => {
         event.dataTransfer.setData('text/tobot-move', statement.id);
@@ -730,9 +744,14 @@ function TypeSelect({
   // list and its own arrow. The Picker keeps the chip and owns the list too.
   return (
     <span className="statement-block__type" data-kind={value} title={`${d.fields.expect}: ${label}`}>
-      <Glyph weight="bold" aria-hidden="true" />
+      {/*
+        The icon belongs inside the button, not beside it. As a sibling it was
+        the biggest part of the chip and the only part that did nothing —
+        pressing the type meant hitting the caret, which is the smaller half.
+      */}
       <Picker
         value={value}
+        icon={Glyph}
         groups={[
           {
             options: (['number', 'text', 'boolean'] as LiteralKind[]).map((kind) => ({

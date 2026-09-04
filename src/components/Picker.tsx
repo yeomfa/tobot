@@ -37,6 +37,14 @@ interface PickerProps<T extends string> {
   groups: PickerGroup<T>[];
   onChange: (value: T) => void;
   label: string;
+  /**
+   * Shown inside the trigger, before the value.
+   *
+   * Passed in rather than derived, because what the glyph means belongs to the
+   * caller — a type chip shows the type's own icon, and putting it inside the
+   * button is what makes the whole chip pressable rather than just its caret.
+   */
+  icon?: Icon;
   /** Styling hook, so an operator reads differently from a variable name. */
   variant?: 'operator' | 'value' | 'reference' | 'options' | 'boolean' | 'chip' | 'filter';
 }
@@ -59,6 +67,7 @@ export function Picker<T extends string>({
   groups,
   onChange,
   label,
+  icon: TriggerIcon,
   variant = 'value',
 }: PickerProps<T>) {
   const [open, setOpen] = useState(false);
@@ -117,6 +126,7 @@ export function Picker<T extends string>({
             ambiguous on a page: "Fácil" could be anything until something says
             it is a difficulty. Inside a block the surrounding statement already
             supplies that context. */}
+        {TriggerIcon && <TriggerIcon className="picker__icon" weight="bold" aria-hidden="true" />}
         {variant === 'filter' && <span className="picker__filter-label">{label}</span>}
         {/* The chip variant is drawn by its container, which already shows the
             type's own icon — repeating the word beside it competes with the
