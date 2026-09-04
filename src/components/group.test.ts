@@ -142,3 +142,38 @@ describe('grouping more than once', () => {
     expect(evaluate(group(group(chain, '+', 0), '+', 0))).toBe('10');
   });
 });
+
+describe('grouping a run in one action', () => {
+  const n = (value: number): Expression => literal(value, 'number');
+  const chain = (): Expression => bin('+', bin('+', bin('+', n(1), n(2)), n(3)), n(4));
+
+  it('makes one bracket, not a stack of nested ones', () => {
+    /*
+      What grouping in pairs could not do. Joining three parts two at a time
+      gives `((1 + 2) + 3)` — three brackets deep where the student asked for
+      one — so the menu offers each run length instead.
+    */
+    const parts = flattenChain(chain(), '+');
+    const grouped = groupParts(parts, 0, 2, '+');
+    expect(grouped && expressionToJs(grouped)).toBe('(1 + 2 + 3) + 4');
+  });
+
+  it('can take the whole chain', () => {
+    const parts = flattenChain(chain(), '+');
+    const grouped = groupParts(parts, 0, 3, '+');
+    expect(grouped && expressionToJs(grouped)).toBe('(1 + 2 + 3 + 4)');
+  });
+
+  it('can start anywhere in the chain', () => {
+    const parts = flattenChain(chain(), '+');
+    const grouped = groupParts(parts, 1, 3, '+');
+    expect(grouped && expressionToJs(grouped)).toBe('1 + (2 + 3 + 4)');
+  });
+
+  it('leaves the answer alone', () => {
+    const parts = flattenChain(chain(), '+');
+    const grouped = groupParts(parts, 0, 2, '+');
+    expect(evaluate(chain())).toBe('10');
+    expect(grouped && evaluate(grouped)).toBe('10');
+  });
+});

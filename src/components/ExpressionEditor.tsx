@@ -50,7 +50,16 @@ interface ExpressionEditorProps {
    * Passed down rather than decided here: only the chain knows how many parts
    * there are and which of them this is.
    */
-  groupWithNext?: () => void;
+  /**
+   * How many parts follow this one in the chain, and how to group a run of
+   * them starting here.
+   *
+   * A count rather than a single action, because grouping in pairs is
+   * nesting: joining three parts two at a time gives `((a + b) + c)`, not the
+   * `(a + b + c)` the student asked for. The menu offers each reachable run so
+   * one choice produces one bracket.
+   */
+  groupRuns?: { available: number; group: (count: number) => void };
   /**
    * Drops this operand from the expression containing it. Absent when there is
    * nothing to drop back to, which is what hides the option on a lone value.
@@ -106,10 +115,10 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   placeholder,
   nested = false,
   parentPrecedence,
-  groupWithNext,
+  groupRuns,
   onRemove,
 }: ExpressionEditorProps) {
-  const { d } = useTranslation();
+  const { d, fill } = useTranslation();
 
   /**
    * Grouped rather than flat, and narrowed to what the slot is for.
@@ -355,21 +364,19 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                    binding stops being visible, so the mark matters most here. */
                 parentPrecedence={precedenceOf(value)}
                 /* Every part but the last can join the one after it. */
-                groupWithNext={
+                groupRuns={{
                   /*
-                    Offered whenever there is a next part to join, however few
-                    remain. The old `> 2` guard meant that after grouping once
-                    the option vanished — with three parts left it read as
-                    "nothing more to group", when `(1 + 2) + 3 + 4` still has
-                    two more joins available.
+                    Every run that starts here and ends before the chain does.
+                    From the first of four parts that is three choices — two,
+                    three or all four — and each is one bracket rather than a
+                    stack of nested ones.
                   */
-                  index < chain.length - 1
-                    ? () => {
-                        const grouped = groupParts(chain, index, index + 1, value.operator);
-                        if (grouped) onChange(grouped);
-                      }
-                    : undefined
-                }
+                  available: chain.length - 1 - index,
+                  group: (count) => {
+                    const grouped = groupParts(chain, index, index + count - 1, value.operator);
+                    if (grouped) onChange(grouped);
+                  },
+                }}
                 onRemove={
                   chain.length > 1
                     ? () => onChange(removeAt(chain, index, value.operator))
@@ -490,17 +497,23 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               "Agrupar con la siguiente" sat in the same list as "número" and
               read like another type.
             */
-            ...(groupWithNext
+            ...(groupRuns && groupRuns.available > 0
               ? [
                   {
                     label: d.actions.partActions,
-                    options: [
-                      {
-                        value: 'group' as const,
-                        label: d.actions.group,
+                    /*
+                      One option per run length, so "these three together" is a
+                      single choice. Grouping repeatedly instead nests, which
+                      is a different shape and not what was asked for.
+                    */
+                    options: Array.from({ length: groupRuns.available }, (_, step) => {
+                      const count = step + 2;
+                      return {
+                        value: `group:${count}` as const,
+                        label: fill(d.actions.groupCount, { count }),
                         icon: BracketsRound,
-                      },
-                    ],
+                      };
+                    }),
                   },
                 ]
               : []),
@@ -520,7 +533,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               : []),
           ]}
           onChange={(choice) => {
-            if (choice === 'group') groupWithNext?.();
+            if (choice.startsWith('group:')) groupRuns?.group(Number(choice.slice(6)));
             else if (choice === 'remove') onRemove?.();
             else if (choice === 'literal' || choice === 'variable') setSource(choice);
             else onChange(castExpression(value, choice.slice('kind:'.length) as LiteralKind));
