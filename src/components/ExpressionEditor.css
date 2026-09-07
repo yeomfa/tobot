@@ -148,9 +148,19 @@
      parte". Widened rather than moving the control back onto the value, which
      is the collision it was moved out of in the first place. */
   margin-left: 21px;
-  padding: 1px;
+  padding: 1px 3px;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--block-hue, var(--slate-400)) 10%, transparent);
+  /*
+    Matched to the field beside it rather than to its own contents.
+
+    The buttons are 16px, so the strip came out 18px tall against a 26px field
+    and a 30px list — 12px shorter, floating with 6px of air above and below
+    and no edge in common with what it sits next to. Their centres agreed all
+    along; it was the height that made it read as misaligned.
+  */
+  min-height: 26px;
+  align-self: stretch;
 }
 
 /* The whole statement is the hover target: extending acts on the expression
@@ -281,10 +291,26 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-list) 26%, transparent);
 }
 
+/*
+  Each item leaves room on its right for its own options control.
+
+  The control hangs 21px past the part it belongs to, which works in a flat row
+  because the tools strip provides that space. Inside a list there is only a
+  2px gap, so the dots landed on the comma that follows and on the "+" at the
+  end — measured at 19px of overlap on both. The margin is that clearance;
+  `gap` cannot do it because it would space the commas out too.
+*/
 .expr__list-item {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  margin-right: 22px;
+}
+
+/* The last item is followed by the "+" and the closing bracket, which the
+   list's own padding already separates. */
+.expr__list-item:last-of-type {
+  margin-right: 24px;
 }
 
 .expr__comma {
