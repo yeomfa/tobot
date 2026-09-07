@@ -71,11 +71,22 @@
   transition: margin-right var(--duration-fast) var(--ease-out);
 }
 
-/* `:not(:last-child)` because the last part has the tools strip after it,
-   which already leaves the room — widening it there would only push "+ otra
-   parte" sideways whenever the pointer passed by. */
-.expr__chain-item:not(:last-child):hover,
-.expr__chain-item:not(:last-child):focus-within {
+/*
+  The room belongs to the `.expr` the control hangs off, not to the chain item
+  around it.
+
+  A chain item holds the operator that opens it and then the value:
+  `[+][nombre]`. The options control is positioned against the *value*, so it
+  is drawn 1px past that inner `.expr` — and the next chain item begins before
+  that, since the item's own box ends at the value. Widening the item did
+  nothing about it: the margin went on the far side of a box the control had
+  already escaped.
+
+  Put on the inner `.expr` instead, and keyed on the same `:hover` that reveals
+  the control, so the room and the thing that needs it appear together.
+*/
+.expr__chain-item:not(:last-child) > .expr:hover,
+.expr__chain-item:not(:last-child) > .expr:focus-within {
   margin-right: 21px;
 }
 
