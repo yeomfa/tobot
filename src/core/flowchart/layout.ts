@@ -105,7 +105,11 @@ function measureStatement(statement: Statement, labels: FlowLabels): Measured {
     case 'while':
     case 'repeat':
     case 'forEach':
+    case 'forEachItem':
       return measureLoop(statement, labels);
+    /* A loop missing from this list is not a compile error — it falls to
+       `measureSimple` and is drawn as a plain box with its body invisible,
+       which looks like a diagram that is merely wrong rather than broken. */
     default:
       return measureSimple(statement, labels);
   }
@@ -280,7 +284,7 @@ function measureIf(
  * `forEach` reuse this shape with their own diamond text.
  */
 function measureLoop(
-  statement: Extract<Statement, { kind: 'while' | 'repeat' | 'forEach' }>,
+  statement: Extract<Statement, { kind: 'while' | 'repeat' | 'forEach' | 'forEachItem' }>,
   labels: FlowLabels,
 ): Measured {
   const { text } = labels.describe(statement);

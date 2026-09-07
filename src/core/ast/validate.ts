@@ -56,9 +56,21 @@ function referencedNames(expression: Expression, into: Set<string>): void {
       return;
     /* Without this a variable inside a group is invisible to validation: an
        undefined name would raise nothing here and fail at run time instead,
-       which is exactly the kind of error the static checks exist to catch. */
+       which is exactly the kind of error the static checks exist to catch.
+       The list nodes below are here for the same reason — `notas[i]` reads two
+       names, and missing either one is a run-time surprise. */
     case 'group':
       referencedNames(expression.inner, into);
+      return;
+    case 'list':
+      for (const item of expression.items) referencedNames(item, into);
+      return;
+    case 'index':
+      referencedNames(expression.list, into);
+      referencedNames(expression.index, into);
+      return;
+    case 'length':
+      referencedNames(expression.list, into);
       return;
     default:
   }
@@ -244,6 +256,29 @@ export function validate(program: Statement[]): Problem[] {
           }
 
           // The loop variable exists inside the body.
+          declared.add(statement.variable);
+          if (statement.body.length === 0) {
+            problems.push({ nodeId: statement.id, severity: 'warning', messageKey: 'emptyLoop' });
+          }
+          walk(statement.body);
+          break;
+        }
+
+        /* Without these two the static checks say nothing about a list: an
+           operation on an undeclared name, or a walk over one, would raise
+           only at run time — which is the class of error these checks exist to
+           catch before the student presses play. */
+        case 'listOp': {
+          checkName(statement.name, statement.id, false);
+          if (statement.value) checkExpression(statement.value, statement.id);
+          if (statement.index) checkExpression(statement.index, statement.id);
+          break;
+        }
+
+        case 'forEachItem': {
+          checkExpression(statement.list, statement.id);
+          checkName(statement.variable, statement.id, false);
+          // The element name exists inside the body, like a loop counter.
           declared.add(statement.variable);
           if (statement.body.length === 0) {
             problems.push({ nodeId: statement.id, severity: 'warning', messageKey: 'emptyLoop' });

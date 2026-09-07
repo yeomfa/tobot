@@ -1,4 +1,6 @@
 import {
+  ListBulletsIcon as ListBullets,
+  ListPlusIcon as ListPlus,
   ArrowsClockwiseIcon as ArrowsClockwise,
   ArrowsSplitIcon as ArrowsSplit,
   ChatCircleTextIcon as ChatCircleText,
@@ -16,7 +18,7 @@ import type { Icon } from '@phosphor-icons/react';
 
 import type { LiteralKind, Statement } from '../core/ast/types';
 
-export type Category = 'variables' | 'io' | 'conditionals' | 'loops' | 'notes';
+export type Category = 'variables' | 'io' | 'conditionals' | 'loops' | 'lists' | 'notes';
 
 export type StatementKind = Statement['kind'];
 
@@ -35,6 +37,11 @@ export const statementCategory: Record<StatementKind, Category> = {
   while: 'loops',
   repeat: 'loops',
   forEach: 'loops',
+  /* Lists get their own category rather than joining `variables`. A list is a
+     new idea about *what* a value can be, not a new way to make one, and the
+     colour is what tells a student that before they read the block. */
+  listOp: 'lists',
+  forEachItem: 'lists',
 };
 
 /** Order shown in the palette, grouped by category. */
@@ -43,6 +50,7 @@ export const paletteGroups: Array<{ category: Category; kinds: StatementKind[] }
   { category: 'io', kinds: ['say', 'ask'] },
   { category: 'conditionals', kinds: ['if'] },
   { category: 'loops', kinds: ['repeat', 'forEach', 'while'] },
+  { category: 'lists', kinds: ['listOp', 'forEachItem'] },
   { category: 'notes', kinds: ['comment'] },
 ];
 
@@ -63,6 +71,8 @@ export const statementIcon: Record<StatementKind, Icon> = {
   while: ArrowsClockwise,
   repeat: Repeat,
   forEach: ListNumbers,
+  listOp: ListBullets,
+  forEachItem: ListPlus,
 };
 
 /**
@@ -89,5 +99,6 @@ export const categoryIcon: Record<Category, Icon> = {
   io: ChatCircleText,
   conditionals: ArrowsSplit,
   loops: ArrowsClockwise,
+  lists: ListBullets,
   notes: NoteBlank,
 };

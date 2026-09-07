@@ -30,6 +30,18 @@ export interface Keywords {
   to: string;
   step: string;
   endFor: string;
+  forEach: string;
+  in: string;
+  endForEach: string;
+  append: string;
+  insert: string;
+  at: string;
+  removeAt: string;
+  sort: string;
+  ascending: string;
+  descending: string;
+  reverse: string;
+  length: string;
   start: string;
   end: string;
   and: string;
@@ -59,6 +71,18 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     times: 'VECES',
     endRepeat: 'FIN REPETIR',
     for: 'PARA',
+    forEach: 'PARA CADA',
+    in: 'EN',
+    endForEach: 'FIN PARA CADA',
+    append: 'AGREGAR',
+    insert: 'INSERTAR',
+    at: 'EN LA POSICIÓN',
+    removeAt: 'QUITAR DE',
+    sort: 'ORDENAR',
+    ascending: 'ASCENDENTE',
+    descending: 'DESCENDENTE',
+    reverse: 'INVERTIR',
+    length: 'LARGO DE',
     from: 'DESDE',
     to: 'HASTA',
     step: 'CON PASO',
@@ -89,6 +113,18 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     times: 'TIMES',
     endRepeat: 'END REPEAT',
     for: 'FOR',
+    forEach: 'FOR EACH',
+    in: 'IN',
+    endForEach: 'END FOR EACH',
+    append: 'APPEND',
+    insert: 'INSERT',
+    at: 'AT',
+    removeAt: 'REMOVE FROM',
+    sort: 'SORT',
+    ascending: 'ASCENDING',
+    descending: 'DESCENDING',
+    reverse: 'REVERSE',
+    length: 'LENGTH OF',
     from: 'FROM',
     to: 'TO',
     step: 'STEP',
@@ -135,6 +171,12 @@ export function expressionToPseudocode(expression: Expression, keywords: Keyword
       return expression.name;
     case 'group':
       return `(${expressionToPseudocode(expression.inner, keywords)})`;
+    case 'list':
+      return `[${expression.items.map((item) => expressionToPseudocode(item, keywords)).join(', ')}]`;
+    case 'index':
+      return `${expressionToPseudocode(expression.list, keywords)}[${expressionToPseudocode(expression.index, keywords)}]`;
+    case 'length':
+      return `${keywords.length} ${expressionToPseudocode(expression.list, keywords)}`;
     case 'unary': {
       const operand = expressionToPseudocode(expression.operand, keywords);
       if (expression.operator === '!') {
@@ -177,8 +219,41 @@ function emitStatement(statement: Statement, indent: number, kw: Keywords): Emit
     case 'declare':
       return [line(`${kw.declare} ${statement.name} ← ${expr(statement.value)}`)];
 
-    case 'assign':
-      return [line(`${statement.name} ← ${expr(statement.value)}`)];
+    case 'assign': {
+      const target = statement.index
+        ? `${statement.name}[${expr(statement.index)}]`
+        : statement.name;
+      return [line(`${target} ← ${expr(statement.value)}`)];
+    }
+
+    case 'listOp': {
+      const value = statement.value ? expr(statement.value) : '';
+      const at = statement.index ? expr(statement.index) : '';
+      switch (statement.operation) {
+        case 'append':
+          return [line(`${kw.append} ${value} ${kw.to} ${statement.name}`)];
+        case 'insert':
+          return [line(`${kw.insert} ${value} ${kw.at} ${at} ${kw.to} ${statement.name}`)];
+        case 'removeAt':
+          return [line(`${kw.removeAt} ${statement.name} ${kw.at} ${at}`)];
+        case 'sort':
+          return [
+            line(
+              `${kw.sort} ${statement.name} ${statement.descending ? kw.descending : kw.ascending}`,
+            ),
+          ];
+        case 'reverse':
+          return [line(`${kw.reverse} ${statement.name}`)];
+      }
+      return [];
+    }
+
+    case 'forEachItem':
+      return [
+        line(`${kw.forEach} ${statement.variable} ${kw.in} ${expr(statement.list)} ${kw.do}`),
+        ...emitStatements(statement.body, indent + 1, kw),
+        line(kw.endForEach),
+      ];
 
     case 'say':
       return [line(`${kw.say} ${expr(statement.value)}`)];

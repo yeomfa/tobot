@@ -186,8 +186,18 @@ export const en: Dictionary = {
       io: 'Input and output',
       conditionals: 'Conditionals',
       loops: 'Loops',
+      lists: 'Lists',
       notes: 'Notes',
     },
+  },
+  listOps: {
+    append: 'Add to the end',
+    insert: 'Insert at',
+    removeAt: 'Remove from',
+    sort: 'Sort',
+    reverse: 'Reverse',
+    ascending: 'Smallest to largest',
+    descending: 'Largest to smallest',
   },
   statements: {
     declare: { label: 'Create variable', hint: 'Store a value under a name' },
@@ -198,6 +208,8 @@ export const en: Dictionary = {
     while: { label: 'While', hint: 'Repeat while the condition stays true' },
     repeat: { label: 'Repeat N times', hint: 'Repeat a fixed number of times' },
     forEach: { label: 'From… to', hint: 'Count from one number up to another' },
+    listOp: { label: 'Change list', hint: 'Add, remove or sort items' },
+    forEachItem: { label: 'For each item', hint: 'Walk a list from start to end' },
     comment: { label: 'Comment', hint: 'A note for the reader; it does not run' },
   },
   panels: {
@@ -307,6 +319,7 @@ export const en: Dictionary = {
     notConfiguredHint: 'Signing in needs Supabase connected. See the README.',
   },
   verbs: {
+    forEachItem: 'for each',
     declare: 'variable',
     assign: 'change',
     say: 'say',
@@ -349,6 +362,10 @@ export const en: Dictionary = {
     '||': 'or else',
   },
   fields: {
+    operation: 'Operation',
+    theValue: 'the value',
+    atPosition: 'at position',
+    in: 'in',
     name: 'name',
     value: 'value',
     condition: 'condition',
@@ -439,6 +456,12 @@ export const en: Dictionary = {
   errors: {
     undefinedVariable: 'The variable "{name}" does not exist yet. Create it before using it.',
     divisionByZero: 'Cannot divide by zero.',
+    notAList: 'This is not a list. These instructions only work with a list.',
+    listNotANumber: 'You cannot do arithmetic with a whole list. Did you mean one item, or how many it has?',
+    indexOutOfRange:
+      'Position {index} does not exist: the list has {length} items, so they run from 0 to {last}.',
+    indexNotWhole: 'A position has to be a whole number, and {index} is not.',
+    emptyList: 'The list is empty, so there is nothing to remove.',
     notANumber: '"{value}" is not a valid number.',
     infiniteLoop:
       'The loop ran {limit} times and was stopped. Check that the condition eventually becomes false.',

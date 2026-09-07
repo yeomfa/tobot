@@ -1,11 +1,21 @@
-import type { LiteralKind, NodeId } from '../ast/types';
+import type { NodeId, ValueKind } from '../ast/types';
 
-export type RuntimeValue = string | number | boolean;
+/**
+ * A value at run time.
+ *
+ * The list case is why `ValueKind` exists alongside `LiteralKind`: everything
+ * that asks "what can the student type here" still deals in the three scalar
+ * kinds, and only the places that ask "what does this hold" widen to include a
+ * list. Lists hold `RuntimeValue`, so a list of lists is representable — the
+ * interpreter allows it, and the editor is what decides whether it can be
+ * built.
+ */
+export type RuntimeValue = string | number | boolean | RuntimeValue[];
 
 export interface VariableSnapshot {
   name: string;
   value: RuntimeValue;
-  kind: LiteralKind;
+  kind: ValueKind;
   /** Set on the step that changed it, so the UI can flash the row. */
   justChanged: boolean;
 }

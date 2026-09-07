@@ -1,4 +1,6 @@
 import type {
+  ForEachItemStatement,
+  ListOpStatement,
   AskStatement,
   CommentStatement,
   AssignStatement,
@@ -124,6 +126,25 @@ export function createStatement(
       } satisfies AssignStatement;
     case 'say':
       return { id, kind: 'say', value: literal('', 'text') } satisfies SayStatement;
+    /* A new list starts with one element rather than none: an empty pair of
+       brackets gives the student nothing to click on, and nothing to change
+       into what they actually wanted. */
+    case 'listOp':
+      return {
+        id,
+        kind: 'listOp',
+        operation: 'append',
+        name: suggestedName,
+        value: literal(0, 'number'),
+      } satisfies ListOpStatement;
+    case 'forEachItem':
+      return {
+        id,
+        kind: 'forEachItem',
+        variable: 'elemento',
+        list: { kind: 'variable', name: suggestedName },
+        body: [],
+      } satisfies ForEachItemStatement;
     case 'ask':
       return {
         id,

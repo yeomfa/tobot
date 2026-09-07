@@ -20,6 +20,11 @@ import type { Expression, LiteralKind, Statement } from './types';
 /** Deeper than any algorithm a student writes, shallow enough to walk safely. */
 const MAX_DEPTH = 64;
 
+/* A literal list in the editor is something a student typed out by hand; this
+   is far past anything anyone builds that way, and stops a crafted file from
+   arriving with a million-element array. */
+const MAX_LIST_ITEMS = 500;
+
 /** Bounds a pasted or crafted payload, well above any real lesson. */
 const MAX_STATEMENTS = 5000;
 
@@ -73,6 +78,19 @@ function isExpression(value: unknown, depth: number): value is Expression {
       return (
         UNARY_OPERATORS.has(value.operator as string) && isExpression(value.operand, depth + 1)
       );
+    /* Missing these does not fail loudly: it refuses the whole algorithm on
+       load, so a student who saved work using lists would open an empty
+       canvas. The depth cap covers nesting, as it does for groups. */
+    case 'list':
+      return (
+        Array.isArray(value.items) &&
+        value.items.length <= MAX_LIST_ITEMS &&
+        value.items.every((item) => isExpression(item, depth + 1))
+      );
+    case 'index':
+      return isExpression(value.list, depth + 1) && isExpression(value.index, depth + 1);
+    case 'length':
+      return isExpression(value.list, depth + 1);
     default:
       return false;
   }

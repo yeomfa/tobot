@@ -46,6 +46,12 @@ function expressionToPython(expression: Expression, variables: VariableKinds): s
       return expression.name;
     case 'group':
       return `(${expressionToPython(expression.inner, variables)})`;
+    case 'list':
+      return `[${expression.items.map((item) => expressionToPython(item, variables)).join(', ')}]`;
+    case 'index':
+      return `${expressionToPython(expression.list, variables)}[${expressionToPython(expression.index, variables)}]`;
+    case 'length':
+      return `len(${expressionToPython(expression.list, variables)})`;
     case 'unary': {
       const operand = expressionToPython(expression.operand, variables);
       const wrapped = expression.operand.kind === 'binary' ? `(${operand})` : operand;
@@ -94,8 +100,16 @@ function emitStatement(statement: Statement, indent: number, variables: Variable
       return statement.text.split('\n').map((part) => line(`# ${part}`));
 
     case 'declare':
-    case 'assign':
       return [line(`${statement.name} = ${expr(statement.value)}`)];
+
+    case 'assign': {
+      // Only `assign` can target one element; `declare` always makes the whole
+      // variable, which is why the two no longer share a branch.
+      const target = statement.index
+        ? `${statement.name}[${expr(statement.index)}]`
+        : statement.name;
+      return [line(`${target} = ${expr(statement.value)}`)];
+    }
 
     case 'say':
       return [line(`print(${expr(statement.value)})`)];
@@ -129,6 +143,41 @@ function emitStatement(statement: Statement, indent: number, variables: Variable
         line(`for ${counter} in range(${expr(statement.times)}):`),
         ...emitStatements(statement.body, indent + 1, variables),
       ];
+    }
+
+    case 'forEachItem':
+      return [
+        line(`for ${statement.variable} in ${expr(statement.list)}:`),
+        ...emitStatements(statement.body, indent + 1, variables),
+      ];
+
+    case 'listOp': {
+      const { name } = statement;
+      const value = statement.value ? expr(statement.value) : "''";
+      const at = statement.index ? expr(statement.index) : null;
+      switch (statement.operation) {
+        case 'append':
+          return [line(`${name}.append(${value})`)];
+        case 'insert':
+          return [line(`${name}.insert(${at ?? `len(${name})`}, ${value})`)];
+        case 'removeAt':
+          return [line(`del ${name}[${at ?? '-1'}]`)];
+        case 'reverse':
+          return [line(`${name}.reverse()`)];
+        case 'sort':
+          /* Python sorts numbers as numbers already, so unlike the JavaScript
+             emitter this needs no comparison function — but a mixed list
+             raises `TypeError` there, where the robot falls back to text. The
+             key keeps the two in step. */
+          return [
+            line(
+              statement.descending
+                ? `${name}.sort(key=lambda v: (isinstance(v, str), v), reverse=True)`
+                : `${name}.sort(key=lambda v: (isinstance(v, str), v))`,
+            ),
+          ];
+      }
+      return [];
     }
 
     case 'forEach': {

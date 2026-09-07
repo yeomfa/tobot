@@ -12,12 +12,25 @@ export type NodeId = string;
 /** Values a student can write literally. */
 export type LiteralKind = 'number' | 'text' | 'boolean';
 
+/**
+ * What a variable can hold, which is a literal kind or a list of them.
+ *
+ * Kept separate from `LiteralKind` on purpose: a list is not something the
+ * student types into a field, it is something they build. Every place that
+ * asks "what can I write here" still takes `LiteralKind`, and only the places
+ * that ask "what does this hold" widen to this.
+ */
+export type ValueKind = LiteralKind | 'list';
+
 export type Expression =
   | LiteralExpression
   | VariableExpression
   | BinaryExpression
   | UnaryExpression
-  | GroupExpression;
+  | GroupExpression
+  | ListExpression
+  | IndexExpression
+  | LengthExpression;
 
 export interface LiteralExpression {
   kind: 'literal';
@@ -47,6 +60,39 @@ export interface VariableExpression {
 export interface GroupExpression {
   kind: 'group';
   inner: Expression;
+}
+
+/**
+ * A list written out: `[1, 2, 3]`.
+ *
+ * The items are expressions rather than literals so a list can be built from
+ * what the program already knows — `[nota1, nota2, promedio]` is the first
+ * thing a student reaches for, and requiring literals would make lists a place
+ * to type constants rather than a way to hold their work.
+ */
+export interface ListExpression {
+  kind: 'list';
+  items: Expression[];
+}
+
+/**
+ * One element, by position: `notas[i]`.
+ *
+ * Reading and writing share this node — an index on the left of `cambiar` is
+ * the same idea as one on the right, and splitting them would make "the third
+ * element" two concepts instead of one.
+ */
+export interface IndexExpression {
+  kind: 'index';
+  list: Expression;
+  index: Expression;
+}
+
+/** How many elements a list holds. Its own node rather than a function call,
+    since there are no function calls yet and this is the one students need. */
+export interface LengthExpression {
+  kind: 'length';
+  list: Expression;
 }
 
 /**
@@ -92,7 +138,9 @@ export type Statement =
   | IfStatement
   | WhileStatement
   | RepeatStatement
-  | ForEachStatement;
+  | ForEachStatement
+  | ListOpStatement
+  | ForEachItemStatement;
 
 interface StatementBase {
   id: NodeId;
@@ -116,10 +164,19 @@ export interface DeclareStatement extends StatementBase {
   value: Expression;
 }
 
-/** `variable` topic: change what an existing box holds. */
+/**
+ * `variable` topic: change what an existing box holds.
+ *
+ * With `index` set it writes one element instead of the whole variable:
+ * `cambiar notas[2] = 5`. A field on the statement rather than a separate kind
+ * of block, because a student meets it as the same act — changing something
+ * they already have — and two nearly identical blocks would teach otherwise.
+ */
 export interface AssignStatement extends StatementBase {
   kind: 'assign';
   name: string;
+  /** Position to write, when the target is one element of a list. */
+  index?: Expression;
   value: Expression;
 }
 
@@ -181,6 +238,49 @@ export interface RepeatStatement extends StatementBase {
   body: Statement[];
 }
 
+/**
+ * What a list operation does. One statement with an operation rather than five
+ * blocks, because they are all the same sentence — "do this to that list" —
+ * and five near-identical blocks in the palette would say they are five ideas.
+ */
+export type ListOperation = 'append' | 'insert' | 'removeAt' | 'sort' | 'reverse';
+
+/**
+ * `list` topic: change a list in place.
+ *
+ * `value` and `index` are used or ignored depending on the operation, which is
+ * checked by the validator rather than encoded in the type. A union of five
+ * shapes would be more precise and would make every walk over statements five
+ * cases longer for no gain to the student.
+ */
+export interface ListOpStatement extends StatementBase {
+  kind: 'listOp';
+  operation: ListOperation;
+  /** The list being changed, by name. */
+  name: string;
+  /** What to add, for `append` and `insert`. */
+  value?: Expression;
+  /** Where, for `insert` and `removeAt`. */
+  index?: Expression;
+  /** Largest first, for `sort`. */
+  descending?: boolean;
+}
+
+/**
+ * `list` topic: visit every element in turn.
+ *
+ * Separate from `forEach`, which counts through numbers. A student reading
+ * "para cada nota en notas" is not thinking about positions at all, and making
+ * them write `notas[i]` to see an element is the step that loses people.
+ */
+export interface ForEachItemStatement extends StatementBase {
+  kind: 'forEachItem';
+  /** Name bound to each element in turn. */
+  variable: string;
+  list: Expression;
+  body: Statement[];
+}
+
 /** Numeric range loop: the classic `for i = from to to`. */
 export interface ForEachStatement extends StatementBase {
   kind: 'forEach';
@@ -200,13 +300,19 @@ export interface Algorithm {
 }
 
 /** Statement kinds that own child statement lists. */
-export type BlockStatement = IfStatement | WhileStatement | RepeatStatement | ForEachStatement;
+export type BlockStatement =
+  | IfStatement
+  | WhileStatement
+  | RepeatStatement
+  | ForEachStatement
+  | ForEachItemStatement;
 
 export function isBlockStatement(statement: Statement): statement is BlockStatement {
   return (
     statement.kind === 'if' ||
     statement.kind === 'while' ||
     statement.kind === 'repeat' ||
-    statement.kind === 'forEach'
+    statement.kind === 'forEach' ||
+    statement.kind === 'forEachItem'
   );
 }

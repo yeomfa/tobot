@@ -1,4 +1,9 @@
 import {
+  ArrowsDownUpIcon as ArrowsDownUp,
+  ArrowsInLineVerticalIcon as ArrowsInLineVertical,
+  ListPlusIcon as ListPlus,
+  SortAscendingIcon as SortAscending,
+  SortDescendingIcon as SortDescending,
   DotsSixVerticalIcon as DotsSixVertical,
   TrashIcon as Trash,
   WarningIcon as Warning,
@@ -382,7 +387,8 @@ export const StatementBlock = memo(function StatementBlock({
 
       {(statement.kind === 'while' ||
         statement.kind === 'repeat' ||
-        statement.kind === 'forEach') && (
+        statement.kind === 'forEach' ||
+        statement.kind === 'forEachItem') && (
         <div className="statement-block__branches">
           <Branch
             label={d.editor.do}
@@ -393,7 +399,7 @@ export const StatementBlock = memo(function StatementBlock({
                leads the dropdown instead of sorting wherever it was declared —
                usually last, under every other name in the program. */
             variables={
-              statement.kind === 'forEach'
+              statement.kind === 'forEach' || statement.kind === 'forEachItem'
                 ? [statement.variable, ...variables.filter((n) => n !== statement.variable)]
                 : variables
             }
@@ -686,6 +692,120 @@ function StatementBody({
             }
             variables={variables}
             expect="number"
+          />
+        </>
+      );
+
+    case 'listOp': {
+      const operation = statement.operation;
+      // Which fields the chosen operation actually uses. Showing all of them
+      // would put an unused position field on "ordenar", which reads as a
+      // control that does nothing.
+      const takesValue = operation === 'append' || operation === 'insert';
+      const takesIndex = operation === 'insert' || operation === 'removeAt';
+      const update = (change: Partial<Extract<Statement, { kind: 'listOp' }>>) =>
+        callbacks.update(statement.id, (current) =>
+          current.kind === 'listOp' ? { ...current, ...change } : current,
+        );
+
+      return (
+        <>
+          <Picker
+            value={operation}
+            groups={[
+              {
+                options: [
+                  { value: 'append' as const, label: d.listOps.append, icon: ListPlus },
+                  { value: 'insert' as const, label: d.listOps.insert, icon: ArrowsInLineVertical },
+                  { value: 'removeAt' as const, label: d.listOps.removeAt, icon: Trash },
+                  { value: 'sort' as const, label: d.listOps.sort, icon: SortAscending },
+                  { value: 'reverse' as const, label: d.listOps.reverse, icon: ArrowsDownUp },
+                ],
+              },
+            ]}
+            onChange={(next) => {
+              /* Fields the new operation cannot use are dropped rather than
+                 kept hidden: a position left over from "insertar" would come
+                 back if the student switched away and back, carrying a value
+                 they had forgotten about. */
+              const takes = {
+                value: next === 'append' || next === 'insert',
+                index: next === 'insert' || next === 'removeAt',
+              };
+              update({
+                operation: next,
+                value: takes.value ? (statement.value ?? literal(0, 'number')) : undefined,
+                index: takes.index ? (statement.index ?? literal(0, 'number')) : undefined,
+                descending: next === 'sort' ? statement.descending : undefined,
+              });
+            }}
+            label={d.fields.operation}
+            variant="value"
+          />
+
+          {variables.length > 0 ? (
+            <VariablePicker value={currentName} variables={variables} onChange={setName} />
+          ) : (
+            nameField
+          )}
+
+          {takesValue && (
+            <>
+              <Keyword muted>{d.fields.theValue}</Keyword>
+              <ExpressionEditor
+                value={statement.value ?? literal(0, 'number')}
+                onChange={(value) => update({ value })}
+                variables={variables}
+              />
+            </>
+          )}
+
+          {takesIndex && (
+            <>
+              <Keyword muted>{d.fields.atPosition}</Keyword>
+              <ExpressionEditor
+                value={statement.index ?? literal(0, 'number')}
+                onChange={(index) => update({ index })}
+                variables={variables}
+                expect="number"
+              />
+            </>
+          )}
+
+          {operation === 'sort' && (
+            <Picker
+              value={statement.descending ? 'desc' : 'asc'}
+              groups={[
+                {
+                  options: [
+                    { value: 'asc' as const, label: d.listOps.ascending, icon: SortAscending },
+                    { value: 'desc' as const, label: d.listOps.descending, icon: SortDescending },
+                  ],
+                },
+              ]}
+              onChange={(next) => update({ descending: next === 'desc' })}
+              label={d.listOps.sort}
+              variant="value"
+            />
+          )}
+        </>
+      );
+    }
+
+    case 'forEachItem':
+      return (
+        <>
+          <Keyword>{d.verbs.forEachItem}</Keyword>
+          {nameField}
+          <Keyword muted>{d.fields.in}</Keyword>
+          <ExpressionEditor
+            value={statement.list}
+            onChange={(list) =>
+              callbacks.update(statement.id, (current) =>
+                current.kind === 'forEachItem' ? { ...current, list } : current,
+              )
+            }
+            variables={variables}
           />
         </>
       );

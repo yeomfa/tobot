@@ -92,6 +92,12 @@
   --block-border: var(--hue-loop-border);
 }
 
+.statement-block[data-category='lists'] {
+  --block-hue: var(--hue-list);
+  --block-soft: var(--hue-list-soft);
+  --block-border: var(--hue-list-border);
+}
+
 /*
  * Tones within a family.
  *

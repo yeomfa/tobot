@@ -305,6 +305,19 @@ export function renameVariable(
           left: inExpression(expression.left),
           right: inExpression(expression.right),
         };
+      /* A rename that stops at the edge of a list leaves the program broken in
+         a place the student is not looking at, which is the whole reason this
+         function exists. */
+      case 'list':
+        return { ...expression, items: expression.items.map(inExpression) };
+      case 'index':
+        return {
+          ...expression,
+          list: inExpression(expression.list),
+          index: inExpression(expression.index),
+        };
+      case 'length':
+        return { ...expression, list: inExpression(expression.list) };
       default:
         return expression;
     }

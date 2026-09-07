@@ -22,6 +22,17 @@ interface Phrases {
   endRepeat: string;
   for: (variable: string, from: string, to: string, step: string) => string;
   endFor: string;
+  list: (items: string[]) => string;
+  index: (list: string, index: string) => string;
+  length: (list: string) => string;
+  assignAt: (name: string, index: string, value: string) => string;
+  append: (name: string, value: string) => string;
+  insert: (name: string, value: string, index: string) => string;
+  removeAt: (name: string, index: string) => string;
+  sort: (name: string, descending: boolean) => string;
+  reverse: (name: string) => string;
+  forEachItem: (variable: string, list: string) => string;
+  endForEachItem: string;
   operators: Record<BinaryOperator, string>;
   not: (operand: string) => string;
   negative: (operand: string) => string;
@@ -49,6 +60,27 @@ const PHRASES: Record<Language, Phrases> = {
         ? `Para cada valor de ${variable} desde ${from} hasta ${to}, repite lo siguiente:`
         : `Para cada valor de ${variable} desde ${from} hasta ${to}, avanzando de ${step} en ${step}, repite lo siguiente:`,
     endFor: 'Aquí termina el recorrido.',
+    list: (items) =>
+      items.length === 0 ? 'una lista vacía' : `una lista con ${items.join(', ')}`,
+    /* Positions are spoken from one, not from zero: "el elemento 0" is a
+       programmer's habit, and the prose view exists for students who do not
+       have it yet. Every other view still shows the real index. */
+    index: (list, index) => `el elemento en la posición ${index} de ${list}`,
+    length: (list) => `cuántos elementos tiene ${list}`,
+    assignAt: (name, index, value) =>
+      `Cambia el elemento en la posición ${index} de ${name} a ${value}.`,
+    append: (name, value) => `Agrega ${value} al final de ${name}.`,
+    insert: (name, value, index) => `Inserta ${value} en la posición ${index} de ${name}.`,
+    removeAt: (name, index) => `Quita el elemento en la posición ${index} de ${name}.`,
+    sort: (name, descending) =>
+      descending ? `Ordena ${name} de mayor a menor.` : `Ordena ${name} de menor a mayor.`,
+    reverse: (name) => `Invierte el orden de ${name}.`,
+    forEachItem: (variable, list) =>
+      `Para cada ${variable} en ${list}, repite lo siguiente:`,
+    /* Not "el recorrido", which the counted loop above already says — two
+       different endings reading identically is exactly what the prose view
+       exists to prevent. */
+    endForEachItem: 'Aquí termina el recorrido de la lista.',
     operators: {
       '+': 'más',
       '-': 'menos',
@@ -88,6 +120,18 @@ const PHRASES: Record<Language, Phrases> = {
         ? `For each value of ${variable} from ${from} to ${to}, repeat the following:`
         : `For each value of ${variable} from ${from} to ${to}, stepping by ${step}, repeat the following:`,
     endFor: 'The traversal ends here.',
+    list: (items) => (items.length === 0 ? 'an empty list' : `a list with ${items.join(', ')}`),
+    index: (list, index) => `the item at position ${index} of ${list}`,
+    length: (list) => `how many items ${list} has`,
+    assignAt: (name, index, value) => `Change the item at position ${index} of ${name} to ${value}.`,
+    append: (name, value) => `Add ${value} to the end of ${name}.`,
+    insert: (name, value, index) => `Insert ${value} at position ${index} of ${name}.`,
+    removeAt: (name, index) => `Remove the item at position ${index} of ${name}.`,
+    sort: (name, descending) =>
+      descending ? `Sort ${name} from largest to smallest.` : `Sort ${name} from smallest to largest.`,
+    reverse: (name) => `Reverse the order of ${name}.`,
+    forEachItem: (variable, list) => `For each ${variable} in ${list}, repeat the following:`,
+    endForEachItem: 'The walk through the list ends here.',
     operators: {
       '+': 'plus',
       '-': 'minus',
@@ -133,6 +177,15 @@ function expressionToNatural(expression: Expression, phrases: Phrases): string {
       return expression.operator === '!'
         ? phrases.not(expressionToNatural(expression.operand, phrases))
         : phrases.negative(expressionToNatural(expression.operand, phrases));
+    case 'list':
+      return phrases.list(expression.items.map((item) => expressionToNatural(item, phrases)));
+    case 'index':
+      return phrases.index(
+        expressionToNatural(expression.list, phrases),
+        expressionToNatural(expression.index, phrases),
+      );
+    case 'length':
+      return phrases.length(expressionToNatural(expression.list, phrases));
     case 'binary': {
       const left = expressionToNatural(expression.left, phrases);
       const right = expressionToNatural(expression.right, phrases);
@@ -179,7 +232,38 @@ function emitStatement(
     case 'declare':
       return [line(phrases.declare(statement.name, expr(statement.value)))];
     case 'assign':
-      return [line(phrases.assign(statement.name, expr(statement.value)))];
+      return [
+        line(
+          statement.index
+            ? phrases.assignAt(statement.name, expr(statement.index), expr(statement.value))
+            : phrases.assign(statement.name, expr(statement.value)),
+        ),
+      ];
+
+    case 'listOp': {
+      const value = statement.value ? expr(statement.value) : '';
+      const at = statement.index ? expr(statement.index) : '';
+      switch (statement.operation) {
+        case 'append':
+          return [line(phrases.append(statement.name, value))];
+        case 'insert':
+          return [line(phrases.insert(statement.name, value, at))];
+        case 'removeAt':
+          return [line(phrases.removeAt(statement.name, at))];
+        case 'sort':
+          return [line(phrases.sort(statement.name, statement.descending === true))];
+        case 'reverse':
+          return [line(phrases.reverse(statement.name))];
+      }
+      return [];
+    }
+
+    case 'forEachItem':
+      return [
+        line(phrases.forEachItem(statement.variable, expr(statement.list))),
+        ...emitStatements(statement.body, indent + 1, number, phrases),
+        closing(phrases.endForEachItem),
+      ];
     case 'say':
       return [line(phrases.say(expr(statement.value)))];
     case 'ask':

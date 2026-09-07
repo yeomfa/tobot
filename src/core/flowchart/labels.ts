@@ -27,8 +27,35 @@ export function createFlowLabels(dictionary: Dictionary, locale: Language): Flow
         return { text: truncate(statement.text.split('\n')[0] || '…'), shape: 'note' };
       case 'declare':
         return { text: truncate(`${statement.name} ← ${expr(statement.value)}`), shape: 'process' };
-      case 'assign':
-        return { text: truncate(`${statement.name} ← ${expr(statement.value)}`), shape: 'process' };
+      case 'assign': {
+        const target = statement.index
+          ? `${statement.name}[${expr(statement.index)}]`
+          : statement.name;
+        return { text: truncate(`${target} ← ${expr(statement.value)}`), shape: 'process' };
+      }
+      case 'listOp': {
+        /* A list operation changes something the program holds, so it takes
+           the process shape like any other assignment — it is not a decision
+           and not input or output. */
+        const value = statement.value ? expr(statement.value) : '';
+        const at = statement.index ? expr(statement.index) : '';
+        const text =
+          statement.operation === 'append'
+            ? `${kw.append} ${value} ${kw.to} ${statement.name}`
+            : statement.operation === 'insert'
+              ? `${kw.insert} ${value} ${kw.at} ${at}`
+              : statement.operation === 'removeAt'
+                ? `${kw.removeAt} ${statement.name} ${kw.at} ${at}`
+                : statement.operation === 'reverse'
+                  ? `${kw.reverse} ${statement.name}`
+                  : `${kw.sort} ${statement.name}`;
+        return { text: truncate(text), shape: 'process' };
+      }
+      case 'forEachItem':
+        return {
+          text: truncate(`${statement.variable} ${kw.in} ${expr(statement.list)}`, 26),
+          shape: 'decision',
+        };
       case 'say':
         return { text: truncate(`${kw.say} ${expr(statement.value)}`), shape: 'io' };
       case 'ask':

@@ -1,4 +1,4 @@
-import type { Expression, LiteralKind, Statement } from '../ast/types';
+import type { Expression, LiteralKind, Statement, ValueKind } from '../ast/types';
 import {
   MAX_LOOP_ITERATIONS,
   MAX_STEPS,
@@ -21,7 +21,7 @@ import {
 /** Everything that makes up a moment in the run, for stepping backwards. */
 interface Snapshot {
   stack: Frame[];
-  variables: Map<string, { value: RuntimeValue; kind: LiteralKind }>;
+  variables: Map<string, { value: RuntimeValue; kind: ValueKind }>;
   output: OutputEntry[];
   status: ExecutionState['status'];
   error: RuntimeError | null;
@@ -46,6 +46,15 @@ type LoopState =
       limit: number;
       step: number;
       iterations: number;
+    }
+  | {
+      kind: 'forEachItem';
+      statement: Extract<Statement, { kind: 'forEachItem' }>;
+      /* The list as it was when the loop began. Re-reading the variable each
+         time would mean a body that appends to the list it is walking never
+         finishes — a hang rather than a lesson. */
+      items: RuntimeValue[];
+      position: number;
     };
 
 class ProgramError extends Error {
@@ -68,7 +77,7 @@ function nextOutputId(): string {
 
 export class Interpreter {
   private stack: Frame[] = [];
-  private variables = new Map<string, { value: RuntimeValue; kind: LiteralKind }>();
+  private variables = new Map<string, { value: RuntimeValue; kind: ValueKind }>();
   private output: OutputEntry[] = [];
   private changedNames = new Set<string>();
   private status: ExecutionState['status'] = 'idle';
@@ -267,6 +276,18 @@ export class Interpreter {
       return false;
     }
 
+    if (loop.kind === 'forEachItem') {
+      loop.position += 1;
+      // No iteration guard: the list was fixed when the loop began, so this
+      // cannot run away the way a `while` can.
+      if (loop.position >= loop.items.length) return false;
+      const item = loop.items[loop.position];
+      this.variables.set(loop.statement.variable, { value: item, kind: this.kindOf(item) });
+      this.changedNames.add(loop.statement.variable);
+      frame.index = 0;
+      return true;
+    }
+
     loop.iterations += 1;
     if (loop.iterations > MAX_LOOP_ITERATIONS) {
       throw new ProgramError('errors.infiniteLoop', { limit: MAX_LOOP_ITERATIONS });
@@ -309,12 +330,30 @@ export class Interpreter {
       }
 
       case 'assign': {
-        if (!this.variables.has(statement.name)) {
+        const entry = this.variables.get(statement.name);
+        if (!entry) {
           throw new ProgramError('errors.undefinedVariable', { name: statement.name });
         }
         const value = this.evaluate(statement.value);
-        const kind = this.kindOf(value);
-        this.variables.set(statement.name, { value, kind });
+
+        /*
+          Writing one element rather than the whole variable.
+
+          A copy, not a write in place: the snapshots the UI renders hold the
+          value itself, so mutating the array would silently rewrite the
+          history of the run and every earlier step would show the final list.
+        */
+        if (statement.index) {
+          if (!Array.isArray(entry.value)) throw new ProgramError('errors.notAList');
+          const at = this.indexOf(statement.index, entry.value.length);
+          const next = [...entry.value];
+          next[at] = value;
+          this.variables.set(statement.name, { value: next, kind: 'list' });
+          this.changedNames.add(statement.name);
+          return;
+        }
+
+        this.variables.set(statement.name, { value, kind: this.kindOf(value) });
         this.changedNames.add(statement.name);
         return;
       }
@@ -402,7 +441,96 @@ export class Interpreter {
         });
         return;
       }
+
+      case 'forEachItem': {
+        const list = this.evaluate(statement.list);
+        if (!Array.isArray(list)) throw new ProgramError('errors.notAList');
+        // Copied, so the loop walks the list as it was — see the frame's note.
+        const items = [...list];
+        if (items.length === 0 || statement.body.length === 0) return;
+
+        this.variables.set(statement.variable, {
+          value: items[0],
+          kind: this.kindOf(items[0]),
+        });
+        this.changedNames.add(statement.variable);
+        this.stack.push({
+          statements: statement.body,
+          index: 0,
+          loop: { kind: 'forEachItem', statement, items, position: 0 },
+        });
+        return;
+      }
+
+      case 'listOp': {
+        const entry = this.variables.get(statement.name);
+        if (!entry) throw new ProgramError('errors.undefinedVariable', { name: statement.name });
+        if (!Array.isArray(entry.value)) throw new ProgramError('errors.notAList');
+
+        // A copy for the same reason as an indexed write: the UI's snapshots
+        // hold these values, and mutating in place rewrites the run's history.
+        const items = [...entry.value];
+        this.variables.set(statement.name, {
+          value: this.applyListOp(statement, items),
+          kind: 'list',
+        });
+        this.changedNames.add(statement.name);
+        return;
+      }
     }
+  }
+
+  /** Carries out one list operation, returning the new list. */
+  private applyListOp(
+    statement: Extract<Statement, { kind: 'listOp' }>,
+    items: RuntimeValue[],
+  ): RuntimeValue[] {
+    switch (statement.operation) {
+      case 'append':
+        items.push(statement.value ? this.evaluate(statement.value) : '');
+        return items;
+
+      case 'insert': {
+        /* Inserting is allowed one past the end — that is appending, and
+           refusing it would make "put it last" a different operation from
+           "put it anywhere else". */
+        const at = statement.index
+          ? this.indexOf(statement.index, items.length + 1)
+          : items.length;
+        items.splice(at, 0, statement.value ? this.evaluate(statement.value) : '');
+        return items;
+      }
+
+      case 'removeAt': {
+        if (items.length === 0) throw new ProgramError('errors.emptyList');
+        const at = statement.index ? this.indexOf(statement.index, items.length) : items.length - 1;
+        items.splice(at, 1);
+        return items;
+      }
+
+      case 'reverse':
+        return items.reverse();
+
+      case 'sort':
+        return this.sortItems(items, statement.descending === true);
+    }
+  }
+
+  /**
+   * Sorts numbers as numbers and everything else as text.
+   *
+   * JavaScript's default sort compares stringified values, which puts 10
+   * before 2 — the first thing a student would notice, and impossible to
+   * explain in terms of anything they have been taught. A mixed list falls
+   * back to text so it still has a defined order rather than throwing.
+   */
+  private sortItems(items: RuntimeValue[], descending: boolean): RuntimeValue[] {
+    const allNumbers = items.every((item) => typeof item === 'number');
+    const sorted = [...items].sort((a, b) => {
+      if (allNumbers) return (a as number) - (b as number);
+      return this.display(a).localeCompare(this.display(b));
+    });
+    return descending ? sorted.reverse() : sorted;
   }
 
   /** Resolves a pending `ask` with the student's answer. */
@@ -449,6 +577,29 @@ export class Interpreter {
     return raw;
   }
 
+  /**
+   * Resolves an index expression to a position, or explains why it cannot.
+   *
+   * Reading and writing share this so the two report the same errors for the
+   * same mistakes. Out of range is by far the most common one a student hits,
+   * and the message carries both the position asked for and the size of the
+   * list — "5" alone tells them nothing about what went wrong.
+   */
+  private indexOf(expression: Expression, length: number): number {
+    const raw = this.evaluate(expression);
+    const index = this.toNumber(raw);
+    if (!Number.isInteger(index)) {
+      throw new ProgramError('errors.indexNotWhole', { index: this.display(raw) });
+    }
+    if (index < 0 || index >= length) {
+      /* `last` as well as `length`: "tiene 3 elementos" and "van de 0 a 2"
+         are the two halves a student needs, and working the second out from
+         the first is exactly the off-by-one that put them here. */
+      throw new ProgramError('errors.indexOutOfRange', { index, length, last: length - 1 });
+    }
+    return index;
+  }
+
   private evaluate(expression: Expression): RuntimeValue {
     switch (expression.kind) {
       case 'literal':
@@ -464,6 +615,21 @@ export class Interpreter {
         const entry = this.variables.get(expression.name);
         if (!entry) throw new ProgramError('errors.undefinedVariable', { name: expression.name });
         return entry.value;
+      }
+
+      case 'list':
+        return expression.items.map((item) => this.evaluate(item));
+
+      case 'length': {
+        const list = this.evaluate(expression.list);
+        if (!Array.isArray(list)) throw new ProgramError('errors.notAList');
+        return list.length;
+      }
+
+      case 'index': {
+        const list = this.evaluate(expression.list);
+        if (!Array.isArray(list)) throw new ProgramError('errors.notAList');
+        return list[this.indexOf(expression.index, list.length)];
       }
 
       case 'unary': {
@@ -543,9 +709,23 @@ export class Interpreter {
     return a === b ? 0 : a < b ? -1 : 1;
   }
 
+  /*
+    The four coercions below each end by naming the list case rather than
+    falling through to the scalar one.
+
+    Before lists existed their last line was `return value` or `value.length`,
+    which an array satisfies without complaint — `truthy` and `kindOf` were not
+    flagged by the compiler even after the type was widened, because an array
+    has a `length` and 'text' is a valid return. That is the same silent shape
+    that once let a variable inside a group escape validation, so each one says
+    what it does with a list on purpose.
+  */
   private toNumber(value: RuntimeValue): number {
     if (typeof value === 'number') return value;
     if (typeof value === 'boolean') return value ? 1 : 0;
+    // Arithmetic on a whole list is a mistake worth naming: the student almost
+    // always meant one element, or how many there are.
+    if (Array.isArray(value)) throw new ProgramError('errors.listNotANumber');
     const parsed = Number(value);
     if (Number.isNaN(parsed)) throw new ProgramError('errors.notANumber', { value });
     return parsed;
@@ -554,10 +734,13 @@ export class Interpreter {
   private truthy(value: RuntimeValue): boolean {
     if (typeof value === 'boolean') return value;
     if (typeof value === 'number') return value !== 0;
+    // An empty list is false, like an empty string — the same rule, so there
+    // is one idea to learn rather than two.
     return value.length > 0;
   }
 
-  private kindOf(value: RuntimeValue): LiteralKind {
+  private kindOf(value: RuntimeValue): ValueKind {
+    if (Array.isArray(value)) return 'list';
     if (typeof value === 'number') return 'number';
     if (typeof value === 'boolean') return 'boolean';
     return 'text';
@@ -565,6 +748,7 @@ export class Interpreter {
 
   /** Renders a value the way the robot should say it. */
   private display(value: RuntimeValue): string {
+    if (Array.isArray(value)) return `[${value.map((item) => this.display(item)).join(', ')}]`;
     if (typeof value === 'boolean') return value ? 'true' : 'false';
     if (typeof value === 'number') {
       return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(6)));

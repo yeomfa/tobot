@@ -42,6 +42,14 @@
   --hue-loop-soft: #f2ebfe;
   --hue-loop-border: #d9c6fb;
 
+  /* Lists. Chosen by measuring rather than by eye: at 333° it sits 59° from
+     its nearest neighbour, where emerald and fuchsia would have landed 14°
+     from boolean and 31° from loop — close enough to read as the same colour
+     at the size a block icon is drawn. */
+  --hue-list: #db2777;
+  --hue-list-soft: #fdeaf3;
+  --hue-list-border: #f7bcd8;
+
   --accent: #e8873a;
   --accent-strong: #d4722a;
   --accent-soft: #fdefe2;
@@ -183,6 +191,10 @@
   --hue-conditional: #fbbf5a;
   --hue-conditional-soft: rgba(217, 119, 6, 0.18);
   --hue-conditional-border: rgba(251, 191, 36, 0.32);
+
+  --hue-list: #f9a8d4;
+  --hue-list-soft: rgba(219, 39, 119, 0.18);
+  --hue-list-border: rgba(244, 114, 182, 0.32);
 
   --hue-loop: #c4a3ff;
   --hue-loop-soft: rgba(124, 58, 237, 0.2);

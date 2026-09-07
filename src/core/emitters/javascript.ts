@@ -19,6 +19,12 @@ export function expressionToJs(expression: Expression): string {
       return `(${expressionToJs(expression.inner)})`;
     case 'unary':
       return `${expression.operator}${wrapUnaryOperand(expression.operand)}`;
+    case 'list':
+      return `[${expression.items.map(expressionToJs).join(', ')}]`;
+    case 'index':
+      return `${expressionToJs(expression.list)}[${expressionToJs(expression.index)}]`;
+    case 'length':
+      return `${expressionToJs(expression.list)}.length`;
     case 'binary': {
       const left = expressionToJs(expression.left);
       const right = expressionToJs(expression.right);
@@ -83,8 +89,14 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
         line(`${bind(scope, statement.name)}${statement.name} = ${expressionToJs(statement.value)};`),
       ];
 
-    case 'assign':
-      return [line(`${statement.name} = ${expressionToJs(statement.value)};`)];
+    case 'assign': {
+      // With an index it writes one element; the optional field is invisible to
+      // the compiler, so every emitter has to remember it by hand.
+      const target = statement.index
+        ? `${statement.name}[${expressionToJs(statement.index)}]`
+        : statement.name;
+      return [line(`${target} = ${expressionToJs(statement.value)};`)];
+    }
 
     case 'say':
       return [line(`console.log(${expressionToJs(statement.value)});`)];
@@ -129,6 +141,47 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
       lines.push(...emitStatements(statement.body, indent + 1, scope));
       lines.push(closing('}'));
       return lines;
+    }
+
+    case 'forEachItem': {
+      /* `const` in the header, so the loop owns its binding and a later
+         `declare` of the same name still gets its own `let` — the same rule
+         the counted loop above follows. */
+      const lines: EmittedLine[] = [
+        line(`for (const ${statement.variable} of ${expressionToJs(statement.list)}) {`),
+        ...emitStatements(statement.body, indent + 1, scope),
+        closing('}'),
+      ];
+      return lines;
+    }
+
+    case 'listOp': {
+      const { name, operation } = statement;
+      const value = statement.value ? expressionToJs(statement.value) : "''";
+      const at = statement.index ? expressionToJs(statement.index) : null;
+      switch (operation) {
+        case 'append':
+          return [line(`${name}.push(${value});`)];
+        case 'insert':
+          return [line(`${name}.splice(${at ?? `${name}.length`}, 0, ${value});`)];
+        case 'removeAt':
+          return [line(`${name}.splice(${at ?? `${name}.length - 1`}, 1);`)];
+        case 'reverse':
+          return [line(`${name}.reverse();`)];
+        case 'sort':
+          /* Spelled out rather than a bare `.sort()`, which compares values as
+             text and puts 10 before 2 — the first thing a student notices and
+             the hardest to explain. The emitted code has to behave the way the
+             robot did, or the two views disagree. */
+          return [
+            line(
+              statement.descending
+                ? `${name}.sort((a, b) => (typeof a === 'number' && typeof b === 'number' ? b - a : String(b).localeCompare(String(a))));`
+                : `${name}.sort((a, b) => (typeof a === 'number' && typeof b === 'number' ? a - b : String(a).localeCompare(String(b))));`,
+            ),
+          ];
+      }
+      return [];
     }
 
     case 'forEach': {

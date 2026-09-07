@@ -1,4 +1,4 @@
-import type { Expression, LiteralKind, Statement } from '../ast/types';
+import type { Expression, Statement, ValueKind } from '../ast/types';
 
 /**
  * What a variable holds, as far as the declarations can say.
@@ -7,7 +7,7 @@ import type { Expression, LiteralKind, Statement } from '../ast/types';
  * and not another, or one the student has not named yet, genuinely has no
  * single kind.
  */
-export type Kind = LiteralKind | 'unknown';
+export type Kind = ValueKind | 'unknown';
 
 export type VariableKinds = Map<string, Kind>;
 
@@ -26,6 +26,15 @@ export function kindOf(expression: Expression, variables: VariableKinds): Kind {
       return variables.get(expression.name) ?? 'unknown';
     case 'group':
       return kindOf(expression.inner, variables);
+    case 'list':
+      return 'list';
+    case 'length':
+      return 'number';
+    /* What one element holds is not knowable from the declaration — a list can
+       hold anything — so this stays unknown, which for Python means `str()`
+       around it. Harmless on a string, and the only choice that cannot raise. */
+    case 'index':
+      return 'unknown';
     case 'unary':
       // `!` yields a boolean; `-` yields a number. Neither can be text.
       return expression.operator === '!' ? 'boolean' : 'number';

@@ -189,8 +189,20 @@ export const es = {
       io: 'Entrada y salida',
       conditionals: 'Condicionales',
       loops: 'Ciclos',
+      lists: 'Listas',
       notes: 'Notas',
     },
+  },
+  /** Names for the five ways a list can change, used by the picker on the
+   * block. Verbs, because each one is something the student does to the list. */
+  listOps: {
+    append: 'Agregar al final',
+    insert: 'Insertar en',
+    removeAt: 'Quitar de',
+    sort: 'Ordenar',
+    reverse: 'Invertir',
+    ascending: 'De menor a mayor',
+    descending: 'De mayor a menor',
   },
   statements: {
     declare: { label: 'Crear variable', hint: 'Guarda un valor con un nombre' },
@@ -201,6 +213,8 @@ export const es = {
     while: { label: 'Mientras', hint: 'Repite mientras la condición sea verdadera' },
     repeat: { label: 'Repetir N veces', hint: 'Repite una cantidad fija de veces' },
     forEach: { label: 'Desde… hasta', hint: 'Cuenta desde un número hasta otro' },
+    listOp: { label: 'Cambiar lista', hint: 'Agrega, quita u ordena elementos' },
+    forEachItem: { label: 'Para cada elemento', hint: 'Recorre una lista de principio a fin' },
     comment: { label: 'Comentario', hint: 'Una nota para quien lee; no se ejecuta' },
   },
   /** Short inline wording used inside blocks, where the palette's longer
@@ -320,6 +334,7 @@ export const es = {
       'Para entrar con una cuenta hay que conectar Supabase. Mira el README.',
   },
   verbs: {
+    forEachItem: 'para cada',
     declare: 'variable',
     assign: 'cambiar',
     say: 'decir',
@@ -362,6 +377,10 @@ export const es = {
     '||': 'o bien',
   },
   fields: {
+    operation: 'Operación',
+    theValue: 'el valor',
+    atPosition: 'en la posición',
+    in: 'en',
     name: 'nombre',
     value: 'valor',
     condition: 'condición',
@@ -452,6 +471,12 @@ export const es = {
   errors: {
     undefinedVariable: 'La variable «{name}» no existe todavía. Créala antes de usarla.',
     divisionByZero: 'No se puede dividir entre cero.',
+    notAList: 'Esto no es una lista. Solo puedes usar estas instrucciones con una lista.',
+    listNotANumber: 'No puedes hacer cuentas con una lista entera. ¿Querías un elemento, o cuántos tiene?',
+    indexOutOfRange:
+      'La posición {index} no existe: la lista tiene {length} elementos, así que van de 0 a {last}.',
+    indexNotWhole: 'Una posición tiene que ser un número entero, y {index} no lo es.',
+    emptyList: 'La lista está vacía, así que no hay nada que quitar.',
     notANumber: '«{value}» no es un número válido.',
     infiniteLoop:
       'El ciclo se repitió {limit} veces y se detuvo. Revisa que la condición llegue a ser falsa.',
