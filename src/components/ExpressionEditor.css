@@ -292,25 +292,37 @@
 }
 
 /*
-  Each item leaves room on its right for its own options control.
+  Room for the options control, made only while it is being shown.
 
-  The control hangs 21px past the part it belongs to, which works in a flat row
-  because the tools strip provides that space. Inside a list there is only a
-  2px gap, so the dots landed on the comma that follows and on the "+" at the
-  end — measured at 19px of overlap on both. The margin is that clearance;
-  `gap` cannot do it because it would space the commas out too.
+  The control hangs past the part it belongs to, which a flat row absorbs
+  because the tools strip provides that space; inside a list there is a 2px
+  gap, so the dots landed on the following comma and on the "+" — 19px of
+  overlap. Reserving the clearance on every item fixed the overlap and put it
+  straight back as dead space: 24px between every pair, visible at rest with no
+  dots anywhere, which is the gap this whole control was moved out of the flow
+  to avoid.
+
+  So the room opens under the pointer and nowhere else. Only the hovered item
+  widens, and only to its right, so nothing before it moves — the items to the
+  right shift, which is the same thing that already happens when a value is
+  typed into and is not what the eye is following.
 */
 .expr__list-item {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  transition: margin-right var(--duration-fast) var(--ease-out);
+}
+
+.expr__list-item:hover,
+.expr__list-item:focus-within {
   margin-right: 22px;
 }
 
-/* The last item is followed by the "+" and the closing bracket, which the
-   list's own padding already separates. */
-.expr__list-item:last-of-type {
-  margin-right: 24px;
+@media (prefers-reduced-motion: reduce) {
+  .expr__list-item {
+    transition: none;
+  }
 }
 
 .expr__comma {
