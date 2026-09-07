@@ -362,9 +362,13 @@
  * The slots a value can be inserted into: between two items, and at each end.
  *
  * Narrow in the layout, wide to the pointer. At a flat 14px they were a
- * quarter of a four-item list's width — 70px of 304 holding nothing visible,
- * which is the empty space this control keeps being reported for. At 6px the
- * list reads as values and commas again.
+ * quarter of a four-item list's width — 70px of 304 holding nothing visible.
+ * At 6px the list read well but the "+" did not: the glyph is 7px, so it was
+ * wider than the box holding it and came out squeezed against the comma, with
+ * no room to read as a button at all.
+ *
+ * 10px is the width where the mark has air on both sides and the slots are
+ * still a fifth of the list rather than a quarter.
  *
  * The target stays full size through a pseudo-element that overflows the box,
  * so nothing resizes on hover — that is what made an earlier version flee from
@@ -376,7 +380,7 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  width: 6px;
+  width: 10px;
   flex-shrink: 0;
   color: color-mix(in srgb, var(--hue-list) 70%, var(--text-muted));
   border-radius: var(--radius-xs);
@@ -392,7 +396,7 @@
 .expr__insert::before {
   content: '';
   position: absolute;
-  inset: 0 -5px;
+  inset: 0 -3px;
   z-index: -1;
 }
 
