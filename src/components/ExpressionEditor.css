@@ -49,11 +49,40 @@
 
 /* Each operand travels with the operator in front of it, so a wrap never
    leaves a stranded "+" at the end of a line. */
+/*
+  Room for the options control, opened only under the pointer.
+
+  The control hangs 21px past the part it belongs to, and consecutive parts sit
+  3px apart — so the dots of one part landed on top of the operator drawn at
+  the start of the next: 18px across and 20px down, `···` and `+` occupying the
+  same square. The last part in a row was fine, which is why this survived the
+  earlier round; only the ones with something after them collide.
+
+  Held open on hover rather than always, for the reason the control was taken
+  out of the flow in the first place: reserving it on every part puts a visible
+  gap in every expression, which is most of what a block is made of. Only the
+  hovered part widens, and only to its right, so nothing before it moves.
+*/
 .expr__chain-item {
   display: inline-flex;
   align-items: center;
   gap: 3px;
   min-width: 0;
+  transition: margin-right var(--duration-fast) var(--ease-out);
+}
+
+/* `:not(:last-child)` because the last part has the tools strip after it,
+   which already leaves the room — widening it there would only push "+ otra
+   parte" sideways whenever the pointer passed by. */
+.expr__chain-item:not(:last-child):hover,
+.expr__chain-item:not(:last-child):focus-within {
+  margin-right: 21px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expr__chain-item {
+    transition: none;
+  }
 }
 
 .expr__literal {
