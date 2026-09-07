@@ -222,14 +222,24 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     passing a token through Editor, StatementBlock and every nesting level of
     this component to reach a piece of state that is otherwise entirely local.
   */
+  /*
+    Two parts is enough.
+
+    The threshold was three, on the reasoning that bracketing a whole
+    expression says nothing the row does not. True of what it computes, and
+    beside the point: `(a + b) + c` is a step the student is building toward,
+    and refusing the first bracket meant the tool was unavailable on most of
+    the algorithms they actually write. If they want the brackets, they get the
+    brackets.
+  */
   useEffect(() => {
-    if (nested || !isChain || chain.length <= 2) return;
+    if (!isChain || chain.length < 2) return;
     const arm = (): void => {
       setGrouping(true);
       setSpan(null);
     };
     return onGroupingArmed(arm);
-  }, [nested, isChain, chain.length]);
+  }, [isChain, chain.length]);
 
   useEffect(() => {
     if (!grouping) return;
@@ -491,6 +501,17 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                 grouping
                   ? (event) => {
                       event.preventDefault();
+                      /*
+                        The press belongs to the innermost part under it.
+
+                        A group is one part of the chain around it, so the two
+                        overlap: pressing a part inside a bracket also lands on
+                        the bracket as a whole. React dispatches from the
+                        target outwards, so stopping here is what leaves the
+                        inner selection to the expression the student is
+                        actually pointing at, and is what makes grouping inside
+                        an existing group possible.
+                      */
                       event.stopPropagation();
                       /*
                         A press with one part already picked extends to here,
@@ -510,11 +531,18 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                  range, which made the preview follow the pointer around after
                  a click and swallowed the click that was meant to close it. */
               onPointerEnter={
-                grouping && dragging && span ? () => setSpan([span[0], index]) : undefined
+                grouping && dragging && span
+                  ? (event) => {
+                      // Same reason as the press: the innermost part wins, or
+                      // dragging inside a bracket extends the outer range.
+                      event.stopPropagation();
+                      setSpan([span[0], index]);
+                    }
+                  : undefined
               }
               /* Marks a part that can be selected, so the cursor never
                  promises what a two-part chain cannot do. */
-              data-selectable={chain.length > 2 || undefined}
+              data-selectable
             >
               {index > 0 && part.setOperator && (
                 <>

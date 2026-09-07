@@ -33,11 +33,17 @@ describe('canGroupAnything', () => {
     expect(canGroupAnything([say(literal('hola', 'text'))])).toBe(false);
   });
 
-  it('says no for two parts: bracketing them adds nothing the row does not say', () => {
-    expect(canGroupAnything([say(chainOf('+', 2))])).toBe(false);
+  /*
+    Two parts is enough. The threshold was three, on the reasoning that
+    bracketing a whole expression says nothing about what it computes — true,
+    and beside the point: `(a + b) + c` is a step the student is building
+    toward, and the rule left the tool unavailable on most of what they write.
+  */
+  it('says yes at two parts', () => {
+    expect(canGroupAnything([say(chainOf('+', 2))])).toBe(true);
   });
 
-  it('says yes at three parts, the same threshold the block tool uses', () => {
+  it('says yes at three parts', () => {
     expect(canGroupAnything([say(chainOf('+', 3))])).toBe(true);
   });
 
@@ -45,6 +51,11 @@ describe('canGroupAnything', () => {
     // `a - b - c` cannot be rebracketed without changing what it computes, so
     // it never renders as a flat row and never offers grouping.
     expect(canGroupAnything([say(chainOf('-', 3))])).toBe(false);
+  });
+
+  it('says yes for a chain already inside a group, so a bracket can go in one', () => {
+    const grouped: Expression = { kind: 'group', inner: chainOf('+', 2) };
+    expect(canGroupAnything([say(grouped)])).toBe(true);
   });
 
   it('finds a chain nested inside a loop body', () => {

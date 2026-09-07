@@ -1,7 +1,5 @@
 import {
-  CopySimpleIcon as CopySimple,
   DotsSixVerticalIcon as DotsSixVertical,
-  QuestionIcon as Question,
   TrashIcon as Trash,
   WarningIcon as Warning,
   WarningCircleIcon as WarningCircle,
@@ -12,7 +10,6 @@ import { castExpression, createId, createStatement, literal } from '../core/ast/
 import type { Location } from '../core/ast/operations';
 import type { LiteralKind, NodeId, Statement } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
-import { conceptForStatement } from '../content/concepts';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
 import { Picker } from './Picker';
@@ -74,7 +71,6 @@ export const StatementBlock = memo(function StatementBlock({
   /* Set on pointer down, so a press inside a field does not start a drag. */
   const [draggable, setDraggable] = useState(true);
   const category = statementCategory[statement.kind];
-  const concept = conceptForStatement.get(statement.kind);
 
   const Icon = statementIcon[statement.kind];
   const ownProblems = problems.get(statement.id) ?? [];
@@ -235,35 +231,13 @@ export const StatementBlock = memo(function StatementBlock({
               </span>
             </span>
           )}
-          <button
-            type="button"
-            className="statement-block__action"
-            onClick={() => callbacks.duplicate(statement.id)}
-            title={d.actions.duplicate}
-            aria-label={d.actions.duplicate}
-          >
-            <CopySimple />
-          </button>
-          {concept && (
-            <button
-              type="button"
-              className="statement-block__action"
-              onClick={() => callbacks.onExplain(concept.id)}
-              title={d.actions.learnMore}
-              aria-label={d.actions.learnMore}
-            >
-              <Question />
-            </button>
-          )}
-          <button
-            type="button"
-            className="statement-block__action statement-block__action--danger"
-            onClick={() => callbacks.remove(statement.id)}
-            title={d.actions.delete}
-            aria-label={d.actions.delete}
-          >
-            <Trash />
-          </button>
+          {/*
+            Duplicate, explain and delete used to sit here as three small
+            icons in the corner. They are on the block's own right-click menu
+            now: the row was carrying the instruction, its problem badge and a
+            toolbar, and the icons were the part that only appeared on hover
+            and never said what they were.
+          */}
         </div>
       </div>
 

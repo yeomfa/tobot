@@ -141,14 +141,18 @@ export function ungroup(expression: Expression): Expression {
 }
 
 /**
- * Whether an expression holds a chain long enough to be worth grouping.
+ * Whether an expression holds a chain that can be grouped.
  *
- * Two parts are already a unit — bracketing them says nothing the row does not
- * — so three is the threshold, the same one the block's own tool uses.
+ * Two parts is enough: `(a + b) + c` is a step towards something, and holding
+ * the tool back until there were three left it unavailable on most of what
+ * students actually write.
+ *
+ * A group's contents count, which is what lets a bracket be drawn inside one
+ * that is already there.
  */
 function hasGroupableChain(expression: Expression): boolean {
   if (expression.kind === 'binary') {
-    if (ASSOCIATIVE.has(expression.operator) && flattenChain(expression, expression.operator).length > 2) {
+    if (ASSOCIATIVE.has(expression.operator) && flattenChain(expression, expression.operator).length >= 2) {
       return true;
     }
     return hasGroupableChain(expression.left) || hasGroupableChain(expression.right);

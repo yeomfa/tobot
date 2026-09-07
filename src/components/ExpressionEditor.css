@@ -140,8 +140,14 @@
   align-items: center;
   gap: 1px;
   /* Set apart from the expression and tinted, so the controls never read as
-     part of the value they act on. */
-  margin-left: 3px;
+     part of the value they act on.
+
+     The gap is what the last part's options control falls into. It hangs off
+     the right of its part, and the last part ends exactly where this strip
+     begins — measured at 15px of overlap, the dots sitting on top of "+ otra
+     parte". Widened rather than moving the control back onto the value, which
+     is the collision it was moved out of in the first place. */
+  margin-left: 21px;
   padding: 1px;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--block-hue, var(--slate-400)) 10%, transparent);
@@ -372,8 +378,26 @@ body[data-grouping] .expr__chain-item[data-grouping] {
   cursor: pointer;
 }
 
-body[data-grouping] .expr__chain-item[data-grouping] * {
+/*
+  The controls inside a part go inert, but a part nested inside it does not.
+
+  Blanking every descendant was the first version and it made grouping inside
+  an existing bracket impossible: a group is one part of the chain around it,
+  so the parts within it are descendants of that part and were switched off
+  along with the fields. Naming the controls leaves the inner parts live, and
+  the innermost one under the pointer is the one that takes the press.
+*/
+body[data-grouping] .expr__chain-item[data-grouping] .expr__literal,
+body[data-grouping] .expr__chain-item[data-grouping] .picker,
+body[data-grouping] .expr__chain-item[data-grouping] .expr__tools,
+body[data-grouping] .expr__chain-item[data-grouping] .expr__ungroup {
   pointer-events: none;
+}
+
+/* A part inside a bracket takes precedence over the bracket as a whole, which
+   is what makes a group within a group reachable at all. */
+body[data-grouping] .expr__grouped .expr__chain-item[data-grouping] {
+  pointer-events: auto;
 }
 
 /*
