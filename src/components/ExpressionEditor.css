@@ -22,36 +22,22 @@
 /*
  * A value and the options control that belongs to it.
  *
- * Its own box so the control can be positioned against the value and nothing
+ * Its own positioning box so the control anchors to the value and nothing
  * else. `.expr` will not do: it also holds the tools strip and, in a chain,
- * the operator — anchoring there put the dots past "+ otra parte" on a
- * single-part expression, and every attempt to fix that by adding margins
- * elsewhere was working on the wrong box.
+ * the operator.
  *
- * The room the control needs is made here too, on hover, so it is opened by
- * the same element the control is measured from.
+ * Deliberately fixed in size. Five rounds of this control were spent opening
+ * room for it with a hover margin, which reflows the row every time the
+ * pointer enters or leaves a value — measured at three distinct layouts while
+ * sweeping one block, and an insertion slot fleeing 46px from under the
+ * pointer. The room is now permanent and inside the value, so there is no
+ * state change to animate and nothing to chase.
  */
 .expr__value {
   position: relative;
   display: inline-flex;
   align-items: center;
   min-width: 0;
-  transition: margin-right var(--duration-fast) var(--ease-out);
-}
-
-/* Space for the dots, only while they are shown — reserving it on every value
-   is the gap this control was taken out of the flow to avoid. Three px past
-   the control's own 20px, so it is separated from what follows rather than
-   flush against it. */
-.expr__value:hover,
-.expr__value:focus-within {
-  margin-right: 24px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .expr__value {
-    transition: none;
-  }
 }
 
 
@@ -88,11 +74,21 @@
   min-width: 0;
 }
 
+/*
+  The right padding carries the options control.
+
+  It is 20px rather than 6px so the dots have somewhere to be drawn that is
+  already part of the field. Adding a strip beside the value instead — whether
+  permanently or on hover — is what put a visible empty gap after every value
+  in every block, and what made the row reflow as the pointer crossed it.
+  Inside the field the space reads as the field's own breathing room, and the
+  layout never changes.
+*/
 .expr__literal {
   min-width: 2.5ch;
   /* Wide enough for a full sentence prompt; blocks wrap rather than clip. */
   max-width: min(46ch, 100%);
-  padding: 2px 6px;
+  padding: 2px 20px 2px 6px;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   color: var(--text-primary);
@@ -341,52 +337,19 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-list) 26%, transparent);
 }
 
-/*
-  Room for the options control, made only while it is being shown.
-
-  The control hangs past the part it belongs to, which a flat row absorbs
-  because the tools strip provides that space; inside a list there is a 2px
-  gap, so the dots landed on the following comma and on the "+" — 19px of
-  overlap. Reserving the clearance on every item fixed the overlap and put it
-  straight back as dead space: 24px between every pair, visible at rest with no
-  dots anywhere, which is the gap this whole control was moved out of the flow
-  to avoid.
-
-  So the room opens under the pointer and nowhere else. Only the hovered item
-  widens, and only to its right, so nothing before it moves — the items to the
-  right shift, which is the same thing that already happens when a value is
-  typed into and is not what the eye is following.
-*/
 .expr__list-item {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  transition: margin-right var(--duration-fast) var(--ease-out);
-}
-
-.expr__list-item:hover,
-.expr__list-item:focus-within {
-  margin-right: 22px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .expr__list-item {
-    transition: none;
-  }
 }
 
 /*
- * The slots a value can be inserted into.
+ * The slots a value can be inserted into: between two items, and at each end.
  *
- * The target does not change size. The first version was 10px wide with -4px
- * margins either side, which left 2px of real area and then widened to 18px on
- * hover — so reaching it moved it, the pointer fell outside, and it closed
- * again. Measured: of 99 positions swept across a three-item list, 13 opened
- * any slot at all and the middle one opened at none.
- *
- * So the box is a fixed 14px, which is a target rather than a hairline, and
- * only the mark inside it fades in. Nothing moves when it appears, which is
- * what makes it possible to hit.
+ * A fixed 14px that never resizes. The first version was 10px with negative
+ * margins and grew on hover, so reaching for it moved it out from under the
+ * pointer — 13 of 99 swept positions opened one, and the middle never did.
+ * Only the mark inside fades in, so the row is identical either way.
  */
 .expr__insert {
   display: inline-flex;

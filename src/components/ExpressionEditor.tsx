@@ -1003,8 +1003,11 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
           const parsed = Number(event.target.value);
           onChange(literal(Number.isNaN(parsed) ? 0 : parsed, 'number'));
         }}
-        // Sized to content, with room for the 6px side padding on each side.
-        style={{ width: `${Math.max(String(value.value).length, 2) + 2.5}ch` }}
+        /* Content plus the padding, stated in the padding's own units.
+           Adding a few `ch` for it was an approximation that broke the moment
+           the right padding grew to hold the options control: the extra 14px
+           came out of the text, so "¿Cómo te llamas?" lost its "?". */
+        style={{ width: `calc(${Math.max(String(value.value).length, 2)}ch + 28px)` }}
       />
     );
   }
@@ -1016,12 +1019,12 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
       value={String(value.value)}
       placeholder={placeholder}
       onChange={(event) => onChange(literal(event.target.value, 'text'))}
-      // The leading quote glyph and padding both consume room, so the width
-      // allows for them; without the slack the last characters get clipped. An
-      // empty field is sized to its placeholder, which is text the student
-      // still has to read rather than a value that happens to be absent.
+      /* Content plus the exact padding — 6px left, 20px right for the options
+         control — and 1ch of slack, since a proportional glyph can exceed the
+         `ch` unit's width. An empty field is sized to its placeholder, which
+         is text the student still has to read. */
       style={{
-        width: `${Math.max(String(value.value).length, placeholder?.length ?? 0, 6) + 3}ch`,
+        width: `calc(${Math.max(String(value.value).length, placeholder?.length ?? 0, 6) + 1}ch + 28px)`,
       }}
     />
   );

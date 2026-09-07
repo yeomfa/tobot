@@ -111,10 +111,17 @@
 */
 .picker[data-variant='options'] {
   position: absolute;
-  /* Just past the value it belongs to. `.expr__value` is that box; before it
-     existed this anchored to `.expr`, which on a single-part expression also
-     wraps the tools strip — so the dots were drawn past "+ otra parte". */
-  right: -21px;
+  /*
+    Inside the value's box, over the padding kept clear for it.
+
+    Hanging outside at `-21px` is what made this control impossible to settle:
+    the room had to come from somewhere, and every version of "open a gap on
+    hover" reflowed the row as the pointer crossed it — three layouts across
+    one block, an insertion slot fleeing 46px, controls landing under the "+".
+    Drawn inside, the space is reserved once and never changes, so nothing
+    moves and nothing has to chase anything.
+  */
+  right: 1px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
@@ -374,6 +381,12 @@
   picking a variable is exactly the same act. Styling it here is what makes the
   comment above true.
 */
+/* Room for the options control, the same as a literal field keeps: the chip is
+   what the control is drawn over, so the space belongs inside it. */
+.expr__value > .picker[data-variant='reference'] .picker__trigger {
+  padding-right: 20px;
+}
+
 .picker[data-variant='reference'] .picker__trigger {
   color: var(--hue-variable);
   font-weight: 600;
