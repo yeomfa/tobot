@@ -111,6 +111,9 @@
 */
 .picker[data-variant='options'] {
   position: absolute;
+  /* Just past the value it belongs to. `.expr__value` is that box; before it
+     existed this anchored to `.expr`, which on a single-part expression also
+     wraps the tools strip — so the dots were drawn past "+ otra parte". */
   right: -21px;
   top: 50%;
   transform: translateY(-50%);
@@ -142,8 +145,8 @@
   already looking. Focus keeps it visible for keyboard use, where there is no
   pointer to hover with.
 */
-.expr:hover > .picker[data-variant='options'],
-.expr:focus-within > .picker[data-variant='options'],
+.expr__value:hover > .picker[data-variant='options'],
+.expr__value:focus-within > .picker[data-variant='options'],
 .picker[data-variant='options']:focus-within {
   opacity: 1;
   pointer-events: auto;

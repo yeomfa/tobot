@@ -11,7 +11,7 @@ import {
   TrashIcon as Trash,
   XCircleIcon as XCircle,
 } from '@phosphor-icons/react';
-import { memo, useEffect, useState } from 'react';
+import { Fragment, memo, useEffect, useState } from 'react';
 
 import { castExpression, emptyValue, literal } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
@@ -441,6 +441,17 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 
   return (
     <span className="expr" data-kind={value.kind} data-first={boundTighter || undefined}>
+      {/*
+        The value and its own options control, in a box of their own.
+
+        The control is positioned against its container, and `.expr` is not the
+        value — on a single-part expression it also wraps "+ otra parte", so
+        anchoring to its right edge drew the dots *past* the tools strip, and
+        the 21px kept clear for them showed up as a gap between the value and
+        the strip. Giving the pair their own box makes "beside the value" mean
+        beside the value, whatever else the expression holds.
+      */}
+      <span className="expr__value">
       {value.kind === 'literal' && (
         <LiteralInput value={value} onChange={onChange} placeholder={placeholder} />
       )}
@@ -458,47 +469,66 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           <span className="expr__bracket" aria-hidden="true">
             [
           </span>
+          {/*
+            An insertion point before every item and one after the last.
+
+            A single "+" at the end could only ever append, so putting a value
+            in the middle of a list meant adding it at the end and then having
+            no way to move it. Each slot appears only when the pointer is on
+            it, so a list at rest is still just its values.
+          */}
           {value.items.map((item, position) => (
-            <span className="expr__list-item" key={position}>
-              {position > 0 && (
-                <span className="expr__comma" aria-hidden="true">
-                  ,
-                </span>
-              )}
-              <ExpressionEditor
-                value={item}
-                onChange={(next) =>
+            <Fragment key={position}>
+              <InsertPoint
+                label={d.actions.addValue}
+                onInsert={() =>
                   onChange({
                     ...value,
-                    items: value.items.map((old, i) => (i === position ? next : old)),
+                    items: [
+                      ...value.items.slice(0, position),
+                      literal(0, 'number'),
+                      ...value.items.slice(position),
+                    ],
                   })
                 }
-                variables={variables}
-                mode={mode}
-                nested
-                /* The last item cannot be removed: an empty list is reachable
-                   by switching the whole part back to a value, and a list with
-                   no items and no controls is a dead end. */
-                onRemove={
-                  value.items.length > 1
-                    ? () =>
-                        onChange({
-                          ...value,
-                          items: value.items.filter((_, i) => i !== position),
-                        })
-                    : undefined
-                }
               />
-            </span>
+              <span className="expr__list-item">
+                {position > 0 && (
+                  <span className="expr__comma" aria-hidden="true">
+                    ,
+                  </span>
+                )}
+                <ExpressionEditor
+                  value={item}
+                  onChange={(next) =>
+                    onChange({
+                      ...value,
+                      items: value.items.map((old, i) => (i === position ? next : old)),
+                    })
+                  }
+                  variables={variables}
+                  mode={mode}
+                  nested
+                  /* The last item cannot be removed: an empty list is reachable
+                     by switching the whole part back to a value, and a list with
+                     no items and no controls is a dead end. */
+                  onRemove={
+                    value.items.length > 1
+                      ? () =>
+                          onChange({
+                            ...value,
+                            items: value.items.filter((_, i) => i !== position),
+                          })
+                      : undefined
+                  }
+                />
+              </span>
+            </Fragment>
           ))}
-          <button
-            type="button"
-            className="expr__tool expr__tool--add expr__list-add"
-            onClick={() => onChange({ ...value, items: [...value.items, literal(0, 'number')] })}
-            title={d.actions.addValue}
-          >
-            <Plus weight="bold" />
-          </button>
+          <InsertPoint
+            label={d.actions.addValue}
+            onInsert={() => onChange({ ...value, items: [...value.items, literal(0, 'number')] })}
+          />
           <span className="expr__bracket" aria-hidden="true">
             ]
           </span>
@@ -888,6 +918,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         />
       )}
 
+      </span>
+
       {/* Extending belongs to the expression as a whole, so it appears once. */}
       {!nested && (
         <span className="expr__tools">
@@ -910,6 +942,29 @@ interface LiteralInputProps {
   value: Extract<Expression, { kind: 'literal' }>;
   onChange: (next: Expression) => void;
   placeholder?: string;
+}
+
+/**
+ * A place a value can go: between two items of a list, or at either end.
+ *
+ * Zero width until the pointer is on it, so a list at rest reads as its values
+ * and nothing else. The target is wider than the mark it draws, because a slot
+ * only as wide as its own "+" is not something anyone can hit.
+ */
+function InsertPoint({ label, onInsert }: { label: string; onInsert: () => void }) {
+  return (
+    <button
+      type="button"
+      className="expr__insert"
+      onClick={onInsert}
+      title={label}
+      aria-label={label}
+    >
+      <span className="expr__insert-mark" aria-hidden="true">
+        +
+      </span>
+    </button>
+  );
 }
 
 function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {

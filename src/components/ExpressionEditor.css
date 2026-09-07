@@ -17,9 +17,41 @@
   row-gap: 4px;
   min-width: 0;
   vertical-align: middle;
-  /* Anchors the options control, which is laid over this part's right edge
-     rather than given room of its own in the row. */
+}
+
+/*
+ * A value and the options control that belongs to it.
+ *
+ * Its own box so the control can be positioned against the value and nothing
+ * else. `.expr` will not do: it also holds the tools strip and, in a chain,
+ * the operator — anchoring there put the dots past "+ otra parte" on a
+ * single-part expression, and every attempt to fix that by adding margins
+ * elsewhere was working on the wrong box.
+ *
+ * The room the control needs is made here too, on hover, so it is opened by
+ * the same element the control is measured from.
+ */
+.expr__value {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  transition: margin-right var(--duration-fast) var(--ease-out);
+}
+
+/* Space for the dots, only while they are shown — reserving it on every value
+   is the gap this control was taken out of the flow to avoid. Three px past
+   the control's own 20px, so it is separated from what follows rather than
+   flush against it. */
+.expr__value:hover,
+.expr__value:focus-within {
+  margin-right: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expr__value {
+    transition: none;
+  }
 }
 
 
@@ -49,51 +81,11 @@
 
 /* Each operand travels with the operator in front of it, so a wrap never
    leaves a stranded "+" at the end of a line. */
-/*
-  Room for the options control, opened only under the pointer.
-
-  The control hangs 21px past the part it belongs to, and consecutive parts sit
-  3px apart — so the dots of one part landed on top of the operator drawn at
-  the start of the next: 18px across and 20px down, `···` and `+` occupying the
-  same square. The last part in a row was fine, which is why this survived the
-  earlier round; only the ones with something after them collide.
-
-  Held open on hover rather than always, for the reason the control was taken
-  out of the flow in the first place: reserving it on every part puts a visible
-  gap in every expression, which is most of what a block is made of. Only the
-  hovered part widens, and only to its right, so nothing before it moves.
-*/
 .expr__chain-item {
   display: inline-flex;
   align-items: center;
   gap: 3px;
   min-width: 0;
-  transition: margin-right var(--duration-fast) var(--ease-out);
-}
-
-/*
-  The room belongs to the `.expr` the control hangs off, not to the chain item
-  around it.
-
-  A chain item holds the operator that opens it and then the value:
-  `[+][nombre]`. The options control is positioned against the *value*, so it
-  is drawn 1px past that inner `.expr` — and the next chain item begins before
-  that, since the item's own box ends at the value. Widening the item did
-  nothing about it: the margin went on the far side of a box the control had
-  already escaped.
-
-  Put on the inner `.expr` instead, and keyed on the same `:hover` that reveals
-  the control, so the room and the thing that needs it appear together.
-*/
-.expr__chain-item:not(:last-child) > .expr:hover,
-.expr__chain-item:not(:last-child) > .expr:focus-within {
-  margin-right: 21px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .expr__chain-item {
-    transition: none;
-  }
 }
 
 .expr__literal {
@@ -182,12 +174,11 @@
   /* Set apart from the expression and tinted, so the controls never read as
      part of the value they act on.
 
-     The gap is what the last part's options control falls into. It hangs off
-     the right of its part, and the last part ends exactly where this strip
-     begins — measured at 15px of overlap, the dots sitting on top of "+ otra
-     parte". Widened rather than moving the control back onto the value, which
-     is the collision it was moved out of in the first place. */
-  margin-left: 21px;
+     Only the separation it needs to read as its own thing. It used to carry
+     21px to keep the last value's dots off it, which showed as a gap sitting
+     open in every expression — the value opens that room itself now, and only
+     while the dots are there. */
+  margin-left: 6px;
   padding: 1px 3px;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--block-hue, var(--slate-400)) 10%, transparent);
@@ -215,13 +206,21 @@
   height: 11px;
 }
 
+/*
+  Fills the strip that holds it.
+
+  At a fixed 16px inside a 26px strip the button floated with 5px of dead
+  band above and below — the strip lined up with the row and the thing you
+  actually see and click did not, which is what read as misaligned however
+  carefully the strip itself was measured.
+*/
 .expr__tool {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 16px;
-  height: 16px;
-  padding: 0 2px;
+  align-self: stretch;
+  padding: 0 4px;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
@@ -365,23 +364,61 @@
   }
 }
 
-.expr__comma {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: color-mix(in srgb, var(--hue-list) 60%, var(--text-muted));
+/*
+ * The slots a value can be inserted into.
+ *
+ * Collapsed to nothing at rest, so a list is its values and its commas and
+ * nothing more; the "+" and the room for it appear together under the pointer.
+ * The button stays 10px wide even when collapsed — enough to aim at, since a
+ * zero-width target cannot be hovered at all — and its mark is what grows.
+ */
+.expr__insert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: 10px;
+  margin: 0 -4px;
+  color: color-mix(in srgb, var(--hue-list) 70%, var(--text-muted));
+  border-radius: var(--radius-xs);
+  transition:
+    width var(--duration-fast) var(--ease-out),
+    margin var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
 }
 
-/* Only while the block is worked on, like every other control that would
-   otherwise crowd a finished algorithm. */
-.expr__list-add {
+.expr__insert-mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.statement-block:hover .expr__list-add,
-.statement-block:focus-within .expr__list-add,
-.expr__list:focus-within .expr__list-add {
+.expr__insert:hover,
+.expr__insert:focus-visible {
+  width: 18px;
+  margin: 0 1px;
+  background: color-mix(in srgb, var(--hue-list) 16%, transparent);
+}
+
+.expr__insert:hover .expr__insert-mark,
+.expr__insert:focus-visible .expr__insert-mark {
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expr__insert,
+  .expr__insert-mark {
+    transition: none;
+  }
+}
+
+.expr__comma {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: color-mix(in srgb, var(--hue-list) 60%, var(--text-muted));
 }
 
 /* `notas[i]` reads as one thing, so the brackets sit tight against the name
