@@ -201,9 +201,20 @@
   display: inline-flex;
 }
 
+/*
+ * Sized and seated against the word beside it.
+ *
+ * The two boxes centred exactly and the "+" still read as riding high: at 11px
+ * its drawn glyph is 8.6px tall against a 12px line of text, and a small light
+ * mark beside a word looks lifted however the boxes line up. Matching the
+ * text's own size settles it, and the nudge is the last of the optical
+ * difference — the eye reads a "+" from its bar, which sits above centre.
+ */
 .expr__tool svg {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
+  position: relative;
+  top: 0.5px;
 }
 
 /*
@@ -367,24 +378,26 @@
 /*
  * The slots a value can be inserted into.
  *
- * Collapsed to nothing at rest, so a list is its values and its commas and
- * nothing more; the "+" and the room for it appear together under the pointer.
- * The button stays 10px wide even when collapsed — enough to aim at, since a
- * zero-width target cannot be hovered at all — and its mark is what grows.
+ * The target does not change size. The first version was 10px wide with -4px
+ * margins either side, which left 2px of real area and then widened to 18px on
+ * hover — so reaching it moved it, the pointer fell outside, and it closed
+ * again. Measured: of 99 positions swept across a three-item list, 13 opened
+ * any slot at all and the middle one opened at none.
+ *
+ * So the box is a fixed 14px, which is a target rather than a hairline, and
+ * only the mark inside it fades in. Nothing moves when it appears, which is
+ * what makes it possible to hit.
  */
 .expr__insert {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  width: 10px;
-  margin: 0 -4px;
+  width: 14px;
+  flex-shrink: 0;
   color: color-mix(in srgb, var(--hue-list) 70%, var(--text-muted));
   border-radius: var(--radius-xs);
-  transition:
-    width var(--duration-fast) var(--ease-out),
-    margin var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
+  transition: background var(--duration-fast) var(--ease-out);
 }
 
 .expr__insert-mark {
@@ -398,8 +411,6 @@
 
 .expr__insert:hover,
 .expr__insert:focus-visible {
-  width: 18px;
-  margin: 0 1px;
   background: color-mix(in srgb, var(--hue-list) 16%, transparent);
 }
 
@@ -413,6 +424,12 @@
   .expr__insert-mark {
     transition: none;
   }
+}
+
+/* The list's own gap would add to these fixed slots, so it is removed between
+   them — the slots are the spacing now. */
+.expr__list {
+  gap: 0;
 }
 
 .expr__comma {
