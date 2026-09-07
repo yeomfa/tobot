@@ -83,6 +83,16 @@ const LOGICAL: BinaryOperator[] = ['&&', '||'];
 /** The three types a written value can have, in the order the palette uses. */
 const KINDS: LiteralKind[] = ['number', 'text', 'boolean'];
 
+/**
+ * Kinds with no literal form to cast into.
+ *
+ * A group takes whatever its contents produce; a list, an index and a length
+ * are built rather than typed. They still get the rest of the menu — swapping
+ * for a value or a variable, and removing — which is what makes them
+ * reversible once made.
+ */
+const NO_LITERAL_KIND = new Set<Expression['kind']>(['group', 'list', 'index', 'length']);
+
 /** Symbols students recognise from maths, rather than programming spellings. */
 const OPERATOR_GLYPH: Record<BinaryOperator, string> = {
   '+': '+',
@@ -391,8 +401,21 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     Its type options are hidden separately — a group has no literal kind to
     change — leaving the actions, which is all it needs.
   */
+  /*
+    A list, an index and a length are operands too.
+
+    Without this a list had no menu of its own — only its items did — so once
+    a value became a list there was no way to turn it back, to drop it, or to
+    reach any of the actions every other kind of value offers. The same applied
+    to `notas[i]` and to a length: built once, stuck.
+  */
   const isOperand =
-    value.kind === 'literal' || value.kind === 'variable' || value.kind === 'group';
+    value.kind === 'literal' ||
+    value.kind === 'variable' ||
+    value.kind === 'group' ||
+    value.kind === 'list' ||
+    value.kind === 'index' ||
+    value.kind === 'length';
 
   /**
    * What the parts *inside* this expression hold, which is not what the
@@ -801,9 +824,9 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           value={
             value.kind === 'variable'
               ? 'variable'
-              : value.kind === 'group'
-                ? 'group'
-                : `kind:${value.valueKind}`
+              : NO_LITERAL_KIND.has(value.kind)
+                ? value.kind
+                : `kind:${(value as Extract<Expression, { kind: 'literal' }>).valueKind}`
           }
           groups={[
             /*
@@ -815,7 +838,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             */
             /* A group has no literal kind of its own to change — its type is
                whatever the expression inside it produces. */
-            ...(expect === 'any' && value.kind !== 'group'
+            ...(expect === 'any' && !NO_LITERAL_KIND.has(value.kind)
               ? [
                   {
                     label: d.fields.expect,
@@ -829,26 +852,49 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   },
                 ]
               : []),
-            ...(canReference && value.kind !== 'group'
-              ? [
-                  {
-                    label: expect === 'any' ? d.fields.value : undefined,
-                    options: [
-                      { value: 'literal' as const, label: d.fields.aValue, icon: Keyboard },
-                      { value: 'variable' as const, label: d.fields.aVariable, icon: Tag },
-                      /* Only where a list would make sense. A field that must
-                         hold a number — a loop's step, a position — offers
-                         `length` but not a whole list, since one can be
-                         counted and the other cannot be counted with. */
-                      ...(expect === 'any'
-                        ? [{ value: 'list' as const, label: d.fields.aList, icon: ListBullets }]
-                        : []),
-                      { value: 'index' as const, label: d.fields.anItem, icon: ListNumbers },
-                      { value: 'length' as const, label: d.fields.howMany, icon: Hash },
-                    ],
-                  },
-                ]
-              : []),
+            /*
+              What this part is, rather than what type it holds.
+
+              Split from the caret's other groups because these do not all need
+              the same thing: swapping for a variable needs one to exist, while
+              building a list needs nothing at all. Gating the whole group on
+              `canReference` meant a fresh block could not make a list, and
+              gating the list on `expect === 'any'` meant a declaration — which
+              always carries a declared type — could not either. Between them
+              the only route to a list was the type chip, which is why the chip
+              and the value could disagree.
+            */
+            ...(() => {
+              const options = [];
+              if (canReference) {
+                options.push(
+                  { value: 'literal' as const, label: d.fields.aValue, icon: Keyboard },
+                  { value: 'variable' as const, label: d.fields.aVariable, icon: Tag },
+                );
+              }
+              /*
+                Only where the slot has no declared type of its own.
+
+                A declaration says what it holds through its type chip, and
+                that is the one place its kind is decided — offering "una
+                lista" in the value menu as well would let the two disagree,
+                which is exactly the state reported: a chip reading "texto"
+                over a value still shaped like a list.
+              */
+              if (expect === 'any') {
+                options.push({ value: 'list' as const, label: d.fields.aList, icon: ListBullets });
+              }
+              /* These read *from* a list, so they need one to name. */
+              if (canReference) {
+                options.push(
+                  { value: 'index' as const, label: d.fields.anItem, icon: ListNumbers },
+                  { value: 'length' as const, label: d.fields.howMany, icon: Hash },
+                );
+              }
+              return options.length
+                ? [{ label: expect === 'any' ? d.fields.value : undefined, options }]
+                : [];
+            })(),
             /*
               Grouping lives in this menu rather than on a click.
 

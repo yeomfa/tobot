@@ -9,6 +9,7 @@ import type {
   ForEachStatement,
   IfStatement,
   LiteralExpression,
+  ValueKind,
   LiteralKind,
   RepeatStatement,
   SayStatement,
@@ -185,4 +186,27 @@ export function createStatement(
         body: [],
       } satisfies ForEachStatement;
   }
+}
+
+/**
+ * The value a declaration should hold after its type is changed.
+ *
+ * The type chip and the value are two views of one fact, and they were able to
+ * disagree: switching away from `lista` left a list-shaped value under a chip
+ * reading "texto", which the emitters and the interpreter cannot make sense
+ * of. Kept here, beside the other AST constructors, so the rule is testable
+ * rather than living only inside a click handler.
+ */
+export function retypeDeclaration(current: Expression, valueKind: ValueKind): Expression {
+  /* A list has no literal form to cast into, so switching to it starts one —
+     with an item, since an empty pair of brackets offers nothing to click. */
+  if (valueKind === 'list') return { kind: 'list', items: [literal(0, 'number')] };
+
+  /* Anything built rather than typed cannot be cast either, so it is replaced
+     outright; an ordinary literal keeps its content and changes kind. */
+  const castable: Expression =
+    current.kind === 'list' || current.kind === 'index' || current.kind === 'length'
+      ? literal(0, 'number')
+      : current;
+  return castExpression(castable, valueKind);
 }

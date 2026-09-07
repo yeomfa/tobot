@@ -40,6 +40,21 @@
   min-width: 0;
 }
 
+/*
+  A value the student builds rather than types keeps its own room.
+
+  A literal field carries this in its padding, and a variable chip in its own —
+  but a list, an index or a length is a structure, so the room belongs to the
+  box the control is measured from. Without it the dots are drawn over
+  whatever the structure ends with: on a list that is the closing bracket and
+  the last insertion slot, and the slot's clicks went to the dots instead.
+*/
+.expr__value:has(> .expr__list),
+.expr__value:has(> .expr__indexed),
+.expr__value:has(> .expr__length) {
+  padding-right: 22px;
+}
+
 
 /**
  * Only genuinely nested groupings get a bracket. A flat associative chain
@@ -346,21 +361,39 @@
 /*
  * The slots a value can be inserted into: between two items, and at each end.
  *
- * A fixed 14px that never resizes. The first version was 10px with negative
- * margins and grew on hover, so reaching for it moved it out from under the
- * pointer — 13 of 99 swept positions opened one, and the middle never did.
- * Only the mark inside fades in, so the row is identical either way.
+ * Narrow in the layout, wide to the pointer. At a flat 14px they were a
+ * quarter of a four-item list's width — 70px of 304 holding nothing visible,
+ * which is the empty space this control keeps being reported for. At 6px the
+ * list reads as values and commas again.
+ *
+ * The target stays full size through a pseudo-element that overflows the box,
+ * so nothing resizes on hover — that is what made an earlier version flee from
+ * under the pointer — and the slot is still something a hand can hit.
  */
 .expr__insert {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  width: 14px;
+  width: 6px;
   flex-shrink: 0;
   color: color-mix(in srgb, var(--hue-list) 70%, var(--text-muted));
   border-radius: var(--radius-xs);
   transition: background var(--duration-fast) var(--ease-out);
+}
+
+/* The part a pointer actually meets: wider than the slot draws, laid over the
+   gap either side of it without taking any room.
+
+   Behind the button's own content, or it would swallow the click it exists to
+   make easier — three inserts in a row landed on the pseudo-element and did
+   nothing. */
+.expr__insert::before {
+  content: '';
+  position: absolute;
+  inset: 0 -5px;
+  z-index: -1;
 }
 
 .expr__insert-mark {

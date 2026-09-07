@@ -11,7 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { memo, useState } from 'react';
 
-import { castExpression, createId, createStatement, literal } from '../core/ast/factory';
+import { createId, createStatement, literal, retypeDeclaration } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
 import type { NodeId, Statement, ValueKind } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
@@ -503,21 +503,9 @@ function StatementBody({
                 // The value has to follow the type: leaving a text literal in
                 // place after switching to number left the field editing the
                 // old kind, so picking "number" appeared to do nothing.
-                current.kind !== 'declare'
-                  ? current
-                  : valueKind === 'list'
-                    ? /* A list has no literal form to cast into, so switching
-                         to it starts one — with an item, since an empty pair of
-                         brackets offers nothing to click. */
-                      { ...current, valueKind, value: { kind: 'list', items: [literal(0, 'number')] } }
-                    : {
-                        ...current,
-                        valueKind,
-                        value: castExpression(
-                          current.value.kind === 'list' ? literal(0, 'number') : current.value,
-                          valueKind,
-                        ),
-                      },
+                current.kind === 'declare'
+                  ? { ...current, valueKind, value: retypeDeclaration(current.value, valueKind) }
+                  : current,
               )
             }
           />
