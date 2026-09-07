@@ -160,7 +160,10 @@ export interface CommentStatement extends StatementBase {
 export interface DeclareStatement extends StatementBase {
   kind: 'declare';
   name: string;
-  valueKind: LiteralKind;
+  /* `ValueKind`, not `LiteralKind`: declaring a variable that holds a list is
+     the most natural way to make one, and gating it on the three scalars made
+     lists reachable only by switching an existing value. */
+  valueKind: ValueKind;
   value: Expression;
 }
 

@@ -64,3 +64,19 @@ export interface ExecutionState {
  */
 export const MAX_STEPS = 5000;
 export const MAX_LOOP_ITERATIONS = 1000;
+
+/**
+ * How Tobot writes a value, wherever one is shown.
+ *
+ * The console used to call `String()`, which renders a list as `0,0,0` while
+ * the robot said `[0, 0, 0]` — two spellings of the same value, a metre apart
+ * on screen. The interpreter uses this too, so there is one answer.
+ */
+export function displayValue(value: RuntimeValue): string {
+  if (Array.isArray(value)) return `[${value.map(displayValue).join(', ')}]`;
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'number') {
+    return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(6)));
+  }
+  return value;
+}

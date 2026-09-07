@@ -16,7 +16,7 @@ import {
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 
-import type { LiteralKind, Statement } from '../core/ast/types';
+import type { Statement, ValueKind } from '../core/ast/types';
 
 export type Category = 'variables' | 'io' | 'conditionals' | 'loops' | 'lists' | 'notes';
 
@@ -79,10 +79,11 @@ export const statementIcon: Record<StatementKind, Icon> = {
  * One icon per data type, shared by the chip on a declaration and the menu on
  * a value so that "number" looks the same wherever a student meets it.
  */
-export const typeIcon: Record<LiteralKind, Icon> = {
+export const typeIcon: Record<ValueKind, Icon> = {
   number: Hash,
   text: TextAa,
   boolean: ToggleLeft,
+  list: ListBullets,
 };
 
 /**

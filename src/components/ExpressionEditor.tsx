@@ -2,7 +2,10 @@ import {
   ArrowsOutSimpleIcon as ArrowsOutSimple,
   BracketsRoundIcon as BracketsRound,
   CheckCircleIcon as CheckCircle,
+  HashIcon as Hash,
   KeyboardIcon as Keyboard,
+  ListBulletsIcon as ListBullets,
+  ListNumbersIcon as ListNumbers,
   PlusIcon as Plus,
   TagIcon as Tag,
   TrashIcon as Trash,
@@ -334,13 +337,43 @@ export const ExpressionEditor = memo(function ExpressionEditor({
    * choices are, which matters most for the students who do not yet know that
    * "a value" and "a variable" are different things.
    */
-  const source: 'literal' | 'variable' = value.kind === 'variable' ? 'variable' : 'literal';
-  const setSource = (next: 'literal' | 'variable'): void => {
+  type Source = 'literal' | 'variable' | 'list' | 'index' | 'length';
+  const source: Source =
+    value.kind === 'variable' ||
+    value.kind === 'list' ||
+    value.kind === 'index' ||
+    value.kind === 'length'
+      ? value.kind
+      : 'literal';
+
+  const setSource = (next: Source): void => {
     if (next === source) return;
-    if (next === 'variable') {
-      onChange({ kind: 'variable', name: variables[0] ?? '' });
-    } else {
-      onChange(expect === 'any' ? literal('', 'text') : emptyValue(expect));
+    const firstName = variables[0] ?? '';
+    switch (next) {
+      case 'variable':
+        onChange({ kind: 'variable', name: firstName });
+        return;
+      /* A new list starts with one item rather than none. An empty pair of
+         brackets gives the student nothing to click on and nothing to turn
+         into what they meant. */
+      case 'list':
+        onChange({ kind: 'list', items: [literal(0, 'number')] });
+        return;
+      /* Both of these need a list to point at, and the variable already in
+         hand is the likeliest one — asking first would mean a menu inside a
+         menu for the common case. */
+      case 'index':
+        onChange({
+          kind: 'index',
+          list: { kind: 'variable', name: firstName },
+          index: literal(0, 'number'),
+        });
+        return;
+      case 'length':
+        onChange({ kind: 'length', list: { kind: 'variable', name: firstName } });
+        return;
+      case 'literal':
+        onChange(expect === 'any' ? literal('', 'text') : emptyValue(expect));
     }
   };
 
@@ -418,6 +451,97 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           variables={variables}
           onChange={(name) => onChange({ kind: 'variable', name })}
         />
+      )}
+
+      {value.kind === 'list' && (
+        <span className="expr__list">
+          <span className="expr__bracket" aria-hidden="true">
+            [
+          </span>
+          {value.items.map((item, position) => (
+            <span className="expr__list-item" key={position}>
+              {position > 0 && (
+                <span className="expr__comma" aria-hidden="true">
+                  ,
+                </span>
+              )}
+              <ExpressionEditor
+                value={item}
+                onChange={(next) =>
+                  onChange({
+                    ...value,
+                    items: value.items.map((old, i) => (i === position ? next : old)),
+                  })
+                }
+                variables={variables}
+                mode={mode}
+                nested
+                /* The last item cannot be removed: an empty list is reachable
+                   by switching the whole part back to a value, and a list with
+                   no items and no controls is a dead end. */
+                onRemove={
+                  value.items.length > 1
+                    ? () =>
+                        onChange({
+                          ...value,
+                          items: value.items.filter((_, i) => i !== position),
+                        })
+                    : undefined
+                }
+              />
+            </span>
+          ))}
+          <button
+            type="button"
+            className="expr__tool expr__tool--add expr__list-add"
+            onClick={() => onChange({ ...value, items: [...value.items, literal(0, 'number')] })}
+            title={d.actions.addValue}
+          >
+            <Plus weight="bold" />
+          </button>
+          <span className="expr__bracket" aria-hidden="true">
+            ]
+          </span>
+        </span>
+      )}
+
+      {value.kind === 'index' && (
+        <span className="expr__indexed">
+          <ExpressionEditor
+            value={value.list}
+            onChange={(list) => onChange({ ...value, list })}
+            variables={variables}
+            mode={mode}
+            nested
+          />
+          <span className="expr__bracket" aria-hidden="true">
+            [
+          </span>
+          <ExpressionEditor
+            value={value.index}
+            onChange={(index) => onChange({ ...value, index })}
+            variables={variables}
+            expect="number"
+            mode={mode}
+            nested
+          />
+          <span className="expr__bracket" aria-hidden="true">
+            ]
+          </span>
+        </span>
+      )}
+
+      {value.kind === 'length' && (
+        <span className="expr__length">
+          <span className="expr__op">{d.fields.howMany}</span>
+          <ExpressionEditor
+            value={value.list}
+            onChange={(list) => onChange({ ...value, list })}
+            variables={variables}
+            mode={mode}
+            nested
+          />
+        </span>
       )}
 
       {value.kind === 'group' && (
@@ -682,6 +806,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                     options: [
                       { value: 'literal' as const, label: d.fields.aValue, icon: Keyboard },
                       { value: 'variable' as const, label: d.fields.aVariable, icon: Tag },
+                      /* Only where a list would make sense. A field that must
+                         hold a number — a loop's step, a position — offers
+                         `length` but not a whole list, since one can be
+                         counted and the other cannot be counted with. */
+                      ...(expect === 'any'
+                        ? [{ value: 'list' as const, label: d.fields.aList, icon: ListBullets }]
+                        : []),
+                      { value: 'index' as const, label: d.fields.anItem, icon: ListNumbers },
+                      { value: 'length' as const, label: d.fields.howMany, icon: Hash },
                     ],
                   },
                 ]
@@ -739,7 +872,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           onChange={(choice) => {
             if (choice.startsWith('group:')) groupRuns?.group(Number(choice.slice(6)));
             else if (choice === 'remove') onRemove?.();
-            else if (choice === 'literal' || choice === 'variable') setSource(choice);
+            else if (
+              choice === 'literal' ||
+              choice === 'variable' ||
+              choice === 'list' ||
+              choice === 'index' ||
+              choice === 'length'
+            ) {
+              setSource(choice);
+            }
             else onChange(castExpression(value, choice.slice('kind:'.length) as LiteralKind));
           }}
           label={d.fields.value}

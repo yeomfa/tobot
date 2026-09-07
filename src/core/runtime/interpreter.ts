@@ -1,5 +1,6 @@
 import type { Expression, LiteralKind, Statement, ValueKind } from '../ast/types';
 import {
+  displayValue,
   MAX_LOOP_ITERATIONS,
   MAX_STEPS,
   type ExecutionState,
@@ -748,11 +749,6 @@ export class Interpreter {
 
   /** Renders a value the way the robot should say it. */
   private display(value: RuntimeValue): string {
-    if (Array.isArray(value)) return `[${value.map((item) => this.display(item)).join(', ')}]`;
-    if (typeof value === 'boolean') return value ? 'true' : 'false';
-    if (typeof value === 'number') {
-      return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(6)));
-    }
-    return value;
+    return displayValue(value);
   }
 }

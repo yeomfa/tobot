@@ -377,6 +377,10 @@ export const es = {
     '||': 'o bien',
   },
   fields: {
+    aList: 'una lista',
+    anItem: 'un elemento de…',
+    howMany: 'cuántos tiene…',
+    items: 'elementos',
     operation: 'Operación',
     theValue: 'el valor',
     atPosition: 'en la posición',
@@ -397,6 +401,7 @@ export const es = {
     aVariable: 'una variable',
   },
   kinds: {
+    list: 'lista',
     number: 'número',
     text: 'texto',
     boolean: 'verdadero o falso',

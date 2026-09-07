@@ -362,6 +362,10 @@ export const en: Dictionary = {
     '||': 'or else',
   },
   fields: {
+    aList: 'a list',
+    anItem: 'an item of…',
+    howMany: 'how many…',
+    items: 'items',
     operation: 'Operation',
     theValue: 'the value',
     atPosition: 'at position',
@@ -382,6 +386,7 @@ export const en: Dictionary = {
     aVariable: 'a variable',
   },
   kinds: {
+    list: 'list',
     number: 'number',
     text: 'text',
     boolean: 'true or false',

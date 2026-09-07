@@ -13,7 +13,7 @@ import { memo, useState } from 'react';
 
 import { castExpression, createId, createStatement, literal } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
-import type { LiteralKind, NodeId, Statement } from '../core/ast/types';
+import type { NodeId, Statement, ValueKind } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
@@ -496,15 +496,28 @@ function StatementBody({
             name there is nothing else for it to attach to.
           */}
           <TypeSelect
+            allowList
             value={statement.valueKind}
             onChange={(valueKind) =>
               callbacks.update(statement.id, (current) =>
                 // The value has to follow the type: leaving a text literal in
                 // place after switching to number left the field editing the
                 // old kind, so picking "number" appeared to do nothing.
-                current.kind === 'declare'
-                  ? { ...current, valueKind, value: castExpression(current.value, valueKind) }
-                  : current,
+                current.kind !== 'declare'
+                  ? current
+                  : valueKind === 'list'
+                    ? /* A list has no literal form to cast into, so switching
+                         to it starts one — with an item, since an empty pair of
+                         brackets offers nothing to click. */
+                      { ...current, valueKind, value: { kind: 'list', items: [literal(0, 'number')] } }
+                    : {
+                        ...current,
+                        valueKind,
+                        value: castExpression(
+                          current.value.kind === 'list' ? literal(0, 'number') : current.value,
+                          valueKind,
+                        ),
+                      },
               )
             }
           />
@@ -517,7 +530,10 @@ function StatementBody({
               )
             }
             variables={variables}
-            expect={statement.valueKind}
+            /* A list is built rather than typed, so a declaration of that kind
+               constrains nothing — the expression editor offers everything and
+               the student assembles the list in place. */
+            expect={statement.valueKind === 'list' ? 'any' : statement.valueKind}
           />
 
         </>
@@ -596,7 +612,9 @@ function StatementBody({
             value={statement.expect}
             onChange={(expect) =>
               callbacks.update(statement.id, (current) =>
-                current.kind === 'ask' ? { ...current, expect } : current,
+                // Narrowed by `allowList` being off: the picker cannot produce
+                // 'list' here, and an answer typed at the keyboard never is one.
+                current.kind === 'ask' && expect !== 'list' ? { ...current, expect } : current,
               )
             }
           />
@@ -827,17 +845,32 @@ function Keyword({ children, muted }: { children: React.ReactNode; muted?: boole
  * placeholder text — something unfilled. A chip with the type's own icon and
  * colour reads as a property of the variable, which is what it is.
  */
+/**
+ * The type chip, on a declaration and on `preguntar`.
+ *
+ * `allowList` because the two differ: a variable can hold a list, but an
+ * answer the student types at the keyboard never is one. Offering it there
+ * would promise something the robot cannot do.
+ */
 function TypeSelect({
   value,
   onChange,
+  allowList = false,
 }: {
-  value: LiteralKind;
-  onChange: (kind: LiteralKind) => void;
+  value: ValueKind;
+  onChange: (kind: ValueKind) => void;
+  allowList?: boolean;
 }) {
   const { d } = useTranslation();
   const Glyph = typeIcon[value];
   const label =
-    value === 'number' ? d.kinds.number : value === 'text' ? d.kinds.text : d.kinds.boolean;
+    value === 'number'
+      ? d.kinds.number
+      : value === 'text'
+        ? d.kinds.text
+        : value === 'list'
+          ? d.kinds.list
+          : d.kinds.boolean;
 
   // The chip used to be a styled span with an invisible native select laid over
   // it: it looked right until clicked, when the operating system drew its own
@@ -854,7 +887,11 @@ function TypeSelect({
         icon={Glyph}
         groups={[
           {
-            options: (['number', 'text', 'boolean'] as LiteralKind[]).map((kind) => ({
+            options: (
+              allowList
+                ? (['number', 'text', 'boolean', 'list'] as ValueKind[])
+                : (['number', 'text', 'boolean'] as ValueKind[])
+            ).map((kind) => ({
               value: kind,
               label: d.kinds[kind],
               icon: typeIcon[kind],

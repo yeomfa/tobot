@@ -3,6 +3,7 @@ import { memo, useEffect, useRef } from 'react';
 
 import type { NodeId } from '../core/ast/types';
 import type { OutputEntry, VariableSnapshot } from '../core/runtime/types';
+import { displayValue } from '../core/runtime/types';
 import { useTranslation } from '../i18n/context';
 import './Console.css';
 
@@ -69,7 +70,12 @@ export const Console = memo(function Console({ output, variables, onSelectNode, 
               >
                 <span className="console__var-name">{variable.name}</span>
                 <span className="console__var-value" data-kind={variable.kind}>
-                  {variable.kind === 'text' ? `"${variable.value}"` : String(variable.value)}
+                  {variable.kind === 'text'
+                    ? `"${variable.value}"`
+                    : /* The same spelling the robot uses — `String()` rendered a
+                         list as `0,0,0` a metre from the robot saying
+                         `[0, 0, 0]`. */
+                      displayValue(variable.value)}
                 </span>
               </li>
             ))}
