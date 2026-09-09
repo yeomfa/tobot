@@ -21,6 +21,9 @@ import {
 } from '@phosphor-icons/react';
 
 import type { NodeId, Statement } from './core/ast/types';
+import type { Location as SlotLocation } from './core/ast/operations';
+import { findLocation, findStatement } from './core/ast/operations';
+import { decodeStatements, encodeStatements } from './core/ast/clipboard';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
 import { DEFAULT_SECTION, ROUTES, sectionPath } from './routes';
@@ -65,6 +68,7 @@ import { useExecution } from './state/useExecution';
 import { useSession } from './state/useSession';
 import { isSupabaseConfigured } from './state/supabase';
 import { useResizable } from './state/useResizable';
+import { useSelection } from './state/useSelection';
 import { welcomeAlgorithm } from './content/examples';
 import { createEmptyAlgorithm } from './state/useAlgorithm';
 import { BrandMark } from './components/BrandMark';
@@ -404,6 +408,7 @@ function Workbench({
   const execution = useExecution(algorithm.body);
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
+  const selection = useSelection(algorithm.body);
   const [showExport, setShowExport] = useState(false);
   /*
    * Which screen shows is the URL's job now, not a piece of state: `/app` is
@@ -526,19 +531,100 @@ function Workbench({
     storageKey: 'tobot.size.drawer',
   });
 
+  /**
+   * Where a pasted block should land.
+   *
+   * The drop zone under the pointer when there is one, so pasting goes where
+   * the student is looking — and below the selection otherwise, which is what
+   * happens when the paste comes from the keyboard and the mouse is nowhere
+   * near the canvas. Without that fallback, Ctrl+V with the pointer outside
+   * would have nowhere to put anything.
+   */
+  const pasteLocation = useCallback((): SlotLocation => {
+    const zone = document
+      .elementsFromPoint(pointer.current.x, pointer.current.y)
+      .find((element) => element.classList.contains('drop-zone')) as HTMLElement | undefined;
+    if (zone?.dataset.parentId !== undefined) {
+      return {
+        parentId: zone.dataset.parentId || null,
+        slot: (zone.dataset.slot as SlotLocation['slot']) || null,
+        index: Number(zone.dataset.index ?? 0),
+      };
+    }
+
+    const last = selection.ids[selection.ids.length - 1];
+    const below = last ? findLocation(algorithm.body, last) : null;
+    if (below) return { ...below, index: below.index + 1 };
+    return { parentId: null, slot: null, index: algorithm.body.length };
+  }, [algorithm.body, selection.ids]);
+
+  const copySelection = useCallback(async (): Promise<Statement[]> => {
+    const picked = selection.ids
+      .map((id) => findStatement(algorithm.body, id))
+      .filter((statement): statement is Statement => statement !== null);
+    if (picked.length > 0) await navigator.clipboard.writeText(encodeStatements(picked));
+    return picked;
+  }, [algorithm.body, selection.ids]);
+
+  const cutSelection = useCallback(async () => {
+    const picked = await copySelection();
+    if (picked.length === 0) return;
+    controller.removeMany(selection.ids);
+    selection.clear();
+  }, [controller, copySelection, selection]);
+
+  const pasteFromClipboard = useCallback(async () => {
+    const text = await navigator.clipboard.readText().catch(() => '');
+    const statements = decodeStatements(text);
+    if (!statements) return;
+    controller.addMany(statements, pasteLocation());
+    selection.set(statements.map((statement) => statement.id));
+  }, [controller, pasteLocation, selection]);
+
+  /* Where the pointer last was, so a paste can land under it. Read from a ref
+     rather than state: it changes constantly and nothing renders from it. */
+  const pointer = useRef({ x: 0, y: 0 });
+  useEffect(() => {
+    const onMove = (event: PointerEvent): void => {
+      pointer.current = { x: event.clientX, y: event.clientY };
+    };
+    window.addEventListener('pointermove', onMove);
+    return () => window.removeEventListener('pointermove', onMove);
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z') return;
+      if (!(event.metaKey || event.ctrlKey)) return;
       const target = event.target as HTMLElement | null;
+      /* Inside a field these belong to the text being typed: Ctrl+C there must
+         copy the characters, not the block around them. */
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
 
-      event.preventDefault();
-      if (event.shiftKey) controller.redo();
-      else controller.undo();
+      const key = event.key.toLowerCase();
+      if (key === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) controller.redo();
+        else controller.undo();
+        return;
+      }
+      if (key === 'c' && selection.ids.length > 0) {
+        event.preventDefault();
+        void copySelection();
+        return;
+      }
+      if (key === 'x' && selection.ids.length > 0) {
+        event.preventDefault();
+        void cutSelection();
+        return;
+      }
+      if (key === 'v') {
+        event.preventDefault();
+        void pasteFromClipboard();
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [controller]);
+  }, [controller, selection, copySelection, cutSelection, pasteFromClipboard]);
 
   const showConcept = useCallback((conceptId: string) => {
     setOpenConcept(conceptId as ConceptId);
@@ -554,8 +640,12 @@ function Workbench({
     if (!element) return;
 
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    element.setAttribute('data-selected', 'true');
-    const timer = setTimeout(() => element.removeAttribute('data-selected'), 1400);
+    /* `data-flash`, not `data-selected`: this is a moment's highlight for a
+       block the student clicked in the console or the diagram, and the
+       selection is a state they control. Sharing the attribute meant the flash
+       cleared a real selection 1.4 seconds later. */
+    element.setAttribute('data-flash', 'true');
+    const timer = setTimeout(() => element.removeAttribute('data-flash'), 1400);
     return () => clearTimeout(timer);
   }, [selectedNode]);
 
@@ -566,6 +656,8 @@ function Workbench({
       add: controller.add,
       move: controller.move,
       rename: controller.renameVariable,
+      onSelect: selection.select,
+      isSelected: selection.has,
       duplicate: controller.duplicate,
       onExplain: showConcept,
     }),
@@ -577,6 +669,11 @@ function Workbench({
       controller.renameVariable,
       controller.duplicate,
       showConcept,
+      /* `has` closes over the current selection, so leaving it out froze the
+         object at the first render: blocks kept asking a stale function
+         whether they were selected, and it always said no. */
+      selection.select,
+      selection.has,
     ],
   );
 
@@ -913,6 +1010,13 @@ function Workbench({
                 onDuplicate={controller.duplicate}
                 onRemove={controller.remove}
                 onExplain={showConcept}
+                onSelect={(id) => selection.select(id, false)}
+                clipboard={{
+                  copy: () => void copySelection(),
+                  cut: () => void cutSelection(),
+                  paste: () => void pasteFromClipboard(),
+                  hasSelection: selection.ids.length > 0,
+                }}
               >
                 <Editor
                   algorithm={algorithm}

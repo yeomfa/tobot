@@ -10,6 +10,9 @@ export const es = {
     untitled: 'Algoritmo sin título',
   },
   actions: {
+    copyBlock: 'Copiar',
+    cut: 'Cortar',
+    paste: 'Pegar',
     insertBefore: 'Insertar antes',
     insertAfter: 'Insertar después',
     run: 'Ejecutar',

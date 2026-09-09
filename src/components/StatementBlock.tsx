@@ -38,6 +38,10 @@ export interface BlockCallbacks {
   /** Copies this statement, with its whole body, directly below itself. */
   duplicate: (id: NodeId) => void;
   onExplain: (conceptId: string) => void;
+  /** Selecting a block; `extend` is true when shift was held. */
+  onSelect: (id: NodeId, extend: boolean) => void;
+  /** Whether a given block is part of the current selection. */
+  isSelected: (id: NodeId) => boolean;
 }
 
 interface StatementBlockProps {
@@ -73,6 +77,7 @@ export const StatementBlock = memo(function StatementBlock({
   depth,
 }: StatementBlockProps) {
   const { d, t } = useTranslation();
+  const isSelected = callbacks.isSelected(statement.id);
   /* Set on pointer down, so a press inside a field does not start a drag. */
   const [draggable, setDraggable] = useState(true);
   const category = statementCategory[statement.kind];
@@ -126,6 +131,7 @@ export const StatementBlock = memo(function StatementBlock({
       className="statement-block"
       /* Lets the other views scroll this block into view when clicked. */
       data-node-id={statement.id}
+      data-selected={isSelected || undefined}
       data-category={category}
       /* Distinguishes statements inside a family: `decir` and `preguntar` are
          both io, and opposite operations, so they should not look identical. */
@@ -167,6 +173,16 @@ export const StatementBlock = memo(function StatementBlock({
             '.statement-block input, .statement-block textarea, .statement-block button, .statement-block [contenteditable="true"]',
           ),
         );
+      }}
+      /* Selecting happens on click, not on the press: the press is where a
+         drag begins, and selecting there would fight it. */
+      onClick={(event) => {
+        const target = event.target as HTMLElement;
+        /* A click on a field or a control is that control's business — only a
+           click on the block's own surface selects it. */
+        if (target.closest('input, textarea, button, [contenteditable="true"]')) return;
+        event.stopPropagation();
+        callbacks.onSelect(statement.id, event.shiftKey);
       }}
       onDragStart={(event) => {
         event.dataTransfer.setData('text/tobot-move', statement.id);
@@ -1019,6 +1035,11 @@ export function DropZone({ location, callbacks, empty }: DropZoneProps) {
     <li
       className="drop-zone"
       data-empty={empty || undefined}
+      /* Where this zone sits in the tree, so a paste can land at the one under
+         the pointer without the canvas having to map coordinates itself. */
+      data-parent-id={location.parentId ?? ''}
+      data-slot={location.slot ?? ''}
+      data-index={location.index}
       /*
         No dragover or dragleave of its own. `useMagneticDrop` decides which
         zone is highlighted, and a zone that also managed its own `data-over`

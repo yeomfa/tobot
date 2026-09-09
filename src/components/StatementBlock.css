@@ -190,8 +190,24 @@
 }
 
 /* Brief flash when another view points at this block. */
-.statement-block[data-selected] {
+/* The moment's highlight for a block reached from the console or the diagram.
+   Distinct from a selection, which the student holds until they change it. */
+.statement-block[data-flash] {
   animation: block-reveal 1.4s var(--ease-out);
+}
+
+/*
+ * A selected block, held until the student selects something else.
+ *
+ * A ring rather than a fill: the block already carries its category colour,
+ * and tinting the surface would fight the thing that tells a student what kind
+ * of instruction they are looking at.
+ */
+.statement-block[data-selected] {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px var(--accent-soft),
+    var(--shadow-xs);
 }
 
 @keyframes block-reveal {

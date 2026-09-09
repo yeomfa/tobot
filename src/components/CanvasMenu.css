@@ -97,6 +97,21 @@
   color: var(--text-muted);
 }
 
+/* The keyboard equivalent, set apart at the end of the row: a student who uses
+   the menu twice should be able to notice there is a faster way. */
+.canvas-menu__shortcut {
+  margin-left: auto;
+  padding-left: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.canvas-menu__item:disabled .canvas-menu__shortcut {
+  color: var(--border-default);
+}
+
 .canvas-menu__rule {
   height: 1px;
   margin: var(--space-1) var(--space-2);

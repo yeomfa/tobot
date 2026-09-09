@@ -6,9 +6,11 @@ import {
   findLocation,
   findStatement,
   insertStatement,
+  insertStatements,
   renameVariable,
   moveStatement,
   removeStatement,
+  removeStatements,
   updateStatement,
 } from '../core/ast/operations';
 import type { Location } from '../core/ast/operations';
@@ -118,6 +120,10 @@ export interface AlgorithmController {
   /** Copies a statement and drops the copy directly below the original. */
   duplicate: (id: NodeId) => void;
   replaceBody: (body: Statement[]) => void;
+  /** Pastes several statements at one place, as a single edit. */
+  addMany: (statements: Statement[], location: Location) => void;
+  /** Deletes several at once, also as a single edit. */
+  removeMany: (ids: NodeId[]) => void;
   undo: () => void;
   redo: () => void;
   load: (algorithm: Algorithm) => void;
@@ -249,6 +255,12 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
       [edit],
     ),
     replaceBody: useCallback((body: Statement[]) => edit(() => body), [edit]),
+    addMany: useCallback(
+      (statements: Statement[], location: Location) =>
+        edit((body) => insertStatements(body, statements, location)),
+      [edit],
+    ),
+    removeMany: useCallback((ids: NodeId[]) => edit((body) => removeStatements(body, ids)), [edit]),
     undo: useCallback(() => dispatch({ type: 'undo' }), []),
     redo: useCallback(() => dispatch({ type: 'redo' }), []),
     load: useCallback((algorithm: Algorithm) => dispatch({ type: 'load', algorithm }), []),

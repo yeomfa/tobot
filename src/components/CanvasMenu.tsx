@@ -1,5 +1,8 @@
 import {
   BracketsRoundIcon as BracketsRound,
+  ClipboardTextIcon as ClipboardText,
+  CopyIcon as Copy,
+  ScissorsIcon as Scissors,
   CopySimpleIcon as CopySimple,
   QuestionIcon as Question,
   TrashIcon as Trash,
@@ -20,6 +23,16 @@ interface CanvasMenuProps {
   onDuplicate: (id: NodeId) => void;
   onRemove: (id: NodeId) => void;
   onExplain: (conceptId: string) => void;
+  /** Copy, cut and paste, so the menu offers what the keyboard does. */
+  clipboard: {
+    copy: () => void;
+    cut: () => void;
+    paste: () => void;
+    /** Whether anything is selected to act on. */
+    hasSelection: boolean;
+  };
+  /** Right-clicking a block selects it first, so the actions have a subject. */
+  onSelect: (id: NodeId) => void;
   children: React.ReactNode;
 }
 
@@ -53,6 +66,8 @@ export function CanvasMenu({
   onDuplicate,
   onRemove,
   onExplain,
+  clipboard,
+  onSelect,
   children,
 }: CanvasMenuProps) {
   const { d } = useTranslation();
@@ -138,6 +153,10 @@ export function CanvasMenu({
         const found = id ? findStatement(body, id) : null;
 
         event.preventDefault();
+        /* Right-clicking a block that is not selected selects it: the menu's
+           actions need a subject, and acting on something the student cannot
+           see highlighted is how a menu deletes the wrong thing. */
+        if (found) onSelect(found.id);
         setAt({ x: event.clientX, y: event.clientY, statement: found });
       }}
     >
@@ -183,6 +202,39 @@ export function CanvasMenu({
               <button
                 type="button"
                 role="menuitem"
+                className="canvas-menu__item"
+                onClick={run(clipboard.copy)}
+              >
+                <Copy weight="bold" aria-hidden="true" />
+                {d.actions.copyBlock}
+                <span className="canvas-menu__shortcut">Ctrl+C</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="canvas-menu__item"
+                onClick={run(clipboard.cut)}
+              >
+                <Scissors weight="bold" aria-hidden="true" />
+                {d.actions.cut}
+                <span className="canvas-menu__shortcut">Ctrl+X</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="canvas-menu__item"
+                onClick={run(clipboard.paste)}
+              >
+                <ClipboardText weight="bold" aria-hidden="true" />
+                {d.actions.paste}
+                <span className="canvas-menu__shortcut">Ctrl+V</span>
+              </button>
+
+              <span className="canvas-menu__rule" />
+
+              <button
+                type="button"
+                role="menuitem"
                 className="canvas-menu__item canvas-menu__item--danger"
                 onClick={run(() => onRemove(statement.id))}
               >
@@ -218,6 +270,22 @@ export function CanvasMenu({
               <span className="canvas-menu__hint">
                 {groupable ? d.actions.groupHint : d.actions.groupUnavailable}
               </span>
+
+              <span className="canvas-menu__rule" />
+
+              {/* Pasting works with nothing selected: it goes where the
+                  pointer is, which on bare canvas is exactly where the student
+                  right-clicked. */}
+              <button
+                type="button"
+                role="menuitem"
+                className="canvas-menu__item"
+                onClick={run(clipboard.paste)}
+              >
+                <ClipboardText weight="bold" aria-hidden="true" />
+                {d.actions.paste}
+                <span className="canvas-menu__shortcut">Ctrl+V</span>
+              </button>
             </>
           )}
         </div>

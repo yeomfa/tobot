@@ -11,6 +11,9 @@ export const en: Dictionary = {
     untitled: 'Untitled algorithm',
   },
   actions: {
+    copyBlock: 'Copy',
+    cut: 'Cut',
+    paste: 'Paste',
     insertBefore: 'Insert before',
     insertAfter: 'Insert after',
     run: 'Run',

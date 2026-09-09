@@ -1,6 +1,6 @@
 import { createId } from './factory';
 import { isBlockStatement } from './types';
-import type { Expression, NodeId, Statement } from './types';
+import type { ElseIfBranch, Expression, NodeId, Statement } from './types';
 
 /**
  * Every block statement stores its children under one or two named slots.
@@ -94,6 +94,49 @@ export function insertStatement(
   });
 }
 
+/**
+ * Inserts several statements at one place, in order.
+ *
+ * One operation rather than a loop of single inserts, so pasting three blocks
+ * is one entry in the history: undo takes back the paste, not its last third.
+ */
+export function insertStatements(
+  statements: Statement[],
+  inserted: Statement[],
+  location: Location,
+): Statement[] {
+  return mapSlot(statements, location.parentId, location.slot, (children) => {
+    const index = Math.max(0, Math.min(location.index, children.length));
+    return [...children.slice(0, index), ...inserted, ...children.slice(index)];
+  });
+}
+
+/**
+ * Removes several statements at once.
+ *
+ * Also one operation, for the same reason — and because removing them one at a
+ * time would shift the positions of the ones still to go.
+ */
+export function removeStatements(statements: Statement[], ids: NodeId[]): Statement[] {
+  const doomed = new Set(ids);
+  const prune = (list: Statement[]): Statement[] =>
+    list.flatMap((statement) => {
+      if (doomed.has(statement.id)) return [];
+      if (!isBlockStatement(statement)) return [statement];
+
+      if (statement.kind === 'if') {
+        const next = { ...statement, then: prune(statement.then) };
+        if (statement.elseIfs) {
+          next.elseIfs = statement.elseIfs.map((arm) => ({ ...arm, body: prune(arm.body) }));
+        }
+        if (statement.otherwise) next.otherwise = prune(statement.otherwise);
+        return [next];
+      }
+      return [{ ...statement, body: prune((statement as { body: Statement[] }).body) } as Statement];
+    });
+  return prune(statements);
+}
+
 export function removeStatement(statements: Statement[], id: NodeId): Statement[] {
   return statements.flatMap((statement) => {
     if (statement.id === id) return [];
@@ -176,8 +219,17 @@ export function findLocation(statements: Statement[], id: NodeId): Location | nu
       if (!isBlockStatement(statement)) continue;
 
       if (statement.kind === 'if') {
+        /* Each else-if arm is addressed by its own id with slot 'body', the
+           same way `mapSlot` and `removeStatement` treat them. Leaving them
+           out made every statement inside an arm invisible to this — so
+           anything that asks "where is this block" (moving it, duplicating it,
+           selecting a range around it) silently did nothing there. */
         const hit =
           search(statement.then, statement.id, 'then') ??
+          (statement.elseIfs ?? []).reduce<Location | null>(
+            (found, arm) => found ?? search(arm.body, arm.id, 'body'),
+            null,
+          ) ??
           (statement.otherwise ? search(statement.otherwise, statement.id, 'otherwise') : null);
         if (hit) return hit;
         continue;
@@ -468,4 +520,81 @@ export function copyStatement(statement: Statement): Statement {
   }
 
   return copied;
+}
+
+/**
+ * The statements between two, when both sit in the same list.
+ *
+ * Shift-clicking extends a selection, and "between" only means anything among
+ * siblings: a block inside a loop and one after the loop have no range between
+ * them that could be copied or deleted as a unit. Where the two are not
+ * siblings, only the second is selected — the same thing a plain click does,
+ * which is the least surprising way to refuse.
+ */
+export function rangeBetween(
+  statements: Statement[],
+  anchorId: NodeId,
+  focusId: NodeId,
+): NodeId[] {
+  if (anchorId === focusId) return [focusId];
+
+  const anchor = findLocation(statements, anchorId);
+  const focus = findLocation(statements, focusId);
+  if (!anchor || !focus) return [focusId];
+  if (anchor.parentId !== focus.parentId || anchor.slot !== focus.slot) return [focusId];
+
+  const siblings = anchor.parentId
+    ? (childrenOfLocation(statements, anchor.parentId, anchor.slot) ?? [])
+    : statements;
+
+  const from = Math.min(anchor.index, focus.index);
+  const to = Math.max(anchor.index, focus.index);
+  return siblings.slice(from, to + 1).map((statement) => statement.id);
+}
+
+/**
+ * The list a location points into, for reading a range out of it.
+ *
+ * An else-if arm carries its own id and is a parent in its own right, so it is
+ * searched for separately — `findStatement` only ever returns statements, and
+ * an arm is not one.
+ */
+function childrenOfLocation(
+  statements: Statement[],
+  parentId: NodeId,
+  slot: Slot | null,
+): Statement[] | null {
+  if (!slot) return null;
+
+  if (slot === 'body') {
+    const arm = findElseIfArm(statements, parentId);
+    if (arm) return arm.body;
+  }
+
+  const parent = findStatement(statements, parentId);
+  if (!parent) return null;
+  return childrenOf(parent, slot);
+}
+
+/** Finds an else-if arm by its own id, anywhere in the tree. */
+function findElseIfArm(statements: Statement[], id: NodeId): ElseIfBranch | null {
+  for (const statement of statements) {
+    if (!isBlockStatement(statement)) continue;
+    if (statement.kind === 'if') {
+      const arm = statement.elseIfs?.find((candidate) => candidate.id === id);
+      if (arm) return arm;
+      const nested =
+        findElseIfArm(statement.then, id) ??
+        (statement.otherwise ? findElseIfArm(statement.otherwise, id) : null) ??
+        (statement.elseIfs ?? []).reduce<ElseIfBranch | null>(
+          (found, candidate) => found ?? findElseIfArm(candidate.body, id),
+          null,
+        );
+      if (nested) return nested;
+      continue;
+    }
+    const hit = findElseIfArm((statement as { body: Statement[] }).body, id);
+    if (hit) return hit;
+  }
+  return null;
 }
