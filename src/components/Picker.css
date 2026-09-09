@@ -381,12 +381,6 @@
   picking a variable is exactly the same act. Styling it here is what makes the
   comment above true.
 */
-/* Room for the options control, the same as a literal field keeps: the chip is
-   what the control is drawn over, so the space belongs inside it. */
-.expr__value > .picker[data-variant='reference'] .picker__trigger {
-  padding-right: 20px;
-}
-
 .picker[data-variant='reference'] .picker__trigger {
   color: var(--hue-variable);
   font-weight: 600;

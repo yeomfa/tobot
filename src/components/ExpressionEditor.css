@@ -41,18 +41,15 @@
 }
 
 /*
-  A value the student builds rather than types keeps its own room.
+  A structure keeps room only where something would otherwise be hidden.
 
-  A literal field carries this in its padding, and a variable chip in its own —
-  but a list, an index or a length is a structure, so the room belongs to the
-  box the control is measured from. Without it the dots are drawn over
-  whatever the structure ends with: on a list that is the closing bracket and
-  the last insertion slot, and the slot's clicks went to the dots instead.
+  A list ends in its closing bracket and an insertion slot, and the control is
+  drawn over whatever is last — so on a list, and only there, it would swallow
+  the slot's clicks. An index and a length end in a value that has its own
+  space, so they need none.
 */
-.expr__value:has(> .expr__list),
-.expr__value:has(> .expr__indexed),
-.expr__value:has(> .expr__length) {
-  padding-right: 22px;
+.expr__value:has(> .expr__list) {
+  padding-right: 20px;
 }
 
 
@@ -90,20 +87,20 @@
 }
 
 /*
-  The right padding carries the options control.
+  No room is kept for the options control.
 
-  It is 20px rather than 6px so the dots have somewhere to be drawn that is
-  already part of the field. Adding a strip beside the value instead — whether
-  permanently or on hover — is what put a visible empty gap after every value
-  in every block, and what made the row reflow as the pointer crossed it.
-  Inside the field the space reads as the field's own breathing room, and the
-  layout never changes.
+  It used to carry 20px of right padding so the dots had somewhere of their own
+  to be drawn. That was a mistake made out of caution: the control is
+  positioned absolutely, so it costs the layout nothing, and a field's text
+  ends where the text ends — measured, the dots clear it by 9px without any
+  padding at all. The 20px was simply 20px of nothing, in every field of every
+  block.
 */
 .expr__literal {
   min-width: 2.5ch;
   /* Wide enough for a full sentence prompt; blocks wrap rather than clip. */
   max-width: min(46ch, 100%);
-  padding: 2px 20px 2px 6px;
+  padding: 2px 6px;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   color: var(--text-primary);
@@ -361,18 +358,15 @@
 /*
  * The slots a value can be inserted into: between two items, and at each end.
  *
- * Narrow in the layout, wide to the pointer. At a flat 14px they were a
- * quarter of a four-item list's width — 70px of 304 holding nothing visible.
- * At 6px the list read well but the "+" did not: the glyph is 7px, so it was
- * wider than the box holding it and came out squeezed against the comma, with
- * no room to read as a button at all.
+ * They take no room. Every earlier version reserved width for them — 14px,
+ * then 10px — which showed as space holding nothing whenever the pointer was
+ * elsewhere, on a control that is invisible almost all of the time.
  *
- * 10px is the width where the mark has air on both sides and the slots are
- * still a fifth of the list rather than a quarter.
- *
- * The target stays full size through a pseudo-element that overflows the box,
- * so nothing resizes on hover — that is what made an earlier version flee from
- * under the pointer — and the slot is still something a hand can hit.
+ * So the slot is zero-width in the layout and draws itself outside its own
+ * box, over the gap between two items. Nothing shifts when it appears, because
+ * it never occupied anything to begin with; the button's target is a
+ * pseudo-element that reaches past it on both sides, so there is still
+ * something to aim at.
  */
 .expr__insert {
   position: relative;
@@ -380,38 +374,45 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  width: 10px;
+  /*
+    No width in the layout, but a real box to click.
+    
+    Negative margins pull the button's own 16px back out of the flow, so it
+    takes none of the row while still being something a pointer — and
+    Playwright, and a keyboard — can find. A truly zero-width button cannot be
+    clicked at all.
+  */
+  width: 16px;
+  margin: 0 -8px;
   flex-shrink: 0;
   color: color-mix(in srgb, var(--hue-list) 70%, var(--text-muted));
-  border-radius: var(--radius-xs);
-  transition: background var(--duration-fast) var(--ease-out);
+  transition: none;
 }
 
-/* The part a pointer actually meets: wider than the slot draws, laid over the
-   gap either side of it without taking any room.
-
-   Behind the button's own content, or it would swallow the click it exists to
-   make easier — three inserts in a row landed on the pseudo-element and did
-   nothing. */
-.expr__insert::before {
-  content: '';
-  position: absolute;
-  inset: 0 -3px;
-  z-index: -1;
-}
-
+/*
+  The mark, drawn outside the slot's own zero width.
+  
+  Centred on the slot and lifted above the values either side, so it reads as
+  sitting between them rather than pushing them apart.
+*/
 .expr__insert-mark {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--hue-list) 18%, var(--bg-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hue-list) 30%, transparent);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.expr__insert:hover,
-.expr__insert:focus-visible {
-  background: color-mix(in srgb, var(--hue-list) 16%, transparent);
 }
 
 .expr__insert:hover .expr__insert-mark,
@@ -420,16 +421,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .expr__insert,
   .expr__insert-mark {
     transition: none;
   }
 }
 
-/* The list's own gap would add to these fixed slots, so it is removed between
-   them — the slots are the spacing now. */
+/* The gap between items is the list's own, now that the slots claim none. */
 .expr__list {
-  gap: 0;
+  gap: 4px;
 }
 
 .expr__comma {
