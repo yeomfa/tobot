@@ -6,6 +6,7 @@ import {
   KeyboardIcon as Keyboard,
   ListBulletsIcon as ListBullets,
   ListNumbersIcon as ListNumbers,
+  ListPlusIcon as ListPlus,
   PlusIcon as Plus,
   TagIcon as Tag,
   TrashIcon as Trash,
@@ -13,7 +14,7 @@ import {
 } from '@phosphor-icons/react';
 import { Fragment, memo, useEffect, useState } from 'react';
 
-import { castExpression, emptyValue, literal } from '../core/ast/factory';
+import { castExpression, emptyValue, literal, nextItemLike } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { precedenceOf } from '../core/emitters/precedence';
@@ -64,6 +65,14 @@ interface ExpressionEditorProps {
    * one choice produces one bracket.
    */
   groupRuns?: { available: number; group: (count: number) => void };
+  /**
+   * Adding a value beside this one, for an item of a list.
+   *
+   * The list carries a single "+" after its last item; reaching a position in
+   * the middle needs the item itself to offer it, since there is no room
+   * between two values for a control of its own.
+   */
+  insertHere?: { before: () => void; after: () => void };
   /**
    * Drops this operand from the expression containing it. Absent when there is
    * nothing to drop back to, which is what hides the option on a lone value.
@@ -128,6 +137,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   nested = false,
   parentPrecedence,
   groupRuns,
+  insertHere,
   onRemove,
 }: ExpressionEditorProps) {
   const { d, fill } = useTranslation();
@@ -189,6 +199,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     what makes a drag across the parts unambiguous. Every earlier attempt at
     selecting parts failed on exactly that collision.
   */
+  /* Where the value's own menu was opened, when it was. Null while closed. */
+  const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
   const [grouping, setGrouping] = useState(false);
   const [span, setSpan] = useState<[number, number] | null>(null);
   /*
@@ -474,7 +486,27 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         the strip. Giving the pair their own box makes "beside the value" mean
         beside the value, whatever else the expression holds.
       */}
-      <span className="expr__value">
+      {/*
+        Right-clicking a value opens what the three dots used to.
+
+        The dots had nowhere to live: inside the field they covered the text,
+        outside it they covered the comma or the neighbour — there is no gap in
+        a row of values for a control to occupy, and every attempt to make one
+        either reserved space that showed as an empty hole or moved the row as
+        the pointer crossed it. A context menu needs no space at all.
+      */}
+      <span
+        className="expr__value"
+        onContextMenu={
+          isOperand
+            ? (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setMenuAt({ x: event.clientX, y: event.clientY });
+              }
+            : undefined
+        }
+      >
       {value.kind === 'literal' && (
         <LiteralInput value={value} onChange={onChange} placeholder={placeholder} />
       )}
@@ -502,19 +534,6 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           */}
           {value.items.map((item, position) => (
             <Fragment key={position}>
-              <InsertPoint
-                label={d.actions.addValue}
-                onInsert={() =>
-                  onChange({
-                    ...value,
-                    items: [
-                      ...value.items.slice(0, position),
-                      literal(0, 'number'),
-                      ...value.items.slice(position),
-                    ],
-                  })
-                }
-              />
               <span className="expr__list-item">
                 {position > 0 && (
                   <span className="expr__comma" aria-hidden="true">
@@ -544,13 +563,45 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                           })
                       : undefined
                   }
+                  /* Inserting in the middle, which the single trailing "+"
+                     cannot reach. On the item's own menu rather than a control
+                     between the items, where there is no room for one. */
+                  insertHere={{
+                    before: () =>
+                      onChange({
+                        ...value,
+                        items: [
+                          ...value.items.slice(0, position),
+                          nextItemLike(value.items.slice(0, position)),
+                          ...value.items.slice(position),
+                        ],
+                      }),
+                    after: () =>
+                      onChange({
+                        ...value,
+                        items: [
+                          ...value.items.slice(0, position + 1),
+                          nextItemLike(value.items.slice(0, position + 1)),
+                          ...value.items.slice(position + 1),
+                        ],
+                      }),
+                  }}
                 />
               </span>
             </Fragment>
           ))}
+          {/*
+            One "+", after the last item, where there is nothing to sit on top
+            of. Slots between the items had nowhere to be drawn: at their own
+            width they showed as gaps holding nothing, and drawn over the row
+            they covered the value and the comma either side. Inserting in the
+            middle is on the item's own right-click menu instead.
+          */}
           <InsertPoint
             label={d.actions.addValue}
-            onInsert={() => onChange({ ...value, items: [...value.items, literal(0, 'number')] })}
+            onInsert={() =>
+              onChange({ ...value, items: [...value.items, nextItemLike(value.items)] })
+            }
           />
           <span className="expr__bracket" aria-hidden="true">
             ]
@@ -819,8 +870,10 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         turned into a variable or dropped. One bar for the whole expression
         meant only the last operand could be touched at all.
       */}
-      {isOperand && (
+      {isOperand && menuAt && (
         <Picker
+          openAt={menuAt}
+          onClose={() => setMenuAt(null)}
           value={
             value.kind === 'variable'
               ? 'variable'
@@ -930,6 +983,17 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   },
                 ]
               : []),
+            ...(insertHere
+              ? [
+                  {
+                    label: d.fields.items,
+                    options: [
+                      { value: 'insertBefore' as const, label: d.actions.insertBefore, icon: ListPlus },
+                      { value: 'insertAfter' as const, label: d.actions.insertAfter, icon: ListPlus },
+                    ],
+                  },
+                ]
+              : []),
             ...(onRemove
               ? [
                   {
@@ -947,6 +1011,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           ]}
           onChange={(choice) => {
             if (choice.startsWith('group:')) groupRuns?.group(Number(choice.slice(6)));
+            else if (choice === 'insertBefore') insertHere?.before();
+            else if (choice === 'insertAfter') insertHere?.after();
             else if (choice === 'remove') onRemove?.();
             else if (
               choice === 'literal' ||
@@ -1064,9 +1130,9 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
       value={String(value.value)}
       placeholder={placeholder}
       onChange={(event) => onChange(literal(event.target.value, 'text'))}
-      /* Content plus the exact padding, and 1ch of slack since a proportional
-         glyph can exceed the `ch` unit's width. An empty field is sized to its
-         placeholder, which is text the student still has to read. */
+      /* Content plus the field's own padding, and 1ch of slack because a
+         proportional glyph can exceed the `ch` unit. An empty field is sized
+         to its placeholder, which is text the student still has to read. */
       style={{
         width: `calc(${Math.max(String(value.value).length, placeholder?.length ?? 0, 6) + 1}ch + 14px)`,
       }}

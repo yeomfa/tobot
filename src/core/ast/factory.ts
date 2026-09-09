@@ -210,3 +210,19 @@ export function retypeDeclaration(current: Expression, valueKind: ValueKind): Ex
       : current;
   return castExpression(castable, valueKind);
 }
+
+/**
+ * A new list item, shaped like the one before it.
+ *
+ * Adding to a list of names produced a number field, so the student had to
+ * change its type every single time — the list already says what it holds, and
+ * the item that says it loudest is the last one they wrote. An empty list has
+ * nothing to copy, so it starts with a number.
+ */
+export function nextItemLike(items: Expression[]): Expression {
+  const last = items[items.length - 1];
+  if (last?.kind === 'literal') return emptyValue(last.valueKind);
+  /* A variable or a structure has no literal kind to copy; a number is the
+     least surprising thing to hand back. */
+  return literal(0, 'number');
+}

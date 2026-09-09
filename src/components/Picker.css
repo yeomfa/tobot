@@ -84,118 +84,22 @@
 }
 
 /*
- * The per-operand options caret: a hairline affordance beside a value, which
- * appears only while the block is being worked on. This is how a single part
- * of "a + b + c" is reached — before it, the one bar on the whole expression
- * could only ever act on the last operand.
+ * The value menu, opened by right-clicking a value.
+ *
+ * It used to be three dots floating beside each value, and there was nowhere
+ * to put them: inside the field they covered the text, outside it they covered
+ * the comma or the next part. A row of values has no gap for a control, and
+ * every attempt to make one either reserved space that showed as an empty hole
+ * or moved the row as the pointer crossed it. A context menu occupies nothing.
  */
-/*
-  Out of the flow entirely, laid over the right edge of its part.
-
-  Three positions were tried before this one. Inline widened the operand the
-  moment it was hovered, pushing everything right — so moving the pointer
-  toward the button moved the button. Below the part put it outside the block,
-  where it could not be reached at all. Reserving a fixed slot in the row held
-  everything still, but the slot was visible as dead space on every part of
-  every expression, which is most of what a block is made of.
-
-  Absolute is the position that has neither problem: nothing moves when it
-  appears, because it was never in the row; and nothing is reserved, because it
-  takes no room in the row either.
-
-  Placed fully outside its part, not overlapping it. At `right: -3px` seventeen
-  of its twenty pixels lay over the value — measured — so the dots covered the
-  last letter of `nombre` and sat on top of a `3`. Shifting it by its own width
-  puts it in the gap after the part instead, where it hides nothing and still
-  costs the row no space.
-*/
-.picker[data-variant='options'] {
-  position: absolute;
-  /*
-    Inside the value's box, over the padding kept clear for it.
-
-    Hanging outside at `-21px` is what made this control impossible to settle:
-    the room had to come from somewhere, and every version of "open a gap on
-    hover" reflowed the row as the pointer crossed it — three layouts across
-    one block, an insertion slot fleeing 46px, controls landing under the "+".
-    Drawn inside, the space is reserved once and never changes, so nothing
-    moves and nothing has to chase anything.
-  */
-  right: 1px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  display: flex;
-  height: 20px;
-  /*
-    Wide enough for the glyph to sit inside its own hover background. At 16px
-    the 15px dots filled the box edge to edge, so the highlight looked like a
-    box the icon had outgrown rather than a target it sits in.
-  */
-  width: 20px;
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
+.picker[data-anchored] {
+  z-index: 60;
 }
 
-/* Inert until shown. It lies over its part's right edge, so without this a
-   click meant for the value would land on an invisible button instead. */
-.picker[data-variant='options']:not(:focus-within) {
-  pointer-events: none;
-}
-
-/*
-  Revealed by the part, not by the block.
-  
-  Hovering the block showed every one at once — thirteen carets on the example
-  algorithm — which is the noise this was meant to avoid. Hovering the operand
-  shows the one that belongs to it, so the control appears where the student is
-  already looking. Focus keeps it visible for keyboard use, where there is no
-  pointer to hover with.
-*/
-.expr__value:hover > .picker[data-variant='options'],
-.expr__value:focus-within > .picker[data-variant='options'],
-.picker[data-variant='options']:focus-within {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.picker[data-variant='options'] .picker__trigger {
-  min-width: 0;
-  /* Fills the slot it is laid in, so the hover target is the whole square
-     rather than the glyph alone. */
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  padding: 0;
-  background: transparent;
-  border-color: transparent;
-  border-radius: var(--radius-sm);
-}
-
-/* Smaller than the slot that holds it, so the hover background reads as a
-   target around the glyph rather than a box it is bursting out of. */
-.picker__dots {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-  color: var(--text-muted);
-}
-
-.picker[data-variant='options'] .picker__caret {
-  width: 10px;
-  height: 10px;
-}
-
-/* A bare caret gives nothing to aim at. Hovering tints the strip it lives in,
-   so it reads as a control attached to the value rather than a loose mark. */
-.picker[data-variant='options'] .picker__trigger:hover,
-.picker[data-variant='options'] .picker__trigger[data-open] {
-  background: color-mix(in srgb, var(--block-hue, var(--slate-400)) 14%, transparent);
-}
-
-.picker[data-variant='options'] .picker__trigger:hover .picker__caret,
-.picker[data-variant='options'] .picker__trigger[data-open] .picker__caret {
-  color: var(--text-primary);
+.picker[data-anchored] .picker__list {
+  /* Placed by the point it was opened at, not relative to a trigger. */
+  position: static;
+  min-width: 190px;
 }
 
 .picker__list {

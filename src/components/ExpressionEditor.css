@@ -40,17 +40,8 @@
   min-width: 0;
 }
 
-/*
-  A structure keeps room only where something would otherwise be hidden.
-
-  A list ends in its closing bracket and an insertion slot, and the control is
-  drawn over whatever is last — so on a list, and only there, it would swallow
-  the slot's clicks. An index and a length end in a value that has its own
-  space, so they need none.
-*/
-.expr__value:has(> .expr__list) {
-  padding-right: 20px;
-}
+/* Nothing keeps room for the options control: it is drawn past the value it
+   belongs to, in space no one has claimed. */
 
 
 /**
@@ -375,15 +366,15 @@
   justify-content: center;
   align-self: stretch;
   /*
-    No width in the layout, but a real box to click.
-    
-    Negative margins pull the button's own 16px back out of the flow, so it
-    takes none of the row while still being something a pointer — and
-    Playwright, and a keyboard — can find. A truly zero-width button cannot be
-    clicked at all.
+    Its own space, at the end of the list.
+
+    The negative margins were for slots squeezed between two items, where any
+    width showed as a gap. There is one slot now and it comes after the last
+    item, so there is nothing to overlap and no reason to pull it out of the
+    flow — it can simply sit there, 16px, covering nothing.
   */
   width: 16px;
-  margin: 0 -8px;
+  margin-left: 2px;
   flex-shrink: 0;
   color: color-mix(in srgb, var(--hue-list) 70%, var(--text-muted));
   transition: none;

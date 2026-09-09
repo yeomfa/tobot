@@ -10,6 +10,8 @@ export const es = {
     untitled: 'Algoritmo sin título',
   },
   actions: {
+    insertBefore: 'Insertar antes',
+    insertAfter: 'Insertar después',
     run: 'Ejecutar',
     stop: 'Detener',
     step: 'Paso a paso',

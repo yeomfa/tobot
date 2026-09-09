@@ -4,7 +4,7 @@ import {
   DotsThreeIcon as DotsThree,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 
 import './Picker.css';
 
@@ -47,6 +47,16 @@ interface PickerProps<T extends string> {
   icon?: Icon;
   /** Styling hook, so an operator reads differently from a variable name. */
   variant?: 'operator' | 'value' | 'reference' | 'options' | 'boolean' | 'chip' | 'filter';
+  /**
+   * Opens as a menu at a point instead of under a trigger of its own.
+   *
+   * Used where a control has nowhere to sit: a value in a row of values has no
+   * gap for a button, and every attempt to make one either reserved space that
+   * showed as a hole or moved the row as the pointer crossed it. Right-clicking
+   * the value needs no space at all, and the options are the same ones.
+   */
+  openAt?: { x: number; y: number } | null;
+  onClose?: () => void;
 }
 
 /**
@@ -69,8 +79,26 @@ export function Picker<T extends string>({
   label,
   icon: TriggerIcon,
   variant = 'value',
+  openAt = null,
+  onClose,
 }: PickerProps<T>) {
-  const [open, setOpen] = useState(false);
+  const anchored = openAt != null;
+  const [ownOpen, setOwnOpen] = useState(false);
+  /* Anchored menus are opened by whoever placed them; the rest own the state. */
+  const open = anchored || ownOpen;
+  /* Stable across renders, so the effects that close on Escape or an outside
+     press are not torn down and rebuilt on every keystroke. */
+  const setOpen = useCallback(
+    (next: boolean | ((v: boolean) => boolean)): void => {
+      const value = typeof next === 'function' ? next(anchored || ownOpen) : next;
+      if (anchored) {
+        if (!value) onClose?.();
+        return;
+      }
+      setOwnOpen(value);
+    },
+    [anchored, ownOpen, onClose],
+  );
   const [drop, setDrop] = useState<'down' | 'up'>('down');
   const root = useRef<HTMLSpanElement>(null);
   const listId = useId();
@@ -95,7 +123,7 @@ export function Picker<T extends string>({
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   // Blocks sit inside a scrolling canvas, so a list near the bottom would open
   // off-screen. Measuring before paint avoids it visibly jumping.
@@ -106,7 +134,15 @@ export function Picker<T extends string>({
   }, [open]);
 
   return (
-    <span className="picker" ref={root} data-variant={variant}>
+    <span
+      className="picker"
+      ref={root}
+      data-variant={variant}
+      data-anchored={anchored || undefined}
+      /* Placed where the click landed, like any context menu. */
+      style={anchored ? { position: 'fixed', left: openAt.x, top: openAt.y } : undefined}
+    >
+      {!anchored && (
       <button
         type="button"
         className="picker__trigger"
@@ -151,6 +187,7 @@ export function Picker<T extends string>({
           )
         )}
       </button>
+      )}
 
       {open && (
         <div className={`picker__list picker__list--${drop}`} id={listId} role="listbox" aria-label={label}>

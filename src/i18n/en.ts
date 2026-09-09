@@ -11,6 +11,8 @@ export const en: Dictionary = {
     untitled: 'Untitled algorithm',
   },
   actions: {
+    insertBefore: 'Insert before',
+    insertAfter: 'Insert after',
     run: 'Run',
     stop: 'Stop',
     step: 'Step through',
