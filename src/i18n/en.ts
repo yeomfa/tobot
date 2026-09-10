@@ -233,6 +233,8 @@ export const en: Dictionary = {
     invalidName: '"{name}" will not work as a name: start with a letter and use only letters, numbers and _.',
     reservedName: '"{name}" is a reserved word in the language. Pick another name.',
     duplicateName: 'A variable "{name}" already exists. Creating it again discards the previous value.',
+    kindMismatch:
+      'The type of "{name}" does not match what it holds. The value still works, but the type says otherwise.',
     emptySay: 'The robot will say nothing because the message is empty.',
     emptyAsk: 'The question is empty: the student will not know what to answer.',
     emptyBranches: 'This decision does nothing yet. Add statements inside it.',

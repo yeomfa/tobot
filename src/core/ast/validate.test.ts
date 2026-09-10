@@ -243,3 +243,95 @@ describe('ask re-prompting', () => {
     expect(problems.map((problem) => problem.messageKey)).toEqual([]);
   });
 });
+
+/**
+ * The declared type and the value it holds can disagree.
+ *
+ * Changing a declaration's type re-reads a plain literal, but an expression
+ * built out of several parts is deliberately left alone — rewriting it would
+ * discard what the student assembled. So a variable can end up labelled
+ * "texto" while holding a sum of numbers. It runs, and all four views agree
+ * with each other; only the label is wrong, and nothing used to say so.
+ *
+ * The half that matters most here is the silence: a warning that fires when it
+ * should not teaches the student to ignore the badge, which costs more than
+ * this gains.
+ */
+describe('a declared type that disagrees with its value', () => {
+  const declare = (valueKind: 'number' | 'text' | 'boolean' | 'list', value: Expression): Statement => ({
+    id: createId(),
+    kind: 'declare',
+    name: 'total',
+    valueKind,
+    value,
+  });
+
+  const sum = bin('+', bin('+', literal(1, 'number'), literal(2, 'number')), literal(3, 'number'));
+
+  it('warns when a sum of numbers sits under a text type', () => {
+    expect(keys([declare('text', sum)])).toContain('kindMismatch');
+  });
+
+  it('says nothing when the type matches', () => {
+    expect(keys([declare('number', sum)])).not.toContain('kindMismatch');
+  });
+
+  it('says nothing about joined text under a text type', () => {
+    const joined = bin('+', literal('hola ', 'text'), literal('mundo', 'text'));
+    expect(keys([declare('text', joined)])).not.toContain('kindMismatch');
+  });
+
+  it('warns when joined text sits under a number type', () => {
+    const joined = bin('+', literal('hola ', 'text'), literal('mundo', 'text'));
+    expect(keys([declare('number', joined)])).toContain('kindMismatch');
+  });
+
+  it('warns when a comparison sits under a number type', () => {
+    expect(keys([declare('number', bin('>', literal(2, 'number'), literal(1, 'number')))])).toContain(
+      'kindMismatch',
+    );
+  });
+
+  it('says nothing about a comparison under a boolean type', () => {
+    expect(
+      keys([declare('boolean', bin('>', literal(2, 'number'), literal(1, 'number')))]),
+    ).not.toContain('kindMismatch');
+  });
+
+  /* The uncertain cases. A variable carries no type this walk can see, so
+     anything involving one has to stay quiet rather than guess. */
+  it('says nothing when a variable is involved', () => {
+    const program: Statement[] = [
+      { id: createId(), kind: 'declare', name: 'n', valueKind: 'number', value: literal(1, 'number') },
+      declare('text', bin('+', variable('n'), literal(1, 'number'))),
+    ];
+    expect(keys(program)).not.toContain('kindMismatch');
+  });
+
+  it('says nothing about a bare variable', () => {
+    const program: Statement[] = [
+      { id: createId(), kind: 'declare', name: 'n', valueKind: 'number', value: literal(1, 'number') },
+      declare('text', variable('n')),
+    ];
+    expect(keys(program)).not.toContain('kindMismatch');
+  });
+
+  it('warns when a list sits under a text type', () => {
+    expect(keys([declare('text', { kind: 'list', items: [literal(1, 'number')] })])).toContain(
+      'kindMismatch',
+    );
+  });
+
+  it('says nothing about a list under a list type', () => {
+    expect(
+      keys([declare('list', { kind: 'list', items: [literal(1, 'number')] })]),
+    ).not.toContain('kindMismatch');
+  });
+
+  it('leaves the program runnable: it is a warning, never an error', () => {
+    const problems = validate([declare('text', sum)]);
+    const mismatch = problems.filter((problem) => problem.messageKey === 'kindMismatch');
+    expect(mismatch).toHaveLength(1);
+    expect(mismatch[0]?.severity).toBe('warning');
+  });
+});

@@ -1,5 +1,5 @@
 import { isBlockStatement } from './types';
-import type { Expression, NodeId, Statement } from './types';
+import type { Expression, NodeId, Statement, ValueKind } from './types';
 
 /**
  * Static checks that run as the student types.
@@ -32,6 +32,52 @@ const RESERVED = new Set([
 ]);
 
 const VALID_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
+ * What an expression certainly produces, or null when it is not certain.
+ *
+ * Deliberately small, and deliberately local. `emitters/inferKind` answers a
+ * richer version of this question, but nothing in `ast/` imports from
+ * `emitters/` today and tying the static checks to the code generator to reach
+ * one warning is not worth that. This needs far less: only enough to tell a
+ * declared type from what the value plainly is.
+ *
+ * Every uncertain case returns null, so nothing is reported. A variable's type
+ * is not knowable here, arithmetic on one could be anything, and a wrong
+ * warning teaches the student to ignore the badge — which costs more than the
+ * warning gains.
+ */
+function producedKind(expression: Expression): ValueKind | null {
+  switch (expression.kind) {
+    case 'literal':
+      return expression.valueKind;
+    case 'list':
+      return 'list';
+    case 'length':
+      return 'number';
+    case 'group':
+      return producedKind(expression.inner);
+    case 'unary':
+      return expression.operator === '!' ? 'boolean' : 'number';
+    case 'binary': {
+      const { operator } = expression;
+      if (['==', '!=', '<', '<=', '>', '>=', '&&', '||'].includes(operator)) return 'boolean';
+      if (operator !== '+') return 'number';
+      /* `+` is the one operator that is two things at once: joining text and
+         adding numbers. It only says something definite when both sides do. */
+      const left = producedKind(expression.left);
+      const right = producedKind(expression.right);
+      if (left === null || right === null) return null;
+      if (left === 'text' || right === 'text') return 'text';
+      if (left === 'number' && right === 'number') return 'number';
+      return null;
+    }
+    /* A variable carries no type here, and an element of a list is whatever
+       the list holds — neither is knowable from this walk. */
+    default:
+      return null;
+  }
+}
 
 function isEmptyText(expression: Expression): boolean {
   return (
@@ -149,11 +195,35 @@ export function validate(program: Statement[]): Problem[] {
   const walk = (statements: Statement[]): void => {
     for (const statement of statements) {
       switch (statement.kind) {
-        case 'declare':
+        case 'declare': {
           checkExpression(statement.value, statement.id);
           checkName(statement.name, statement.id, true);
+          /*
+            The chip and the value can disagree, and nothing used to say so.
+
+            Changing a declaration's type re-reads a plain literal, but an
+            expression the student built out of several parts is left alone —
+            correctly, since rewriting it would discard their work. The result
+            is a variable labelled "texto" holding a sum of numbers: it runs,
+            and all four views agree with each other, so only the label is
+            wrong. Said rather than corrected, which is the same bargain as an
+            empty name: the block keeps what it has and the badge explains it.
+
+            A warning, not an error. The program is runnable and the generated
+            code is right; what is off is the promise the type makes.
+          */
+          const produced = producedKind(statement.value);
+          if (produced !== null && produced !== statement.valueKind) {
+            problems.push({
+              nodeId: statement.id,
+              severity: 'warning',
+              messageKey: 'kindMismatch',
+              vars: { name: statement.name },
+            });
+          }
           declared.add(statement.name);
           break;
+        }
 
         case 'assign':
           checkName(statement.name, statement.id, false);

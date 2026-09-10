@@ -243,6 +243,8 @@ export const es = {
     invalidName: '«{name}» no sirve como nombre: empieza con una letra y usa solo letras, números y _.',
     reservedName: '«{name}» es una palabra reservada del lenguaje. Elige otro nombre.',
     duplicateName: 'Ya existe una variable «{name}». Al crearla de nuevo pierdes el valor anterior.',
+    kindMismatch:
+      'El tipo de «{name}» no coincide con lo que guarda. El valor funciona igual, pero el tipo dice otra cosa.',
     emptySay: 'El robot no dirá nada porque el mensaje está vacío.',
     emptyAsk: 'La pregunta está vacía: el estudiante no sabrá qué responder.',
     emptyBranches: 'Esta decisión no hace nada todavía. Agrega instrucciones dentro.',
