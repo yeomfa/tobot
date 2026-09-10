@@ -1,5 +1,5 @@
 import { createId } from './factory';
-import type { Expression, LiteralKind, Statement, ValueKind } from './types';
+import type { Expression, ListOperation, LiteralKind, Statement, ValueKind } from './types';
 
 /**
  * Structural validation for algorithms arriving from outside the app.
@@ -40,6 +40,8 @@ const LITERAL_KINDS: LiteralKind[] = ['number', 'text', 'boolean'];
  */
 const VALUE_KINDS: ValueKind[] = [...LITERAL_KINDS, 'list'];
 
+const LIST_OPERATIONS = new Set(['append', 'insert', 'removeAt', 'sort', 'reverse']);
+
 const BINARY_OPERATORS = new Set([
   '+', '-', '*', '/', '%',
   '==', '!=', '<', '<=', '>', '>=',
@@ -52,9 +54,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/**
+ * A name a statement can carry, including none yet.
+ *
+ * The empty string is what `PLACEHOLDER_NAME` is: a block dropped on the
+ * canvas has no name until the student types one. Requiring a well-formed name
+ * here made that block structurally invalid, so it could not be copied, could
+ * not be pasted, and did not survive a reload — the work vanished for the one
+ * reason that is never the student's fault, namely not having finished yet.
+ *
+ * This is the structural gate: it decides whether a block exists at all.
+ * Whether a name is *usable* is a different question, asked by `validate.ts`,
+ * which reports a missing name to the student as a problem to fix rather than
+ * deleting the block that has it.
+ */
 function isName(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
   // The same rule the editor enforces when a student types a name.
-  return typeof value === 'string' && /^[A-Za-z_][A-Za-z0-9_]*$/.test(value);
+  return value === '' || /^[A-Za-z_][A-Za-z0-9_]*$/.test(value);
 }
 
 function isId(value: unknown): value is string {
@@ -231,6 +248,44 @@ function sanitizeStatement(value: unknown, depth: number, budget: Budget): State
         from: value.from,
         to: value.to,
         step: value.step,
+        body: sanitizeList(value.body, next, budget),
+      };
+
+    /*
+      The two statements that arrived with lists.
+
+      Both were missing here, so both fell to the default and were dropped:
+      a `para cada elemento` disappeared on reload, and so did every
+      `cambiar lista`. The same pair was missing from `renameVariable` and
+      `countReferences` — a silent `default` in a walk over statement kinds is
+      the recurring shape of this bug, and this is the one place where it
+      costs the student their work rather than a stale name.
+    */
+    case 'listOp': {
+      if (!isName(value.name) || !LIST_OPERATIONS.has(value.operation as string)) return null;
+      /* `value` and `index` belong to some operations and not others, and an
+         absent one is correct rather than malformed — but a present one that
+         is not an expression is not something to keep. */
+      if (value.value !== undefined && !isExpression(value.value, next)) return null;
+      if (value.index !== undefined && !isExpression(value.index, next)) return null;
+      return {
+        id,
+        kind: 'listOp',
+        operation: value.operation as ListOperation,
+        name: value.name,
+        ...(value.value !== undefined ? { value: value.value as Expression } : {}),
+        ...(value.index !== undefined ? { index: value.index as Expression } : {}),
+        ...(typeof value.descending === 'boolean' ? { descending: value.descending } : {}),
+      };
+    }
+
+    case 'forEachItem':
+      if (!isName(value.variable) || !isExpression(value.list, next)) return null;
+      return {
+        id,
+        kind: 'forEachItem',
+        variable: value.variable,
+        list: value.list,
         body: sanitizeList(value.body, next, budget),
       };
 
