@@ -3,7 +3,6 @@ import {
   ClipboardTextIcon as ClipboardText,
   CopyIcon as Copy,
   ScissorsIcon as Scissors,
-  CopySimpleIcon as CopySimple,
   QuestionIcon as Question,
   TrashIcon as Trash,
 } from '@phosphor-icons/react';
@@ -20,9 +19,11 @@ import './CanvasMenu.css';
 interface CanvasMenuProps {
   /** The algorithm, so a right-click can be resolved to the statement under it. */
   body: Statement[];
-  onDuplicate: (id: NodeId) => void;
-  onRemove: (id: NodeId) => void;
+  /** Deletes everything selected, which is at least the block clicked. */
+  onRemove: () => void;
   onExplain: (conceptId: string) => void;
+  /** How many blocks the menu's actions will act on. */
+  selectedCount: number;
   /** Copy, cut and paste, so the menu offers what the keyboard does. */
   clipboard: {
     copy: () => void;
@@ -63,14 +64,14 @@ interface Opened {
  */
 export function CanvasMenu({
   body,
-  onDuplicate,
   onRemove,
   onExplain,
+  selectedCount,
   clipboard,
   onSelect,
   children,
 }: CanvasMenuProps) {
-  const { d } = useTranslation();
+  const { d, fill } = useTranslation();
   const [at, setAt] = useState<Opened | null>(null);
   const menu = useRef<HTMLDivElement>(null);
 
@@ -171,21 +172,20 @@ export function CanvasMenu({
         >
           {statement ? (
             <>
-              {/* Which block this is about. The menu opens over a stack of
-                  them, and at a glance they look alike. */}
-              <span className="canvas-menu__head">{d.statements[statement.kind].label}</span>
+              {/*
+                What the menu is about. One block is named; several are
+                counted, so it is never ambiguous whether an action here will
+                touch the one clicked or everything highlighted.
+              */}
+              <span className="canvas-menu__head">
+                {selectedCount > 1
+                  ? fill(d.actions.selectedCount, { count: selectedCount })
+                  : d.statements[statement.kind].label}
+              </span>
 
-              <button
-                type="button"
-                role="menuitem"
-                className="canvas-menu__item"
-                onClick={run(() => onDuplicate(statement.id))}
-              >
-                <CopySimple weight="bold" aria-hidden="true" />
-                {d.actions.duplicate}
-              </button>
-
-              {concept && (
+              {/* Only with one block: an explanation is about a kind of
+                  instruction, and a mixed selection has no single kind. */}
+              {selectedCount <= 1 && concept && (
                 <button
                   type="button"
                   role="menuitem"
@@ -236,7 +236,7 @@ export function CanvasMenu({
                 type="button"
                 role="menuitem"
                 className="canvas-menu__item canvas-menu__item--danger"
-                onClick={run(() => onRemove(statement.id))}
+                onClick={run(onRemove)}
               >
                 <Trash weight="bold" aria-hidden="true" />
                 {d.actions.delete}

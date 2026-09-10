@@ -42,6 +42,8 @@ export interface BlockCallbacks {
   onSelect: (id: NodeId, extend: boolean) => void;
   /** Whether a given block is part of the current selection. */
   isSelected: (id: NodeId) => boolean;
+  /** Replaces the selection with a set, for the marquee. */
+  onSelectMany: (ids: NodeId[], extend: boolean) => void;
 }
 
 interface StatementBlockProps {

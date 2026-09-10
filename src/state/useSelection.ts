@@ -24,6 +24,13 @@ export interface Selection {
   clear: () => void;
   /** Replaces the selection outright, for after a paste. */
   set: (ids: NodeId[]) => void;
+  /**
+   * Replaces the selection with a whole set, as a rectangle drag does.
+   *
+   * `extend` adds to what was already selected, so shift-dragging a second
+   * rectangle grows the selection rather than starting over.
+   */
+  selectMany: (ids: NodeId[], extend: boolean) => void;
 }
 
 export function useSelection(body: Statement[]): Selection {
@@ -84,5 +91,13 @@ export function useSelection(body: Statement[]): Selection {
 
   const has = useCallback((id: NodeId) => live.includes(id), [live]);
 
-  return { ids: live, has, select, clear, set };
+  const selectMany = useCallback(
+    (next: NodeId[], extend: boolean) => {
+      setIds((current) => (extend ? [...new Set([...current, ...next])] : next));
+      setAnchor(next[next.length - 1] ?? null);
+    },
+    [],
+  );
+
+  return { ids: live, has, select, clear, set, selectMany };
 }

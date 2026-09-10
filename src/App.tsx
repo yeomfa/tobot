@@ -541,9 +541,12 @@ function Workbench({
    * would have nowhere to put anything.
    */
   const pasteLocation = useCallback((): SlotLocation => {
-    const zone = document
-      .elementsFromPoint(pointer.current.x, pointer.current.y)
-      .find((element) => element.classList.contains('drop-zone')) as HTMLElement | undefined;
+    const stack = document.elementsFromPoint(pointer.current.x, pointer.current.y);
+
+    /* A drop zone, when the pointer happens to be on one. */
+    const zone = stack.find((element) => element.classList.contains('drop-zone')) as
+      | HTMLElement
+      | undefined;
     if (zone?.dataset.parentId !== undefined) {
       return {
         parentId: zone.dataset.parentId || null,
@@ -552,6 +555,25 @@ function Workbench({
       };
     }
 
+    /*
+      Otherwise, below the block the pointer is over.
+
+      Zones are thin strips between blocks, so aiming at one is a few pixels of
+      luck — the pointer is almost always over a block instead, and pasting
+      then fell back to the selection, which is nowhere near where the student
+      was pointing. The innermost block is the one meant: pointing inside a
+      loop should paste inside it.
+    */
+    const hovered = stack.find((element) => element.classList.contains('statement-block')) as
+      | HTMLElement
+      | undefined;
+    const hoveredAt = hovered?.dataset.nodeId
+      ? findLocation(algorithm.body, hovered.dataset.nodeId)
+      : null;
+    if (hoveredAt) return { ...hoveredAt, index: hoveredAt.index + 1 };
+
+    /* And with the pointer off the canvas — a paste from the keyboard — below
+       whatever is selected, or at the end. */
     const last = selection.ids[selection.ids.length - 1];
     const below = last ? findLocation(algorithm.body, last) : null;
     if (below) return { ...below, index: below.index + 1 };
@@ -658,6 +680,7 @@ function Workbench({
       rename: controller.renameVariable,
       onSelect: selection.select,
       isSelected: selection.has,
+      onSelectMany: selection.selectMany,
       duplicate: controller.duplicate,
       onExplain: showConcept,
     }),
@@ -674,6 +697,7 @@ function Workbench({
          whether they were selected, and it always said no. */
       selection.select,
       selection.has,
+      selection.selectMany,
     ],
   );
 
@@ -1007,10 +1031,21 @@ function Workbench({
                   only there while the pointer is over the row. */}
               <CanvasMenu
                 body={algorithm.body}
-                onDuplicate={controller.duplicate}
-                onRemove={controller.remove}
+                /* Deleting acts on the selection, which right-clicking has
+                   just made sure includes the block under the pointer. */
+                onRemove={() => {
+                  controller.removeMany(selection.ids);
+                  selection.clear();
+                }}
                 onExplain={showConcept}
-                onSelect={(id) => selection.select(id, false)}
+                selectedCount={selection.ids.length}
+                onSelect={(id) => {
+                  /* Right-clicking inside an existing selection keeps it —
+                     otherwise selecting three blocks and right-clicking one of
+                     them would silently drop the other two before the menu's
+                     actions ran on them. */
+                  if (!selection.has(id)) selection.select(id, false);
+                }}
                 clipboard={{
                   copy: () => void copySelection(),
                   cut: () => void cutSelection(),

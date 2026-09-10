@@ -4,6 +4,7 @@ import { collectVariables } from '../core/ast/operations';
 import { problemsByNode, validate } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
+import { useMarquee } from '../state/useMarquee';
 import { useMagneticDrop } from '../state/useMagneticDrop';
 import { DropZone, StatementBlock } from './StatementBlock';
 import type { BlockCallbacks } from './StatementBlock';
@@ -38,11 +39,30 @@ export const Editor = memo(function Editor({
 
   const canvas = useRef<HTMLDivElement>(null);
   useMagneticDrop(canvas);
+  /* Dragging on bare canvas selects; dragging on a block moves it. */
+  const marquee = useMarquee(canvas, callbacks.onSelectMany);
 
   return (
     <section className="editor" aria-label={d.a11y.algorithmEditor}>
       {/* The whole canvas accepts the drag; the nearest zone claims it. */}
-      <div className="editor__canvas" ref={canvas}>
+      <div
+        className="editor__canvas"
+        ref={canvas}
+        /* Clicking bare canvas clears the selection, the way it does anywhere
+           a selection can be made. A click on a block stops before here. */
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest('.statement-block')) return;
+          /* The click that ends a rectangle drag is not a click on the canvas;
+             clearing here would drop what the rectangle just selected. */
+          if (marquee.justDragged()) return;
+          callbacks.onSelectMany([], false);
+        }}
+      >
+        {/* The rectangle being dragged. Fixed, because it is measured in the
+            same client coordinates the pointer reports. */}
+        {marquee.box && (
+          <div className="editor__marquee" style={{ position: 'fixed', ...marquee.box }} />
+        )}
         {count === 0 && (
           <div className="editor__empty">
             <p className="editor__empty-title">{d.editor.empty}</p>

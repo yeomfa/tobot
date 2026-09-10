@@ -96,3 +96,18 @@
   display: flex;
   flex-direction: column;
 }
+
+/*
+ * The selection rectangle, dragged over bare canvas.
+ *
+ * Tinted rather than outlined alone: the blocks it crosses light up as it
+ * goes, and a fill is what makes the rectangle read as gathering them rather
+ * than as a stray line being drawn.
+ */
+.editor__marquee {
+  z-index: 30;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+}
