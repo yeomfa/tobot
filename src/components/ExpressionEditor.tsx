@@ -19,7 +19,7 @@ import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types'
 import { useTranslation } from '../i18n/context';
 import { precedenceOf } from '../core/emitters/precedence';
 import { ASSOCIATIVE, flattenChain, groupParts, removeAt, ungroup } from './chain';
-import { onGroupingArmed } from './grouping';
+import { endGrouping, onGroupingArmed, onGroupingEnded } from './grouping';
 import { typeIcon } from './statementMeta';
 import { Picker } from './Picker';
 import { VariablePicker } from './VariablePicker';
@@ -342,6 +342,17 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     return onGroupingArmed(arm);
   }, [isChain, chain.length]);
 
+  /* The other half: whoever finishes the gesture ends it for everyone. */
+  useEffect(
+    () =>
+      onGroupingEnded(() => {
+        setGrouping(false);
+        setSpan(null);
+        setDragging(false);
+      }),
+    [],
+  );
+
   useEffect(() => {
     if (!grouping) return;
     const commit = (): void => {
@@ -386,6 +397,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       // One grouping per arming: the mode is a deliberate state, not a
       // sticky one that keeps catching later drags.
       setGrouping(false);
+      /*
+        And it ends for every other expression too.
+
+        Arming is broadcast to the whole canvas, so a chain the student never
+        touched is armed just the same — and the two `return`s above mean it
+        never reaches this line on its own. It stayed lit and shivering after
+        the release, which is what made the mode look stuck.
+      */
+      endGrouping();
     };
     /*
       Escape backs out without grouping anything.
@@ -516,6 +536,37 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   /** Pointless to offer a variable when none is in scope yet. */
   const canReference = variables.length > 0;
 
+  /**
+   * Re-reads a binary node's operands when its operator becomes a logical one.
+   *
+   * `y` and `o` join two conditions, so their operands are booleans whatever
+   * the slot around them holds. Changing the connector alone left whatever was
+   * already there: switching `0 == 0` to `y` kept the number 0 as the second
+   * operand — a part of the wrong type, drawn much narrower than its
+   * neighbours, which is what broke the band of highlights when grouping it.
+   *
+   * `castExpression` is what makes this safe to do automatically: it converts
+   * only literals, so a variable or a nested comparison — the usual operands of
+   * a logical chain — passes through untouched, and a literal keeps its meaning
+   * where it has one (`0` becomes `falso`, an empty field becomes `verdadero`,
+   * which is what a fresh boolean part holds anyway).
+   *
+   * One direction only. Leaving `y` for `>=` has no reading that preserves
+   * anything, so the operands stay as they are and validation reports the
+   * mismatch rather than this quietly rewriting them.
+   */
+  const withOperator = (node: Expression & { kind: 'binary' }, next: BinaryOperator): Expression => {
+    const becomingLogical = next === '&&' || next === '||';
+    const wasLogical = node.operator === '&&' || node.operator === '||';
+    if (!becomingLogical || wasLogical) return { ...node, operator: next };
+    return {
+      ...node,
+      operator: next,
+      left: castExpression(node.left, 'boolean'),
+      right: castExpression(node.right, 'boolean'),
+    };
+  };
+
   /** Appends another operand, continuing the current chain where there is one. */
   const extend = (): void => {
     const operator: BinaryOperator =
@@ -531,17 +582,26 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       added. The slot's own expectation wins when it has one.
     */
     const seed: LiteralKind =
-      expect !== 'any'
-        ? expect
-        : value.kind === 'literal'
-          ? value.valueKind
-          : // Nothing to copy a type from — a variable carries none, and a
-            // sum of them says only what the operator says. Joining with `+`
-            // in a slot that takes anything is far more often building a
-            // message than adding, so text is the better guess than number.
-            mode === 'condition'
-            ? 'number'
-            : 'text';
+      /*
+        A logical operator takes conditions on both sides, whatever the slot
+        around it expects. Joining with `y` seeded the new part from the slot
+        instead, so a third part of `a y b` arrived as the number 0 — a part of
+        the wrong type, visibly narrower than its neighbours, which is what
+        broke the run of highlights when grouping it.
+      */
+      operator === '&&' || operator === '||'
+        ? 'boolean'
+        : expect !== 'any'
+          ? expect
+          : value.kind === 'literal'
+            ? value.valueKind
+            : // Nothing to copy a type from — a variable carries none, and a
+              // sum of them says only what the operator says. Joining with `+`
+              // in a slot that takes anything is far more often building a
+              // message than adding, so text is the better guess than number.
+              mode === 'condition'
+              ? 'number'
+              : 'text';
     onChange({
       kind: 'binary',
       operator,
@@ -858,7 +918,13 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   <Picker
                     value={value.operator}
                     groups={operatorGroups}
-                    onChange={(operator) => onChange(part.setOperator?.(operator) ?? value)}
+                    onChange={(operator) => {
+                      const next = part.setOperator?.(operator) ?? value;
+                      /* `setOperator` rebuilds the tree around the connector it
+                         changed, so the re-typing is applied to the node that
+                         comes back rather than to the one that went in. */
+                      onChange(next.kind === 'binary' ? withOperator(next, operator) : next);
+                    }}
                     label={d.fields.operator}
                     variant="operator"
                   />
@@ -928,7 +994,9 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           <Picker
             value={value.operator}
             groups={operatorGroups}
-            onChange={(operator) => onChange({ ...value, operator })}
+            onChange={(operator) =>
+              onChange(value.kind === 'binary' ? withOperator(value, operator) : value)
+            }
             label={d.fields.operator}
             variant="operator"
           />

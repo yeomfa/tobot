@@ -17,6 +17,7 @@
  * other's module.
  */
 const GROUPING_ARMED = 'tobot:group';
+const GROUPING_ENDED = 'tobot:group-end';
 
 /** Arms grouping on every expression long enough to use it. */
 export function armGrouping(): void {
@@ -27,4 +28,26 @@ export function armGrouping(): void {
 export function onGroupingArmed(arm: () => void): () => void {
   document.addEventListener(GROUPING_ARMED, arm);
   return () => document.removeEventListener(GROUPING_ARMED, arm);
+}
+
+/**
+ * Ends the mode everywhere, once one expression has grouped.
+ *
+ * Arming is broadcast, so a single tool press lights up every chain on the
+ * canvas — but only the expression the student actually dragged across knows
+ * that the gesture is over. Without a matching broadcast the others stay
+ * armed: still tinted, still shivering, and now inert, because the body flag
+ * they depended on was removed by the one that finished.
+ *
+ * Symmetric to `armGrouping` for that reason: what one press turns on, one
+ * release turns off.
+ */
+export function endGrouping(): void {
+  document.dispatchEvent(new CustomEvent(GROUPING_ENDED));
+}
+
+/** Runs `end` when grouping finishes anywhere. Returns the unsubscribe. */
+export function onGroupingEnded(end: () => void): () => void {
+  document.addEventListener(GROUPING_ENDED, end);
+  return () => document.removeEventListener(GROUPING_ENDED, end);
 }
