@@ -153,11 +153,22 @@
 }
 
 /* A dense group is a grid of glyphs: thirteen operators fit in two short rows
-   instead of a column taller than the block itself. */
+   instead of a column taller than the block itself.
+
+   The cells are a floor rather than a fixed width. Most glyphs are one
+   character, but `mod` is three and the logical pair is spelled out in the
+   student's own language — "Y" in Spanish, "AND" in English — so a hard 26px
+   clipped the very operators that had to be readable. `auto-fit` keeps the six
+   short columns when everything is narrow and lets a row settle into fewer,
+   wider columns when it is not. */
 .picker__group[data-dense] .picker__options {
   display: grid;
-  grid-template-columns: repeat(6, 26px);
+  grid-template-columns: repeat(auto-fit, minmax(26px, auto));
   gap: 2px;
+}
+
+.picker__group[data-dense] .picker__option-label {
+  padding-inline: 4px;
 }
 
 .picker__group[data-dense] .picker__option {

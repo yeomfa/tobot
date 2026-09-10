@@ -111,8 +111,16 @@ const KINDS: LiteralKind[] = ['number', 'text', 'boolean'];
 const NO_LITERAL_KIND = new Set<Expression['kind']>(['group', 'list', 'index', 'length']);
 
 
-/** Symbols students recognise from maths, rather than programming spellings. */
-const OPERATOR_GLYPH: Record<BinaryOperator, string> = {
+/**
+ * Symbols students recognise from maths, rather than programming spellings.
+ *
+ * The two logical operators are deliberately absent: their symbols are `∧` and
+ * `∨`, which belong to formal logic — a first-semester student has not met them
+ * and reads them as blunt arrows. They are spelled out in the student's own
+ * language instead, by `operatorGlyph` below, which is why this table cannot be
+ * the only source.
+ */
+const OPERATOR_GLYPH: Record<Exclude<BinaryOperator, '&&' | '||'>, string> = {
   '+': '+',
   '-': '−',
   '*': '×',
@@ -124,8 +132,6 @@ const OPERATOR_GLYPH: Record<BinaryOperator, string> = {
   '<=': '≤',
   '>': '>',
   '>=': '≥',
-  '&&': '∧',
-  '||': '∨',
 };
 
 /**
@@ -152,6 +158,14 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 }: ExpressionEditorProps) {
   const { d, fill } = useTranslation();
 
+  /** A word for the logical pair, a maths symbol for everything else. */
+  const operatorGlyph = (operator: BinaryOperator): string =>
+    operator === '&&'
+      ? d.operators.glyphAnd
+      : operator === '||'
+        ? d.operators.glyphOr
+        : OPERATOR_GLYPH[operator];
+
   /**
    * Grouped rather than flat, and narrowed to what the slot is for.
    *
@@ -169,19 +183,23 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         ]
       : expect === 'text'
         ? // Joining text is the one arithmetic operator that applies.
-          [[d.operators.groupArithmetic, ['+'] as BinaryOperator[]] as const]
+          [
+            [d.operators.groupArithmetic, ['+'] as BinaryOperator[]] as const,
+            [d.operators.groupLogical, LOGICAL] as const,
+          ]
         : expect === 'boolean'
           ? [[d.operators.groupLogical, LOGICAL] as const]
           : [
               [d.operators.groupArithmetic, ARITHMETIC] as const,
               [d.operators.groupComparison, COMPARISON] as const,
+              [d.operators.groupLogical, LOGICAL] as const,
             ]
   ).map(([label, list]) => ({
     label,
     dense: true,
     options: list.map((operator) => ({
       value: operator,
-      label: OPERATOR_GLYPH[operator],
+      label: operatorGlyph(operator),
       hint: d.operators[operator],
     })),
   }));

@@ -381,6 +381,11 @@ export const es = {
     '>=': 'es mayor o igual que',
     '&&': 'y además',
     '||': 'o bien',
+    /* Los lógicos se muestran con su palabra, no con `∧` y `∨`: esos son los
+       símbolos de la lógica formal, que un estudiante de primer semestre no ha
+       visto todavía y lee como flechas sin punta. */
+    glyphAnd: 'Y',
+    glyphOr: 'O',
   },
   fields: {
     aList: 'una lista',

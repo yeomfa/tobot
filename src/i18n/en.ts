@@ -366,6 +366,8 @@ export const en: Dictionary = {
     '>=': 'is at least',
     '&&': 'and also',
     '||': 'or else',
+    glyphAnd: 'AND',
+    glyphOr: 'OR',
   },
   fields: {
     aList: 'a list',
