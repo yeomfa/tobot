@@ -431,6 +431,32 @@ export function renameVariable(
             step: inExpression(statement.step),
             body: walk(statement.body),
           };
+        /*
+          The two statements that came with lists, and both were missing.
+
+          `forEachItem` names its element the way a counted loop names its
+          counter, so a rename has to reach it — without this case the name
+          fell to the `default` below and every keystroke in that field was
+          silently discarded.
+
+          `listOp` names a list it does not own, so its name is a *use*:
+          renaming the declaration has to carry it, or the operation is left
+          pointing at a variable that no longer exists.
+        */
+        case 'forEachItem':
+          return {
+            ...statement,
+            variable: statement.variable === from ? to : statement.variable,
+            list: inExpression(statement.list),
+            body: walk(statement.body),
+          };
+        case 'listOp':
+          return {
+            ...statement,
+            name: statement.name === from ? to : statement.name,
+            value: statement.value ? inExpression(statement.value) : statement.value,
+            index: statement.index ? inExpression(statement.index) : statement.index,
+          };
         default:
           return statement;
       }
@@ -480,6 +506,17 @@ export function countReferences(statements: Statement[], name: string): number {
         inExpression(statement.to);
         inExpression(statement.step);
         walk(statement.body);
+      } else if (statement.kind === 'forEachItem') {
+        /* Missing here as it was in `renameVariable`: a name used only inside a
+           `para cada` counted as unused, so the rename notice under-reported
+           what it was about to change. */
+        inExpression(statement.list);
+        walk(statement.body);
+      } else if (statement.kind === 'listOp') {
+        /* The list it acts on is a use of that name, and so are its operands. */
+        if (statement.name === name) total += 1;
+        if (statement.value) inExpression(statement.value);
+        if (statement.index) inExpression(statement.index);
       }
     }
   };

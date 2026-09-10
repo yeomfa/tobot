@@ -852,7 +852,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                 onChange={(next) => onChange(part.replace(next))}
                 variables={variables}
                 expect={operandExpect}
-                mode={mode === 'condition' ? 'value' : mode}
+                mode={mode}
                 nested
                 /* `a + b * c` flattens to a row of `+` parts, one of which is
                    the multiplication — the row is exactly where the tighter
@@ -902,7 +902,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             onChange={(left) => onChange({ ...value, left })}
             variables={variables}
             expect={operandExpect}
-            mode={mode === 'condition' ? 'value' : mode}
+            mode={mode}
             nested
             parentPrecedence={precedenceOf(value)}
             onRemove={() => onChange(value.right)}
@@ -919,7 +919,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             onChange={(right) => onChange({ ...value, right })}
             variables={variables}
             expect={operandExpect}
-            mode={mode === 'condition' ? 'value' : mode}
+            mode={mode}
             nested
             parentPrecedence={precedenceOf(value)}
             onRemove={() => onChange(value.left)}

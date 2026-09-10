@@ -93,12 +93,20 @@ export const StatementBlock = memo(function StatementBlock({
       ? 'warning'
       : null;
 
+  /*
+    Every kind that shows a name has to be listed here and in `setName`.
+
+    Both chains stopped at `forEach`, so the two statements added with lists
+    fell through to the empty string: `para cada` showed a blank name field
+    that swallowed every keystroke, and `cambiar lista` could not be pointed
+    at a list at all.
+  */
   const currentName =
-    statement.kind === 'declare' || statement.kind === 'assign'
+    statement.kind === 'declare' || statement.kind === 'assign' || statement.kind === 'listOp'
       ? statement.name
       : statement.kind === 'ask'
         ? statement.target
-        : statement.kind === 'forEach'
+        : statement.kind === 'forEach' || statement.kind === 'forEachItem'
           ? statement.variable
           : '';
 
@@ -110,19 +118,26 @@ export const StatementBlock = memo(function StatementBlock({
       silently. Typing into the field is a rename in progress, so this runs on
       every keystroke and undo restores the whole thing as one edit.
     */
+    /* `forEachItem` declares its element name the way a counted loop declares
+       its counter, so renaming carries the uses inside the body with it.
+       `listOp` is not here: its name *refers* to a list that already exists,
+       and renaming there would rename the student's variable by accident. */
     const declaresName =
-      statement.kind === 'declare' || statement.kind === 'ask' || statement.kind === 'forEach';
+      statement.kind === 'declare' ||
+      statement.kind === 'ask' ||
+      statement.kind === 'forEach' ||
+      statement.kind === 'forEachItem';
     if (declaresName && currentName !== '' && name !== currentName) {
       callbacks.rename(currentName, name);
       return;
     }
 
     callbacks.update(statement.id, (current) =>
-      current.kind === 'declare' || current.kind === 'assign'
+      current.kind === 'declare' || current.kind === 'assign' || current.kind === 'listOp'
         ? { ...current, name }
         : current.kind === 'ask'
           ? { ...current, target: name }
-          : current.kind === 'forEach'
+          : current.kind === 'forEach' || current.kind === 'forEachItem'
             ? { ...current, variable: name }
             : current,
     );
