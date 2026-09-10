@@ -1080,3 +1080,54 @@ body[data-dragging] .drop-zone[data-over],
 .statement-block__type .picker__current {
   display: none;
 }
+
+/*
+ * While a selection rectangle is being dragged, a block offers nothing.
+ *
+ * Selecting is not editing, and the two were happening at once: sweeping the
+ * rectangle across a block brought up its "+ otra parte" strip and its drag
+ * handle, so the canvas invited an edit in the middle of a gesture that has
+ * nothing to do with editing. Measured mid-drag, twelve drop zones, thirteen
+ * fields, eight pickers and eight handles were all still live.
+ *
+ * `pointer-events` alone is not enough — an element with none still matches
+ * `:hover`, so the controls kept appearing under the pointer, visibly offered
+ * and silently dead. Each hover state is suppressed by name, the same way the
+ * grouping mode does it.
+ */
+body[data-marquee] .editor__canvas {
+  /* The rectangle is tracked on `window`, so the canvas needs none of this. */
+  pointer-events: none;
+  /* A text cursor over a field mid-drag reads as "type here", which is the
+     opposite of what the gesture is doing. */
+  cursor: crosshair;
+}
+
+body[data-marquee] .statement-block:hover .expr__tools,
+body[data-marquee] .statement-block:focus-within .expr__tools {
+  display: none;
+}
+
+body[data-marquee] .statement-block:hover > .statement-block__row .statement-block__action,
+body[data-marquee] .statement-block:focus-within > .statement-block__row .statement-block__action {
+  opacity: 0;
+}
+
+/* The grip and the icon swap on hover; during a drag the block keeps the face
+   it has at rest. */
+body[data-marquee] .statement-block:hover > .statement-block__row > .statement-block__handle .statement-block__grip {
+  opacity: 0;
+}
+
+body[data-marquee] .statement-block:hover > .statement-block__row > .statement-block__handle .statement-block__icon {
+  opacity: 1;
+}
+
+body[data-marquee] .statement-block:hover .statement-block__arm-remove {
+  opacity: 0;
+}
+
+/* Drop zones belong to dragging a block, which is not what is happening. */
+body[data-marquee] .drop-zone {
+  opacity: 0;
+}

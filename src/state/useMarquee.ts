@@ -66,6 +66,13 @@ export function useMarquee(
       /* A few pixels of slack, so a plain click on the canvas — which is how a
          student clears the selection — is not read as a one-pixel rectangle. */
       if (!dragging.current && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      if (!dragging.current) {
+        /* Announced on the body, the way grouping and block-dragging already
+           are, so the CSS can quiet the controls that a block offers on hover.
+           Set here rather than on the press, so a plain click never flickers
+           them off and back. */
+        document.body.setAttribute('data-marquee', 'true');
+      }
       dragging.current = true;
 
       const rect = {
@@ -115,6 +122,7 @@ export function useMarquee(
 
     const onPointerUp = (): void => {
       origin.current = null;
+      document.body.removeAttribute('data-marquee');
       /* `dragging` is cleared by the click this release produces, not here —
          see `justDragged`. */
       setBox(null);
@@ -127,6 +135,9 @@ export function useMarquee(
       element.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      /* A drag interrupted by an unmount would otherwise leave the canvas
+         stuck in its quiet state. */
+      document.body.removeAttribute('data-marquee');
     };
   }, [canvas, onSelect]);
 
