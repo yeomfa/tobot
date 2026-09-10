@@ -1,5 +1,5 @@
 import { createId } from './factory';
-import type { Expression, LiteralKind, Statement } from './types';
+import type { Expression, LiteralKind, Statement, ValueKind } from './types';
 
 /**
  * Structural validation for algorithms arriving from outside the app.
@@ -29,6 +29,16 @@ const MAX_LIST_ITEMS = 500;
 const MAX_STATEMENTS = 5000;
 
 const LITERAL_KINDS: LiteralKind[] = ['number', 'text', 'boolean'];
+
+/**
+ * What a variable can be declared as, which includes a list.
+ *
+ * Separate from `LITERAL_KINDS` because the two answer different questions: a
+ * literal is something the student types, and `preguntar` can only ever store
+ * one of those — an answer typed at the keyboard is never a list. A
+ * declaration is the one place a list is a kind you can choose.
+ */
+const VALUE_KINDS: ValueKind[] = [...LITERAL_KINDS, 'list'];
 
 const BINARY_OPERATORS = new Set([
   '+', '-', '*', '/', '%',
@@ -131,8 +141,12 @@ function sanitizeStatement(value: unknown, depth: number, budget: Budget): State
         kind: 'declare',
         name: value.name,
         value: value.value,
-        valueKind: LITERAL_KINDS.includes(value.valueKind as LiteralKind)
-          ? (value.valueKind as LiteralKind)
+        /* `VALUE_KINDS`, not `LITERAL_KINDS`: a declaration saved as a list
+           came back as text on reload, because 'list' failed this check and
+           fell to the default. The chip then disagreed with a value that was
+           still list-shaped. */
+        valueKind: VALUE_KINDS.includes(value.valueKind as ValueKind)
+          ? (value.valueKind as ValueKind)
           : 'text',
       };
 
