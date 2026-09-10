@@ -12,7 +12,7 @@ import {
   TrashIcon as Trash,
   XCircleIcon as XCircle,
 } from '@phosphor-icons/react';
-import { Fragment, memo, useEffect, useState } from 'react';
+import { Fragment, memo, useEffect, useRef, useState } from 'react';
 
 import { castExpression, emptyValue, literal, nextItemLike } from '../core/ast/factory';
 import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
@@ -74,6 +74,14 @@ interface ExpressionEditorProps {
    */
   insertHere?: { before: () => void; after: () => void };
   /**
+   * Enter in this value's field, where that means something.
+   *
+   * Only a list passes it: pressing Enter in a `decir` has nothing to finish,
+   * and inventing an action there would surprise a student who hit the key out
+   * of habit.
+   */
+  onSubmit?: () => void;
+  /**
    * Drops this operand from the expression containing it. Absent when there is
    * nothing to drop back to, which is what hides the option on a lone value.
    */
@@ -101,6 +109,7 @@ const KINDS: LiteralKind[] = ['number', 'text', 'boolean'];
  * reversible once made.
  */
 const NO_LITERAL_KIND = new Set<Expression['kind']>(['group', 'list', 'index', 'length']);
+
 
 /** Symbols students recognise from maths, rather than programming spellings. */
 const OPERATOR_GLYPH: Record<BinaryOperator, string> = {
@@ -138,6 +147,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   parentPrecedence,
   groupRuns,
   insertHere,
+  onSubmit,
   onRemove,
 }: ExpressionEditorProps) {
   const { d, fill } = useTranslation();
@@ -201,6 +211,54 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   */
   /* Where the value's own menu was opened, when it was. Null while closed. */
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
+
+  /*
+    The list position whose field should take the cursor once it exists.
+
+    Adding an item and focusing it are two different moments: the state change
+    schedules a render, and the field is not in the document until that render
+    lands. So the position is parked here and an effect below collects it.
+  */
+  const focusItem = useRef<number | null>(null);
+  const root = useRef<HTMLSpanElement>(null);
+
+  /**
+   * Adds an item at a position and leaves the cursor in it.
+   *
+   * The three ways to add one — Enter in a field, the trailing "+", and the
+   * item menu's insert — all end here, so a new item always behaves the same
+   * way however it was asked for.
+   */
+  const insertItem = (at: number): void => {
+    if (value.kind !== 'list') return;
+    focusItem.current = at;
+    onChange({
+      ...value,
+      items: [
+        ...value.items.slice(0, at),
+        nextItemLike(value.items.slice(0, at)),
+        ...value.items.slice(at),
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const position = focusItem.current;
+    if (position === null) return;
+    focusItem.current = null;
+    /*
+      Found by descent, not as a direct child: the list sits inside this
+      expression's `.expr__value`, so `:scope > .expr__list` matched nothing
+      and the cursor never moved. Scoped to this expression's own list so a
+      nested one does not steal the focus meant for its parent.
+    */
+    const list = root.current?.querySelector<HTMLElement>('.expr__list');
+    const field = list?.querySelector<HTMLElement>(
+      `:scope > [data-item-index="${position}"] input`,
+    );
+    field?.focus();
+    if (field instanceof HTMLInputElement) field.select();
+  });
   const [grouping, setGrouping] = useState(false);
   const [span, setSpan] = useState<[number, number] | null>(null);
   /*
@@ -475,7 +533,12 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   };
 
   return (
-    <span className="expr" data-kind={value.kind} data-first={boundTighter || undefined}>
+    <span
+      className="expr"
+      ref={root}
+      data-kind={value.kind}
+      data-first={boundTighter || undefined}
+    >
       {/*
         The value and its own options control, in a box of their own.
 
@@ -508,7 +571,12 @@ export const ExpressionEditor = memo(function ExpressionEditor({
         }
       >
       {value.kind === 'literal' && (
-        <LiteralInput value={value} onChange={onChange} placeholder={placeholder} />
+        <LiteralInput
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          onSubmit={onSubmit}
+        />
       )}
 
       {value.kind === 'variable' && (
@@ -533,8 +601,21 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             it, so a list at rest is still just its values.
           */}
           {value.items.map((item, position) => (
+            /*
+              Keyed by position, and it has to be.
+
+              Keying by object identity looked more correct and was much worse:
+              editing a field produces a *new* literal every keystroke, so the
+              key changed on every character, React tore the input down and
+              rebuilt it, and the focus went with it — typing two characters in
+              a row was impossible.
+
+              A positional key does renumber on an insert, but nothing depends
+              on that: the cursor is placed by `data-item-index`, which is
+              positional too and reads the list after it has settled.
+            */
             <Fragment key={position}>
-              <span className="expr__list-item">
+              <span className="expr__list-item" data-item-index={position}>
                 {position > 0 && (
                   <span className="expr__comma" aria-hidden="true">
                     ,
@@ -567,25 +648,12 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                      cannot reach. On the item's own menu rather than a control
                      between the items, where there is no room for one. */
                   insertHere={{
-                    before: () =>
-                      onChange({
-                        ...value,
-                        items: [
-                          ...value.items.slice(0, position),
-                          nextItemLike(value.items.slice(0, position)),
-                          ...value.items.slice(position),
-                        ],
-                      }),
-                    after: () =>
-                      onChange({
-                        ...value,
-                        items: [
-                          ...value.items.slice(0, position + 1),
-                          nextItemLike(value.items.slice(0, position + 1)),
-                          ...value.items.slice(position + 1),
-                        ],
-                      }),
+                    before: () => insertItem(position),
+                    after: () => insertItem(position + 1),
                   }}
+                  /* Enter finishes this item and starts the next, the way
+                     filling in any list of values works. */
+                  onSubmit={() => insertItem(position + 1)}
                 />
               </span>
             </Fragment>
@@ -597,12 +665,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             they covered the value and the comma either side. Inserting in the
             middle is on the item's own right-click menu instead.
           */}
-          <InsertPoint
-            label={d.actions.addValue}
-            onInsert={() =>
-              onChange({ ...value, items: [...value.items, nextItemLike(value.items)] })
-            }
-          />
+          <InsertPoint label={d.actions.addValue} onInsert={() => insertItem(value.items.length)} />
           <span className="expr__bracket" aria-hidden="true">
             ]
           </span>
@@ -1051,6 +1114,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
 });
 
 interface LiteralInputProps {
+  /** Enter in the field, where the caller has something for it to do. */
+  onSubmit?: () => void;
   value: Extract<Expression, { kind: 'literal' }>;
   onChange: (next: Expression) => void;
   placeholder?: string;
@@ -1079,8 +1144,18 @@ function InsertPoint({ label, onInsert }: { label: string; onInsert: () => void 
   );
 }
 
-function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
+function LiteralInput({ value, onChange, placeholder, onSubmit }: LiteralInputProps) {
   const { d } = useTranslation();
+
+  /* Enter means "done with this one, give me the next". Only where the caller
+     said so; elsewhere the key keeps whatever the browser does with it. */
+  const onKeyDown = onSubmit
+    ? (event: React.KeyboardEvent<HTMLInputElement>): void => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        onSubmit();
+      }
+    : undefined;
 
   if (value.valueKind === 'boolean') {
     // A native select here drew the operating system's own arrow, which sat
@@ -1110,6 +1185,7 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
         type="number"
         value={String(value.value)}
         placeholder={placeholder}
+        onKeyDown={onKeyDown}
         onChange={(event) => {
           // Keep the raw text while the field is mid-edit (e.g. "-" or "1.").
           const parsed = Number(event.target.value);
@@ -1129,6 +1205,7 @@ function LiteralInput({ value, onChange, placeholder }: LiteralInputProps) {
       type="text"
       value={String(value.value)}
       placeholder={placeholder}
+      onKeyDown={onKeyDown}
       onChange={(event) => onChange(literal(event.target.value, 'text'))}
       /* Content plus the field's own padding, and 1ch of slack because a
          proportional glyph can exceed the `ch` unit. An empty field is sized
