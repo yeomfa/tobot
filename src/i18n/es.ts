@@ -245,6 +245,8 @@ export const es = {
     duplicateName: 'Ya existe una variable «{name}». Al crearla de nuevo pierdes el valor anterior.',
     kindMismatch:
       'El tipo de «{name}» no coincide con lo que guarda. El valor funciona igual, pero el tipo dice otra cosa.',
+    retypeLostContent:
+      'Al cambiar el tipo, algunos valores no se pudieron convertir y se reemplazaron. Deshaz (Ctrl+Z) si quieres recuperarlos.',
     emptySay: 'El robot no dirá nada porque el mensaje está vacío.',
     emptyAsk: 'La pregunta está vacía: el estudiante no sabrá qué responder.',
     emptyBranches: 'Esta decisión no hace nada todavía. Agrega instrucciones dentro.',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createStatement, literal, retypeDeclaration } from './factory';
+import { createStatement, literal, retypeDeclaration, retypeDeclarationDeep } from './factory';
 import type { Expression, Statement, ValueKind } from './types';
 
 /**
@@ -68,6 +68,106 @@ describe('switching a declaration between types', () => {
           `declaring ${to} after ${from} produced ${value.kind}`,
         ).toBe(statement.kind === 'declare' && statement.valueKind === 'list');
       }
+    }
+  });
+});
+
+/**
+ * Re-typing has to reach every field, not just the root one.
+ *
+ * The shallow version re-read only the outermost node. That is the field
+ * itself while the value is one literal, and nothing at all once the student
+ * has built `1 + 2 + 3`: a `binary` is not a literal, so the cast passed it
+ * through and the three numeric fields stayed numeric under a chip reading
+ * "texto". There was no way out either — a part inside a declaration cannot
+ * offer its own type, and the last part of a chain cannot be removed.
+ */
+describe('re-typing reaches every part of the value', () => {
+  const sum: Expression = {
+    kind: 'binary',
+    operator: '+',
+    left: { kind: 'binary', operator: '+', left: literal(1, 'number'), right: literal(2, 'number') },
+    right: literal(3, 'number'),
+  };
+
+  /** Every literal in the tree, in order, for checking what survived. */
+  const literals = (expression: Expression): Expression[] => {
+    if (expression.kind === 'literal') return [expression];
+    if (expression.kind === 'binary') return [...literals(expression.left), ...literals(expression.right)];
+    if (expression.kind === 'group') return literals(expression.inner);
+    if (expression.kind === 'unary') return literals(expression.operand);
+    return [];
+  };
+
+  it('converts every operand of a chain, not only the first', () => {
+    const { value } = retypeDeclarationDeep(sum, 'text');
+    const parts = literals(value);
+    expect(parts).toHaveLength(3);
+    for (const part of parts) {
+      expect(part.kind === 'literal' && part.valueKind).toBe('text');
+    }
+  });
+
+  it('keeps what each field held: 1 + 2 + 3 becomes "1" + "2" + "3"', () => {
+    const { value } = retypeDeclarationDeep(sum, 'text');
+    expect(literals(value).map((part) => (part.kind === 'literal' ? part.value : null))).toEqual([
+      '1',
+      '2',
+      '3',
+    ]);
+  });
+
+  it('says nothing was lost, because numbers survive becoming text', () => {
+    expect(retypeDeclarationDeep(sum, 'text').lostContent).toBe(false);
+  });
+
+  it('reports the loss when text cannot become a number', () => {
+    const joined: Expression = {
+      kind: 'binary',
+      operator: '+',
+      left: literal('hola', 'text'),
+      right: literal('mundo', 'text'),
+    };
+    const { value, lostContent } = retypeDeclarationDeep(joined, 'number');
+    expect(lostContent).toBe(true);
+    expect(literals(value).map((part) => (part.kind === 'literal' ? part.value : null))).toEqual([0, 0]);
+  });
+
+  it('reports no loss for text that reads as a number', () => {
+    const joined: Expression = {
+      kind: 'binary',
+      operator: '+',
+      left: literal('42', 'text'),
+      right: literal('7', 'text'),
+    };
+    expect(retypeDeclarationDeep(joined, 'number').lostContent).toBe(false);
+  });
+
+  it('leaves a variable alone: its type belongs to its declaration', () => {
+    const withVariable: Expression = {
+      kind: 'binary',
+      operator: '+',
+      left: { kind: 'variable', name: 'n' },
+      right: literal(1, 'number'),
+    };
+    const { value } = retypeDeclarationDeep(withVariable, 'text');
+    expect(value.kind === 'binary' && value.left.kind).toBe('variable');
+  });
+
+  it('still agrees with the shallow entry point for a lone literal', () => {
+    expect(retypeDeclaration(literal(5, 'number'), 'text')).toEqual(literal('5', 'text'));
+  });
+
+  it('reaches inside a group as well', () => {
+    const grouped: Expression = {
+      kind: 'binary',
+      operator: '+',
+      left: { kind: 'group', inner: { kind: 'binary', operator: '+', left: literal(1, 'number'), right: literal(2, 'number') } },
+      right: literal(3, 'number'),
+    };
+    const { value } = retypeDeclarationDeep(grouped, 'text');
+    for (const part of literals(value)) {
+      expect(part.kind === 'literal' && part.valueKind).toBe('text');
     }
   });
 });

@@ -2,6 +2,7 @@ import { memo, useMemo, useRef } from 'react';
 
 import { collectVariables } from '../core/ast/operations';
 import { problemsByNode, validate } from '../core/ast/validate';
+import type { Problem } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { useMarquee } from '../state/useMarquee';
@@ -15,6 +16,13 @@ interface EditorProps {
   callbacks: BlockCallbacks;
   activeNodeId: NodeId | null;
   erroredNodeId: NodeId | null;
+  /**
+   * Blocks where changing the declared type discarded content.
+   *
+   * Kept beside the static checks rather than inside them: `validate` reads
+   * the tree, and a converted value carries no trace of what it used to be.
+   */
+  retypeLosses: ReadonlySet<NodeId>;
 }
 
 /**
@@ -27,6 +35,7 @@ export const Editor = memo(function Editor({
   callbacks,
   activeNodeId,
   erroredNodeId,
+  retypeLosses,
 }: EditorProps) {
   const { d } = useTranslation();
   // Every declared name is offered wherever an expression can reference one.
@@ -35,7 +44,19 @@ export const Editor = memo(function Editor({
 
   // Static checks re-run on every edit; the tree is small enough that this is
   // cheaper than tracking which statement changed.
-  const problems = useMemo(() => problemsByNode(validate(algorithm.body)), [algorithm.body]);
+  const problems = useMemo(() => {
+    const found = problemsByNode(validate(algorithm.body));
+    /* Merged in rather than pushed through `validate`, which only ever sees
+       the tree as it is now. A block can carry both: a type that disagrees
+       with its value, and a conversion that threw something away. */
+    for (const nodeId of retypeLosses) {
+      const entry: Problem = { nodeId, severity: 'warning', messageKey: 'retypeLostContent' };
+      const existing = found.get(nodeId);
+      if (existing) existing.push(entry);
+      else found.set(nodeId, [entry]);
+    }
+    return found;
+  }, [algorithm.body, retypeLosses]);
 
   const canvas = useRef<HTMLDivElement>(null);
   useMagneticDrop(canvas);

@@ -671,6 +671,44 @@ function Workbench({
     return () => clearTimeout(timer);
   }, [selectedNode]);
 
+  /*
+    Blocks whose last type change discarded something.
+
+    Tied to the body it was recorded against, rather than cleared by a timer
+    or an effect. Any further edit — including the undo the message suggests —
+    produces a different body, and the notice stops applying on its own. An
+    effect watching the body would have fired on the re-type itself and erased
+    the notice before it was ever seen.
+  */
+  const [retypeLoss, setRetypeLoss] = useState<{ nodeId: NodeId; wasBody: Statement[] } | null>(
+    null,
+  );
+  const onRetypeLoss = useCallback(
+    (nodeId: NodeId) => {
+      /*
+        The body as it still is here, which is the one *before* the change.
+
+        `update` dispatches to a reducer, so at this point React has not
+        produced the new state yet: reading the algorithm now gives the value
+        the student is replacing, not the converted one. Recording that is the
+        reliable half — on the next render it will have become the previous
+        body, and that is what identifies this exact edit.
+      */
+      setRetypeLoss({ nodeId, wasBody: controller.algorithm.body });
+    },
+    [controller.algorithm],
+  );
+  const retypeLosses = useMemo<ReadonlySet<NodeId>>(
+    () =>
+      /* Shown only while the last edit is still the one that lost content.
+         Any further edit — or the undo the message suggests — pushes a
+         different body onto the history and the notice stops applying. */
+      retypeLoss && controller.previousBody === retypeLoss.wasBody
+        ? new Set([retypeLoss.nodeId])
+        : new Set<NodeId>(),
+    [retypeLoss, controller.previousBody],
+  );
+
   const callbacks = useMemo<BlockCallbacks>(
     () => ({
       update: controller.update,
@@ -683,8 +721,10 @@ function Workbench({
       onSelectMany: selection.selectMany,
       duplicate: controller.duplicate,
       onExplain: showConcept,
+      onRetypeLoss,
     }),
     [
+      onRetypeLoss,
       controller.update,
       controller.remove,
       controller.add,
@@ -1058,6 +1098,7 @@ function Workbench({
                   callbacks={callbacks}
                   activeNodeId={activeNodeId}
                   erroredNodeId={erroredNodeId}
+                  retypeLosses={retypeLosses}
                 />
               </CanvasMenu>
               {/* On the canvas rather than in a panel, so closing the palette

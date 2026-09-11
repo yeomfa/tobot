@@ -108,6 +108,15 @@ function reducer(state: EditorState, action: Action): EditorState {
 
 export interface AlgorithmController {
   algorithm: Algorithm;
+  /**
+   * The body as it was before the most recent edit, or null with no history.
+   *
+   * Lets a caller recognise the edit it just made once React has re-rendered.
+   * A handler runs before the reducer has produced the new state, so anything
+   * it captures at the time is the *old* body — the way back is to compare
+   * that against this on the render that follows.
+   */
+  previousBody: Statement[] | null;
   canUndo: boolean;
   canRedo: boolean;
   setName: (name: string) => void;
@@ -215,6 +224,7 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
 
   return {
     algorithm: state.algorithm,
+    previousBody: state.past[state.past.length - 1] ?? null,
     saveState,
     canUndo: state.past.length > 0,
     canRedo: state.future.length > 0,

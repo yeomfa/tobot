@@ -198,17 +198,88 @@ export function createStatement(
  * rather than living only inside a click handler.
  */
 export function retypeDeclaration(current: Expression, valueKind: ValueKind): Expression {
+  return retypeDeclarationDeep(current, valueKind).value;
+}
+
+/**
+ * Whether casting a literal to `kind` and back would return what it started
+ * as. When it would not, content is being discarded.
+ *
+ * A round trip rather than a table of rules: the cast already knows how to
+ * read every value, so asking it twice is both shorter and impossible to get
+ * out of step with. `1` survives becoming `"1"`; `"hola"` becomes `0` and can
+ * never come back, and that is the case worth telling the student about.
+ */
+function castLoses(expression: LiteralExpression, kind: LiteralKind): boolean {
+  if (expression.valueKind === kind) return false;
+  const there = castExpression(expression, kind);
+  if (there.kind !== 'literal') return false;
+  const back = castExpression(there, expression.valueKind);
+  return !(back.kind === 'literal' && back.value === expression.value);
+}
+
+/**
+ * Re-typing a declaration, all the way down, and whether anything was lost.
+ *
+ * The shallow version only re-read the root. That worked while the value was
+ * a single literal — the root *is* the field — and did nothing at all once the
+ * student had built `1 + 2 + 3`, because a `binary` is not a literal and
+ * `castExpression` passes those through untouched. So the chip changed, the
+ * three fields stayed numeric, and there was no way out: a part cannot offer
+ * its own type inside a declaration (the slot's type is fixed), and the last
+ * part of a chain cannot be removed. The type was unreachable and the value
+ * was unremovable.
+ *
+ * Going deep is what makes the behaviour stop depending on how many parts
+ * there happen to be. Names and structures are still left alone: a variable
+ * carries no type of its own to rewrite.
+ *
+ * `lostContent` is reported rather than prevented. `1` becoming `"1"` is
+ * exact and reversible, and warning about it would be the noise that teaches
+ * a student to ignore the badge; `"hola"` becoming `0` destroys what they
+ * typed, and that is worth a word.
+ */
+export function retypeDeclarationDeep(
+  current: Expression,
+  valueKind: ValueKind,
+): { value: Expression; lostContent: boolean } {
   /* A list has no literal form to cast into, so switching to it starts one —
      with an item, since an empty pair of brackets offers nothing to click. */
-  if (valueKind === 'list') return { kind: 'list', items: [literal(0, 'number')] };
+  if (valueKind === 'list') {
+    return {
+      value: { kind: 'list', items: [literal(0, 'number')] },
+      /* Only says something was thrown away when there was something there:
+         replacing a freshly-created `0` is not a loss worth a warning. */
+      lostContent: current.kind !== 'literal' || String(current.value).trim() !== '',
+    };
+  }
 
-  /* Anything built rather than typed cannot be cast either, so it is replaced
-     outright; an ordinary literal keeps its content and changes kind. */
-  const castable: Expression =
-    current.kind === 'list' || current.kind === 'index' || current.kind === 'length'
-      ? literal(0, 'number')
-      : current;
-  return castExpression(castable, valueKind);
+  let lost = false;
+  const walk = (expression: Expression): Expression => {
+    switch (expression.kind) {
+      case 'literal':
+        if (castLoses(expression, valueKind)) lost = true;
+        return castExpression(expression, valueKind);
+      /* Built rather than typed, and with no literal form to cast into. The
+         whole thing is replaced, which is a loss whatever it held. */
+      case 'list':
+      case 'index':
+      case 'length':
+        lost = true;
+        return emptyValue(valueKind);
+      case 'group':
+        return { ...expression, inner: walk(expression.inner) };
+      case 'binary':
+        return { ...expression, left: walk(expression.left), right: walk(expression.right) };
+      case 'unary':
+        return { ...expression, operand: walk(expression.operand) };
+      /* A variable's type belongs to its declaration, not to this use of it. */
+      default:
+        return expression;
+    }
+  };
+
+  return { value: walk(current), lostContent: lost };
 }
 
 /**

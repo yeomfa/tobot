@@ -11,7 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { memo, useState } from 'react';
 
-import { createId, createStatement, literal, retypeDeclaration } from '../core/ast/factory';
+import { createId, createStatement, literal, retypeDeclarationDeep } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
 import type { NodeId, Statement, ValueKind } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
@@ -44,6 +44,14 @@ export interface BlockCallbacks {
   isSelected: (id: NodeId) => boolean;
   /** Replaces the selection with a set, for the marquee. */
   onSelectMany: (ids: NodeId[], extend: boolean) => void;
+  /**
+   * Reports that changing a declared type discarded content.
+   *
+   * Not something `validate` can find: once `"hola"` has become `0`, the tree
+   * holds an ordinary zero with no memory of what it replaced. The loss exists
+   * only at the moment of the change, so it is said here or not at all.
+   */
+  onRetypeLoss: (id: NodeId) => void;
 }
 
 interface StatementBlockProps {
@@ -531,16 +539,37 @@ function StatementBody({
           <TypeSelect
             allowList
             value={statement.valueKind}
-            onChange={(valueKind) =>
+            onChange={(valueKind) => {
+              /*
+                Every field follows the type, however many there are.
+
+                Re-reading only the root worked while the value was one
+                literal and did nothing once the student had built `1 + 2 + 3`
+                — leaving fields of the old type with no way to change them,
+                since a part inside a declaration cannot offer its own type
+                and the last part of a chain cannot be removed.
+              */
+              /*
+                Converted here rather than inside the update.
+
+                `update` hands its callback to a reducer, which React runs
+                during render — and may run twice. A flag set in there was
+                still false by the time this line was reached, so the notice
+                below never fired at all. The conversion is pure and the value
+                is already in hand, so it happens once, now, and what gets
+                dispatched is the result.
+              */
+              const retyped = retypeDeclarationDeep(statement.value, valueKind);
               callbacks.update(statement.id, (current) =>
-                // The value has to follow the type: leaving a text literal in
-                // place after switching to number left the field editing the
-                // old kind, so picking "number" appeared to do nothing.
                 current.kind === 'declare'
-                  ? { ...current, valueKind, value: retypeDeclaration(current.value, valueKind) }
+                  ? { ...current, valueKind, value: retyped.value }
                   : current,
-              )
-            }
+              );
+              /* Said only when something was actually discarded. `1` becoming
+                 `"1"` is exact and reversible; warning about that is the noise
+                 that teaches a student to ignore the badge. */
+              if (retyped.lostContent) callbacks.onRetypeLoss(statement.id);
+            }}
           />
           <Keyword muted>=</Keyword>
           <ExpressionEditor

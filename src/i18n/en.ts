@@ -235,6 +235,8 @@ export const en: Dictionary = {
     duplicateName: 'A variable "{name}" already exists. Creating it again discards the previous value.',
     kindMismatch:
       'The type of "{name}" does not match what it holds. The value still works, but the type says otherwise.',
+    retypeLostContent:
+      'Changing the type replaced some values that could not be converted. Undo (Ctrl+Z) to get them back.',
     emptySay: 'The robot will say nothing because the message is empty.',
     emptyAsk: 'The question is empty: the student will not know what to answer.',
     emptyBranches: 'This decision does nothing yet. Add statements inside it.',
