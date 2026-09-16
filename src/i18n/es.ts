@@ -10,6 +10,9 @@ export const es = {
     untitled: 'Algoritmo sin título',
   },
   actions: {
+    /* Spanish and English both need the singular spelled out; `{count}
+       instrucciones` reads as a typo at one, which is the commonest case. */
+    selectedOne: '1 instrucción',
     selectedCount: '{count} instrucciones',
     copyBlock: 'Copiar',
     cut: 'Cortar',

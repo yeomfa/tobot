@@ -1,14 +1,36 @@
+import {
+  BracketsRoundIcon as BracketsRound,
+  CopyIcon as Copy,
+  ScissorsIcon as Scissors,
+  TrashIcon as Trash,
+} from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { createStatement } from '../core/ast/factory';
 import type { Statement } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
+import { armGrouping } from './grouping';
 import { categoryIcon, paletteGroups, statementIcon } from './statementMeta';
 import type { Category } from './statementMeta';
 import './CanvasToolbar.css';
 
 interface CanvasToolbarProps {
   onAdd: (statement: Statement) => void;
+  /** How many blocks are selected; the bar acts on all of them. */
+  selectedCount: number;
+  /** Whether any expression on the canvas has parts that could be grouped. */
+  groupable: boolean;
+  onCopy: () => void;
+  onCut: () => void;
+  onRemove: () => void;
+  /**
+   * Whether the palette is on screen.
+   *
+   * The adding half of this bar exists because the palette can be closed —
+   * including by the layout itself, which hides it below 960px. With the
+   * palette visible the two were the same list twice, so the bar steps aside.
+   */
+  paletteVisible: boolean;
 }
 
 /**
@@ -23,8 +45,16 @@ interface CanvasToolbarProps {
  * meets in the palette, in the block colours, and in the concept list. The
  * toolbar teaches that grouping every time it is opened.
  */
-export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
-  const { d } = useTranslation();
+export function CanvasToolbar({
+  onAdd,
+  selectedCount,
+  groupable,
+  onCopy,
+  onCut,
+  onRemove,
+  paletteVisible,
+}: CanvasToolbarProps) {
+  const { d, fill } = useTranslation();
   const [open, setOpen] = useState<Category | null>(null);
   const root = useRef<HTMLDivElement>(null);
   /* A completed drag is followed by a click on the same element, and both
@@ -48,6 +78,67 @@ export function CanvasToolbar({ onAdd }: CanvasToolbarProps) {
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [open]);
+
+  /*
+    With blocks selected the bar is about them.
+
+    Selecting is a gesture that ends with a question — now what? — and the
+    answers were spread between a keyboard shortcut and a right-click. Here
+    they are where the student is already looking, and the bar stops being a
+    second copy of the palette.
+  */
+  if (selectedCount > 0) {
+    return (
+      <div className="canvas-toolbar canvas-toolbar--selection" ref={root}>
+        <span className="canvas-toolbar__count">
+          {selectedCount === 1
+            ? d.actions.selectedOne
+            : fill(d.actions.selectedCount, { count: selectedCount })}
+        </span>
+
+        <span className="canvas-toolbar__rule" aria-hidden="true" />
+
+        <button type="button" className="canvas-toolbar__action" onClick={onCopy}>
+          <Copy weight="bold" aria-hidden="true" />
+          <span className="canvas-toolbar__action-label">{d.actions.copyBlock}</span>
+        </button>
+        <button type="button" className="canvas-toolbar__action" onClick={onCut}>
+          <Scissors weight="bold" aria-hidden="true" />
+          <span className="canvas-toolbar__action-label">{d.actions.cut}</span>
+        </button>
+        {/* Grouping arms a mode rather than acting at once, so it belongs with
+            the other things done *to* a selection — and it is only offered
+            when some expression actually has parts to bracket. */}
+        {groupable && (
+          <button type="button" className="canvas-toolbar__action" onClick={armGrouping}>
+            <BracketsRound weight="bold" aria-hidden="true" />
+            <span className="canvas-toolbar__action-label">{d.actions.groupTool}</span>
+          </button>
+        )}
+
+        <span className="canvas-toolbar__rule" aria-hidden="true" />
+
+        <button
+          type="button"
+          className="canvas-toolbar__action canvas-toolbar__action--danger"
+          onClick={onRemove}
+        >
+          <Trash weight="bold" aria-hidden="true" />
+          <span className="canvas-toolbar__action-label">{d.actions.delete}</span>
+        </button>
+      </div>
+    );
+  }
+
+  /*
+    Nothing selected: the bar is only a way in when there is no other one.
+
+    With the palette open these were the same five categories twice over, and
+    the bar was covering the canvas to offer what the panel beside it already
+    did. It stays for the layouts that hide the palette — below 960px it is
+    the only way to add anything at all.
+  */
+  if (paletteVisible) return null;
 
   return (
     <div className="canvas-toolbar" ref={root}>

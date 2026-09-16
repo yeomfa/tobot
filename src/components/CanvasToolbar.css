@@ -251,3 +251,84 @@ body[data-dragging] .canvas-toolbar__menu {
   }
 }
 
+
+/* ---- The bar when blocks are selected ---- */
+
+/*
+  Same shell, different contents.
+
+  Deliberately not a second component: it is the one bar the canvas has, and
+  giving the two faces different shapes or positions would read as two things
+  appearing in the same place rather than one thing changing what it offers.
+*/
+.canvas-toolbar--selection {
+  gap: var(--space-1);
+  padding: 4px var(--space-2);
+}
+
+.canvas-toolbar__count {
+  padding-inline: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* A real separator, with something on each side of it: the count from the
+   actions, and the reversible actions from the destructive one. */
+.canvas-toolbar__rule {
+  width: 1px;
+  align-self: stretch;
+  margin-block: 3px;
+  background: var(--border-subtle);
+}
+
+.canvas-toolbar__action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.canvas-toolbar__action svg {
+  width: 17px;
+  height: 17px;
+  color: var(--text-muted);
+}
+
+.canvas-toolbar__action:hover {
+  color: var(--text-primary);
+  background: var(--bg-app);
+}
+
+/* Deleting is the one action here that cannot be reached by carrying on:
+   it says so on hover rather than sitting red at rest, which would make it
+   the loudest thing on a bar of ordinary choices. */
+.canvas-toolbar__action--danger:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.canvas-toolbar__action--danger:hover svg {
+  color: var(--danger);
+}
+
+/* Narrow screens keep the icons and drop the words, as the adding face does. */
+@media (max-width: 860px) {
+  .canvas-toolbar__action {
+    padding: var(--space-2);
+  }
+
+  .canvas-toolbar__action-label,
+  .canvas-toolbar__count {
+    display: none;
+  }
+}

@@ -11,6 +11,7 @@ export const en: Dictionary = {
     untitled: 'Untitled algorithm',
   },
   actions: {
+    selectedOne: '1 instruction',
     selectedCount: '{count} instructions',
     copyBlock: 'Copy',
     cut: 'Cut',

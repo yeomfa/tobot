@@ -44,6 +44,7 @@ import { DEFAULT_SECTION, ROUTES, sectionPath } from './routes';
 const Landing = lazy(async () => ({ default: (await import('./components/Landing')).Landing }));
 const Home = lazy(async () => ({ default: (await import('./components/Home')).Home }));
 const SignIn = lazy(async () => ({ default: (await import('./components/SignIn')).SignIn }));
+import { canGroupAnything } from './components/chain';
 import { CanvasMenu } from './components/CanvasMenu';
 import { CanvasToolbar } from './components/CanvasToolbar';
 import { CodePanel } from './components/CodePanel';
@@ -345,7 +346,12 @@ function Workspace({
         /* `initialPreferences` always fills this in; the fallback is for the
            type, which allows a stored file written before panels existed. */
         panels={preferences.panels ?? { palette: true, robot: true, drawer: false }}
-        onPanelsChange={(panels) => setPreferences((current) => ({ ...current, panels }))}
+        onPanelsChange={(update) =>
+          setPreferences((current) => ({
+            ...current,
+            panels: update(current.panels ?? { palette: true, robot: true, drawer: false }),
+          }))
+        }
       />
     </I18nProvider>
   );
@@ -367,7 +373,18 @@ interface WorkbenchProps {
   onLanguageChange: (language: Language) => void;
   /** Which panels are open, remembered between visits. */
   panels: NonNullable<Preferences['panels']>;
-  onPanelsChange: (panels: NonNullable<Preferences['panels']>) => void;
+  /**
+   * Takes an updater rather than a value.
+   *
+   * With a plain value every setter had to close over the current `panels`,
+   * so each one changed identity on every toggle — and anything holding on to
+   * one (the header's Run, which reveals the robot) could write back a stale
+   * set and undo an unrelated panel. An updater reads the current value when
+   * it runs, which makes the setters stable and the staleness impossible.
+   */
+  onPanelsChange: (
+    update: (current: NonNullable<Preferences['panels']>) => NonNullable<Preferences['panels']>,
+  ) => void;
 }
 
 /**
@@ -495,16 +512,32 @@ function Workbench({
   const robotOpen = panels.robot;
   const drawerOpen = panels.drawer;
   const setPaletteOpen = useCallback(
-    (open: boolean) => onPanelsChange({ ...panels, palette: open }),
-    [panels, onPanelsChange],
+    (open: boolean) => onPanelsChange((current) => ({ ...current, palette: open })),
+    [onPanelsChange],
   );
   const setRobotOpen = useCallback(
-    (open: boolean) => onPanelsChange({ ...panels, robot: open }),
-    [panels, onPanelsChange],
+    (open: boolean) => onPanelsChange((current) => ({ ...current, robot: open })),
+    [onPanelsChange],
   );
+  /*
+    The same breakpoint the stylesheet uses to hide the side rails.
+
+    Mirrored here rather than inferred, because a panel that is "open" but not
+    rendered is still not a way to reach anything.
+  */
+  const [isNarrow, setIsNarrow] = useState(
+    () => window.matchMedia('(max-width: 960px)').matches,
+  );
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 960px)');
+    const update = (): void => setIsNarrow(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
   const setDrawerOpen = useCallback(
-    (open: boolean) => onPanelsChange({ ...panels, drawer: open }),
-    [panels, onPanelsChange],
+    (open: boolean) => onPanelsChange((current) => ({ ...current, drawer: open })),
+    [onPanelsChange],
   );
   const [drawerView, setDrawerView] = useState<DrawerView>('natural');
   const [canvasView, setCanvasView] = useState<CanvasView>('blocks');
@@ -808,7 +841,7 @@ function Workbench({
   const startRun = useCallback(() => {
     setRobotOpen(true);
     execution.play();
-  }, [execution]);
+  }, [execution, setRobotOpen]);
 
   const activeNodeId = execution.state.currentNodeId;
   const erroredNodeId = execution.state.error?.nodeId ?? null;
@@ -1144,7 +1177,24 @@ function Workbench({
               </CanvasMenu>
               {/* On the canvas rather than in a panel, so closing the palette
                   no longer leaves the editor with no way to add anything. */}
-              <CanvasToolbar onAdd={appendStatement} />
+              <CanvasToolbar
+                onAdd={appendStatement}
+                selectedCount={selection.ids.length}
+                groupable={canGroupAnything(algorithm.body)}
+                onCopy={() => void copySelection()}
+                onCut={() => void cutSelection()}
+                onRemove={() => {
+                  controller.removeMany(selection.ids);
+                  selection.clear();
+                }}
+                /*
+                  Open *and* wide enough to actually be rendered. The layout
+                  hides the rails below 960px whatever the preference says, so
+                  trusting the flag alone would take the only way to add an
+                  instruction away from exactly the screens that have no other.
+                */
+                paletteVisible={paletteOpen && !isNarrow}
+              />
             </div>
             <div
               className="app__canvas-pane"
