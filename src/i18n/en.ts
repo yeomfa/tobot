@@ -181,6 +181,8 @@ export const en: Dictionary = {
     error: 'Not saved',
   },
   palette: {
+    variables: 'Variables in play',
+    kindUnknown: 'undefined',
     title: 'Statements',
     subtitle: 'Pick a statement to add it to your algorithm',
     search: 'Search statements…',

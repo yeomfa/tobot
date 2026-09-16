@@ -309,6 +309,11 @@ export function collectVariables(statements: Statement[]): string[] {
       if (statement.kind === 'declare') add(statement.name);
       if (statement.kind === 'ask') add(statement.target);
       if (statement.kind === 'forEach') add(statement.variable);
+      /* `para cada elemento` binds a name too, and leaving it out meant the
+         element being walked could not be referenced inside its own loop —
+         the variable picker simply did not list it. `listOp` is deliberately
+         absent: its name refers to a list that something else declared. */
+      if (statement.kind === 'forEachItem') add(statement.variable);
       if (statement.kind === 'if') {
         walk(statement.then);
         for (const arm of statement.elseIfs ?? []) walk(arm.body);

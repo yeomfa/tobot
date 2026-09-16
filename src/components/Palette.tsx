@@ -2,20 +2,43 @@ import { memo, useMemo, useState } from 'react';
 
 import { createStatement } from '../core/ast/factory';
 import type { Statement } from '../core/ast/types';
+import { collectVariables } from '../core/ast/operations';
+import { collectVariableKinds } from '../core/emitters/inferKind';
 import { useTranslation } from '../i18n/context';
-import { paletteGroups, statementIcon } from './statementMeta';
+import { paletteGroups, statementIcon, typeIcon } from './statementMeta';
 import type { StatementKind } from './statementMeta';
 import './Palette.css';
 
 interface PaletteProps {
   /** Appends to the end of the program; dragging allows precise placement. */
   onAdd: (statement: Statement) => void;
+  /**
+   * The algorithm, for the list of variables in play.
+   *
+   * Which names exist and what each holds is the thing most often looked up
+   * while writing a program, and until now it could only be seen by opening
+   * the picker inside an expression — one at a time, and only where a value
+   * was being edited.
+   */
+  body: Statement[];
 }
 
 /** Hiding is handled by the app shell, so this only renders the list. */
-export const Palette = memo(function Palette({ onAdd }: PaletteProps) {
+export const Palette = memo(function Palette({ onAdd, body }: PaletteProps) {
   const { d } = useTranslation();
   const [query, setQuery] = useState('');
+
+  /*
+    Names in declaration order, each with what it holds.
+
+    `collectVariables` decides what counts as a name in scope — including the
+    one a `para cada elemento` binds — and `collectVariableKinds` says what
+    kind each one is. Both already existed; neither was ever shown.
+  */
+  const variables = useMemo(() => {
+    const kinds = collectVariableKinds(body);
+    return collectVariables(body).map((name) => ({ name, kind: kinds.get(name) ?? 'unknown' }));
+  }, [body]);
 
   const groups = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -61,6 +84,44 @@ export const Palette = memo(function Palette({ onAdd }: PaletteProps) {
             </ul>
           </section>
         ))}
+
+        {/*
+          The variables in play, at the foot of the list.
+
+          Below the blocks rather than above them: the palette's first job is
+          still to answer "what can I build with", and this answers "what have
+          I got" — a question that only exists once something has been built.
+          It is absent entirely until then, so an empty program shows an empty
+          panel rather than an empty heading.
+        */}
+        {!query && variables.length > 0 && (
+          <section className="palette__group palette__group--vars">
+            <h3 className="palette__group-title">{d.palette.variables}</h3>
+            <ul className="palette__vars">
+              {variables.map(({ name, kind }) => {
+                const Glyph = kind === 'unknown' ? null : typeIcon[kind];
+                return (
+                  <li className="palette__var" key={name} data-kind={kind}>
+                    {Glyph ? (
+                      <Glyph weight="duotone" aria-hidden="true" />
+                    ) : (
+                      <span className="palette__var-unknown" aria-hidden="true">
+                        ?
+                      </span>
+                    )}
+                    <span className="palette__var-name">{name}</span>
+                    {/* The kind is the point of the row, so it is named rather
+                        than left to the icon alone — a student learning what a
+                        type is has not yet learned the icons. */}
+                    <span className="palette__var-kind">
+                      {kind === 'unknown' ? d.palette.kindUnknown : d.kinds[kind]}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
   );

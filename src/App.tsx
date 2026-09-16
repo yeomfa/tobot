@@ -115,6 +115,19 @@ function initialPreferences(): Preferences {
     theme: stored?.theme === 'dark' || stored?.theme === 'light' ? stored.theme : 'system',
     activeAlgorithmId: stored?.activeAlgorithmId ?? null,
     visited: stored?.visited ?? false,
+    /*
+      The palette starts open. It was the one panel that began hidden, which
+      meant a new student met an empty canvas with no sign of what could go on
+      it — and the floating toolbar existed mainly to answer that.
+
+      Stored rather than assumed on every load: "by default" decides the first
+      visit, and after that what the student did last is the answer.
+    */
+    panels: {
+      palette: stored?.panels?.palette ?? true,
+      robot: stored?.panels?.robot ?? true,
+      drawer: stored?.panels?.drawer ?? false,
+    },
   };
 }
 
@@ -329,6 +342,10 @@ function Workspace({
         onLanguageChange={(next) =>
           setPreferences((current) => ({ ...current, language: next }))
         }
+        /* `initialPreferences` always fills this in; the fallback is for the
+           type, which allows a stored file written before panels existed. */
+        panels={preferences.panels ?? { palette: true, robot: true, drawer: false }}
+        onPanelsChange={(panels) => setPreferences((current) => ({ ...current, panels }))}
       />
     </I18nProvider>
   );
@@ -348,6 +365,9 @@ interface WorkbenchProps {
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
   onLanguageChange: (language: Language) => void;
+  /** Which panels are open, remembered between visits. */
+  panels: NonNullable<Preferences['panels']>;
+  onPanelsChange: (panels: NonNullable<Preferences['panels']>) => void;
 }
 
 /**
@@ -371,6 +391,8 @@ function Workbench({
   theme,
   onThemeChange,
   onLanguageChange,
+  panels,
+  onPanelsChange,
 }: WorkbenchProps) {
   const { d, language } = useTranslation();
 
@@ -462,9 +484,28 @@ function Workbench({
     return () => observer.disconnect();
   }, [algorithm.name]);
 
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const [robotOpen, setRobotOpen] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  /*
+    Panel visibility is a stored preference, not component state.
+
+    It used to reset on every load, so a student who arranged their workspace
+    found it rearranged next time — and the palette, which now opens by
+    default, would have re-opened even after being deliberately closed.
+  */
+  const paletteOpen = panels.palette;
+  const robotOpen = panels.robot;
+  const drawerOpen = panels.drawer;
+  const setPaletteOpen = useCallback(
+    (open: boolean) => onPanelsChange({ ...panels, palette: open }),
+    [panels, onPanelsChange],
+  );
+  const setRobotOpen = useCallback(
+    (open: boolean) => onPanelsChange({ ...panels, robot: open }),
+    [panels, onPanelsChange],
+  );
+  const setDrawerOpen = useCallback(
+    (open: boolean) => onPanelsChange({ ...panels, drawer: open }),
+    [panels, onPanelsChange],
+  );
   const [drawerView, setDrawerView] = useState<DrawerView>('natural');
   const [canvasView, setCanvasView] = useState<CanvasView>('blocks');
   // The tour opens itself on a first visit and can be replayed from the header.
@@ -896,7 +937,7 @@ function Workbench({
               type="button"
               className="app__toggle"
               data-active={paletteOpen || undefined}
-              onClick={() => setPaletteOpen((open) => !open)}
+              onClick={() => setPaletteOpen(!paletteOpen)}
               title={d.panels.palette}
               aria-label={d.panels.palette}
               aria-pressed={paletteOpen}
@@ -907,7 +948,7 @@ function Workbench({
               type="button"
               className="app__toggle"
               data-active={drawerOpen || undefined}
-              onClick={() => setDrawerOpen((open) => !open)}
+              onClick={() => setDrawerOpen(!drawerOpen)}
               title={d.panels.drawer}
               aria-label={d.panels.drawer}
               aria-pressed={drawerOpen}
@@ -923,7 +964,7 @@ function Workbench({
               type="button"
               className="app__toggle"
               data-active={robotOpen || undefined}
-              onClick={() => setRobotOpen((open) => !open)}
+              onClick={() => setRobotOpen(!robotOpen)}
               title={d.panels.robot}
               aria-label={d.panels.robot}
               aria-pressed={robotOpen}
@@ -1036,7 +1077,7 @@ function Workbench({
       <main className="app__main">
         {paletteOpen && (
           <aside className="app__palette">
-            <Palette onAdd={appendStatement} />
+            <Palette onAdd={appendStatement} body={algorithm.body} />
             <ResizeHandle resizable={paletteSize} edge="right" label={d.panels.resize} />
           </aside>
         )}
@@ -1148,7 +1189,7 @@ function Workbench({
               <button
                 type="button"
                 className="app__icon-button app__drawer-collapse"
-                onClick={() => setDrawerOpen((open) => !open)}
+                onClick={() => setDrawerOpen(!drawerOpen)}
                 title={drawerOpen ? d.palette.collapse : d.palette.expand}
                 aria-label={drawerOpen ? d.palette.collapse : d.palette.expand}
               >

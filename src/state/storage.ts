@@ -39,6 +39,18 @@ export interface Preferences {
    * welcome example would keep coming back after being deleted.
    */
   visited?: boolean;
+  /**
+   * Which side panels are open.
+   *
+   * A preference rather than a constant: the palette opens by default because
+   * a student who has just arrived should see what there is to build with, but
+   * one who closes it has said something, and saying it once is enough.
+   */
+  panels?: {
+    palette: boolean;
+    robot: boolean;
+    drawer: boolean;
+  };
 }
 
 export interface PreferenceStore {

@@ -184,6 +184,8 @@ export const es = {
     error: 'Sin guardar',
   },
   palette: {
+    variables: 'Variables en uso',
+    kindUnknown: 'sin definir',
     title: 'Instrucciones',
     subtitle: 'Elige una instrucción para agregarla a tu algoritmo',
     search: 'Buscar instrucción…',
