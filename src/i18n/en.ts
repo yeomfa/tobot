@@ -181,6 +181,11 @@ export const en: Dictionary = {
     saved: 'Saved',
     error: 'Not saved',
   },
+  /** The panel above the robot, describing whatever is selected. */
+  inspector: {
+    title: 'Selection',
+    problemCount: '{count} things to review',
+  },
   palette: {
     variables: 'Variables in play',
     elementOf: 'item of {list}',

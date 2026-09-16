@@ -186,6 +186,11 @@ export const es = {
     saved: 'Guardado',
     error: 'Sin guardar',
   },
+  /** The panel above the robot, describing whatever is selected. */
+  inspector: {
+    title: 'Selección',
+    problemCount: '{count} cosas por revisar',
+  },
   palette: {
     variables: 'Variables en uso',
     elementOf: 'elemento de {list}',

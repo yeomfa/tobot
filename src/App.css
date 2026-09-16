@@ -360,6 +360,10 @@
   width: var(--robot-size, 330px);
   border-left: 1px solid var(--border-subtle);
   background: var(--bg-surface);
+  /* A column, so the inspector can sit above the robot and each take the
+     height it needs rather than overlapping in the same box. */
+  display: flex;
+  flex-direction: column;
 }
 
 .app__center {

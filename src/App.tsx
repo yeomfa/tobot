@@ -23,6 +23,7 @@ import {
 import type { NodeId, Statement } from './core/ast/types';
 import type { Location as SlotLocation } from './core/ast/operations';
 import { findLocation, findStatement } from './core/ast/operations';
+import { problemsByNode, validate } from './core/ast/validate';
 import { decodeStatements, encodeStatements } from './core/ast/clipboard';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
@@ -52,6 +53,7 @@ import { Console } from './components/Console';
 import { Editor } from './components/Editor';
 import { ExportDialog } from './components/ExportDialog';
 import { Flowchart } from './components/Flowchart';
+import { Inspector } from './components/Inspector';
 import { Palette } from './components/Palette';
 import { SettingsMenu } from './components/SettingsMenu';
 import { Tour } from './components/Tour';
@@ -843,6 +845,12 @@ function Workbench({
     execution.play();
   }, [execution, setRobotOpen]);
 
+  /* The same checks the editor runs, computed once here and handed to both.
+     Validating on every render — twice, since the editor does it too — is a
+     full walk of the tree for something that only changes when the tree
+     does. */
+  const problems = useMemo(() => problemsByNode(validate(algorithm.body)), [algorithm.body]);
+
   const activeNodeId = execution.state.currentNodeId;
   const erroredNodeId = execution.state.error?.nodeId ?? null;
 
@@ -1282,6 +1290,15 @@ function Workbench({
         {robotOpen && (
           <aside className="app__robot">
             <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
+            {/* Above the robot, not instead of it: the robot is what runs the
+                program, and inspecting should not cost the student the thing
+                they are about to press. */}
+            <Inspector
+              body={algorithm.body}
+              selected={selection.ids}
+              problems={problems}
+              onExplain={showConcept}
+            />
             <RunPanel execution={execution} />
           </aside>
         )}
