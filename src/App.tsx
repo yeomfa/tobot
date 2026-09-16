@@ -792,6 +792,7 @@ function Workbench({
       add: controller.add,
       move: controller.move,
       rename: controller.renameVariable,
+      renameLoopVar: controller.renameLoopVariable,
       onSelect: selection.select,
       isSelected: selection.has,
       onSelectMany: selection.selectMany,
@@ -806,6 +807,7 @@ function Workbench({
       controller.add,
       controller.move,
       controller.renameVariable,
+      controller.renameLoopVariable,
       controller.duplicate,
       showConcept,
       /* `has` closes over the current selection, so leaving it out froze the

@@ -35,6 +35,14 @@ export interface BlockCallbacks {
    * program in places the student is not looking at.
    */
   rename: (from: string, to: string) => void;
+  /**
+   * Renames what a loop binds, inside that loop only.
+   *
+   * A counter and a list element are scoped to their loop, so the global
+   * rename is the wrong tool: it renamed every variable in the program that
+   * happened to share the name — the list being walked included.
+   */
+  renameLoopVar: (loopId: NodeId, to: string) => void;
   /** Copies this statement, with its whole body, directly below itself. */
   duplicate: (id: NodeId) => void;
   onExplain: (conceptId: string) => void;
@@ -130,11 +138,17 @@ export const StatementBlock = memo(function StatementBlock({
        its counter, so renaming carries the uses inside the body with it.
        `listOp` is not here: its name *refers* to a list that already exists,
        and renaming there would rename the student's variable by accident. */
-    const declaresName =
-      statement.kind === 'declare' ||
-      statement.kind === 'ask' ||
-      statement.kind === 'forEach' ||
-      statement.kind === 'forEachItem';
+    /* A loop's binding is scoped to the loop, so it renames within it. Doing
+       this globally is what renamed the list a `para cada` was reading. */
+    if (
+      (statement.kind === 'forEach' || statement.kind === 'forEachItem') &&
+      name !== currentName
+    ) {
+      callbacks.renameLoopVar(statement.id, name);
+      return;
+    }
+
+    const declaresName = statement.kind === 'declare' || statement.kind === 'ask';
     if (declaresName && currentName !== '' && name !== currentName) {
       callbacks.rename(currentName, name);
       return;

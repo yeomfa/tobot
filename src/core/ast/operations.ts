@@ -328,6 +328,60 @@ export function collectVariables(statements: Statement[]): string[] {
 }
 
 /**
+ * Renames the name a loop binds, inside that loop only.
+ *
+ * A counter and a list element are not program-wide variables: they exist
+ * between the loop's own braces and nowhere else. `renameVariable` walks the
+ * whole algorithm, which is right for a declaration and wrong here — renaming
+ * the element of `para cada nota en notas` was renaming every other `nota` in
+ * the program, and when the list itself shared the name it renamed the list
+ * out from under the loop that was reading it.
+ *
+ * So the rename is scoped: this loop's own binding, and the uses inside its
+ * body. What the loop iterates over is deliberately untouched — the list is
+ * named somewhere else, and this field never referred to it.
+ */
+export function renameLoopVariable(
+  statements: Statement[],
+  loopId: NodeId,
+  to: string,
+): Statement[] {
+  const rebind = (statement: Statement): Statement => {
+    if (statement.kind !== 'forEach' && statement.kind !== 'forEachItem') return statement;
+    const from = statement.variable;
+    if (from === '' || from === to) return { ...statement, variable: to };
+
+    /*
+      The body is renamed with the general walk, which is safe here: a name
+      shadowed by an inner loop would be rebound by that loop's own binding,
+      and every other use inside this body is this counter by definition.
+    */
+    const body = renameVariable(statement.body, from, to);
+    return statement.kind === 'forEach'
+      ? { ...statement, variable: to, body }
+      : { ...statement, variable: to, body };
+  };
+
+  const walk = (list: Statement[]): Statement[] =>
+    list.map((statement) => {
+      if (statement.id === loopId) return rebind(statement);
+      if (statement.kind === 'if') {
+        return {
+          ...statement,
+          then: walk(statement.then),
+          elseIfs: statement.elseIfs?.map((arm) => ({ ...arm, body: walk(arm.body) })),
+          otherwise: statement.otherwise ? walk(statement.otherwise) : statement.otherwise,
+        };
+      }
+      const nested = (statement as { body?: Statement[] }).body;
+      if (nested) return { ...statement, body: walk(nested) } as Statement;
+      return statement;
+    });
+
+  return walk(statements);
+}
+
+/**
  * Renames a variable everywhere it appears.
  *
  * Renaming where a variable is declared used to change only that one word, so

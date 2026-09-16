@@ -8,6 +8,7 @@ import {
   insertStatement,
   insertStatements,
   renameVariable,
+  renameLoopVariable,
   moveStatement,
   removeStatement,
   removeStatements,
@@ -126,6 +127,14 @@ export interface AlgorithmController {
   move: (id: NodeId, destination: Location) => void;
   /** Renames a variable across the whole algorithm, as one undoable edit. */
   renameVariable: (from: string, to: string) => void;
+  /**
+   * Renames what a loop binds, inside that loop only.
+   *
+   * Separate from `renameVariable` because the scope differs: a counter or a
+   * list element lives between the loop's own braces, and renaming it across
+   * the program renames unrelated variables that happen to share the name.
+   */
+  renameLoopVariable: (loopId: NodeId, to: string) => void;
   /** Copies a statement and drops the copy directly below the original. */
   duplicate: (id: NodeId) => void;
   replaceBody: (body: Statement[]) => void;
@@ -240,6 +249,10 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
       [edit],
     ),
     remove: useCallback((id: NodeId) => edit((body) => removeStatement(body, id)), [edit]),
+    renameLoopVariable: useCallback(
+      (loopId: NodeId, to: string) => edit((body) => renameLoopVariable(body, loopId, to)),
+      [edit],
+    ),
     renameVariable: useCallback(
       (from: string, to: string) => edit((body) => renameVariable(body, from, to)),
       [edit],
