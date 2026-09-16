@@ -266,7 +266,18 @@ body[data-dragging] .canvas-toolbar__menu {
   padding: 4px var(--space-2);
 }
 
+/*
+  Centred against the buttons beside it.
+
+  The box already lined up — same height, same centre — but the text inside
+  did not: as a stretched flex child the span is as tall as a button, while
+  its single line of text sits at the top of that height. Measured: box centre
+  808px either way, text drawn in the first 18.6px of 36. Making the span a
+  flex box of its own puts the line where the box always was.
+*/
 .canvas-toolbar__count {
+  display: flex;
+  align-items: center;
   padding-inline: var(--space-2);
   font-size: var(--text-xs);
   font-weight: 650;

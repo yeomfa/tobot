@@ -24,8 +24,39 @@ interface PaletteProps {
 }
 
 /** Hiding is handled by the app shell, so this only renders the list. */
+/**
+ * Names bound by a `para cada elemento`, mapped to the list each one walks.
+ *
+ * Written here rather than beside `collectVariableKinds`, which answers a
+ * different question — that one says what type a name holds, and the whole
+ * point of these is that their type is not knowable from the declaration.
+ */
+function elementSources(statements: Statement[], into = new Map<string, string>()): Map<string, string> {
+  for (const statement of statements) {
+    if (statement.kind === 'forEachItem') {
+      /* Only a named list can be shown. Walking a built expression — an index,
+         a literal list — has no name to point at, and "elemento de …" with
+         nothing after it says less than nothing. */
+      if (statement.variable && statement.list.kind === 'variable' && statement.list.name) {
+        into.set(statement.variable, statement.list.name);
+      }
+      elementSources(statement.body, into);
+      continue;
+    }
+    if (statement.kind === 'if') {
+      elementSources(statement.then, into);
+      for (const arm of statement.elseIfs ?? []) elementSources(arm.body, into);
+      if (statement.otherwise) elementSources(statement.otherwise, into);
+      continue;
+    }
+    const nested = (statement as { body?: Statement[] }).body;
+    if (nested) elementSources(nested, into);
+  }
+  return into;
+}
+
 export const Palette = memo(function Palette({ onAdd, body }: PaletteProps) {
-  const { d } = useTranslation();
+  const { d, fill } = useTranslation();
   const [query, setQuery] = useState('');
 
   /*
@@ -37,7 +68,20 @@ export const Palette = memo(function Palette({ onAdd, body }: PaletteProps) {
   */
   const variables = useMemo(() => {
     const kinds = collectVariableKinds(body);
-    return collectVariables(body).map((name) => ({ name, kind: kinds.get(name) ?? 'unknown' }));
+    const elementOf = elementSources(body);
+    return collectVariables(body).map((name) => ({
+      name,
+      kind: kinds.get(name) ?? 'unknown',
+      /*
+        What a `para cada elemento` walks, when that is what this name is.
+
+        Its type is genuinely not knowable — it is whatever the list holds,
+        which the declaration does not say — so naming the list it comes from
+        is a truer answer than inventing a kind for it, and more useful than
+        "sin definir".
+      */
+      from: elementOf.get(name) ?? null,
+    }));
   }, [body]);
 
   const groups = useMemo(() => {
@@ -71,6 +115,47 @@ export const Palette = memo(function Palette({ onAdd, body }: PaletteProps) {
         />
       </div>
 
+      {/*
+      The variables in play, pinned above the blocks.
+
+      It was at the foot of the same scrolling list, which put the thing a
+      student checks constantly behind every category they were not looking
+      for. What you are working with stays in view; what you might add is
+      what scrolls. Still absent until something has been built, so an empty
+      program shows no empty heading.
+      */}
+      {!query && variables.length > 0 && (
+        <section className="palette__group palette__group--vars">
+          <h3 className="palette__group-title">{d.palette.variables}</h3>
+          <ul className="palette__vars">
+            {variables.map(({ name, kind, from }) => {
+              const Glyph = kind === 'unknown' ? null : typeIcon[kind];
+              return (
+                <li className="palette__var" key={name} data-kind={kind}>
+                  {Glyph ? (
+                    <Glyph weight="duotone" aria-hidden="true" />
+                  ) : (
+                    <span className="palette__var-unknown" aria-hidden="true">
+                      ?
+                    </span>
+                  )}
+                  <span className="palette__var-name">{name}</span>
+                  {/* The kind is the point of the row, so it is named rather
+                      than left to the icon alone — a student learning what a
+                      type is has not yet learned the icons. */}
+                  <span className="palette__var-kind">
+                    {kind !== 'unknown'
+                      ? d.kinds[kind]
+                      : from
+                        ? fill(d.palette.elementOf, { list: from })
+                        : d.palette.kindUnknown}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
       <div className="palette__groups">
         {groups.length === 0 && <p className="palette__empty">{d.palette.empty}</p>}
 
@@ -85,43 +170,6 @@ export const Palette = memo(function Palette({ onAdd, body }: PaletteProps) {
           </section>
         ))}
 
-        {/*
-          The variables in play, at the foot of the list.
-
-          Below the blocks rather than above them: the palette's first job is
-          still to answer "what can I build with", and this answers "what have
-          I got" — a question that only exists once something has been built.
-          It is absent entirely until then, so an empty program shows an empty
-          panel rather than an empty heading.
-        */}
-        {!query && variables.length > 0 && (
-          <section className="palette__group palette__group--vars">
-            <h3 className="palette__group-title">{d.palette.variables}</h3>
-            <ul className="palette__vars">
-              {variables.map(({ name, kind }) => {
-                const Glyph = kind === 'unknown' ? null : typeIcon[kind];
-                return (
-                  <li className="palette__var" key={name} data-kind={kind}>
-                    {Glyph ? (
-                      <Glyph weight="duotone" aria-hidden="true" />
-                    ) : (
-                      <span className="palette__var-unknown" aria-hidden="true">
-                        ?
-                      </span>
-                    )}
-                    <span className="palette__var-name">{name}</span>
-                    {/* The kind is the point of the row, so it is named rather
-                        than left to the icon alone — a student learning what a
-                        type is has not yet learned the icons. */}
-                    <span className="palette__var-kind">
-                      {kind === 'unknown' ? d.palette.kindUnknown : d.kinds[kind]}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
       </div>
     </div>
   );

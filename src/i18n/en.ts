@@ -183,6 +183,7 @@ export const en: Dictionary = {
   },
   palette: {
     variables: 'Variables in play',
+    elementOf: 'item of {list}',
     kindUnknown: 'undefined',
     title: 'Statements',
     subtitle: 'Pick a statement to add it to your algorithm',

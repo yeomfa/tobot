@@ -188,6 +188,7 @@ export const es = {
   },
   palette: {
     variables: 'Variables en uso',
+    elementOf: 'elemento de {list}',
     kindUnknown: 'sin definir',
     title: 'Instrucciones',
     subtitle: 'Elige una instrucción para agregarla a tu algoritmo',
