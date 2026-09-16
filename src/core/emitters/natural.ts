@@ -33,6 +33,21 @@ interface Phrases {
   reverse: (name: string) => string;
   forEachItem: (variable: string, list: string) => string;
   endForEachItem: string;
+  /** A function: what it is called, what it needs, and what it gives back. */
+  function: (name: string, params: string[]) => string;
+  asyncFunction: (name: string, params: string[]) => string;
+  endFunction: string;
+  returns: (value: string | null) => string;
+  call: (name: string, args: string[]) => string;
+  /**
+   * The same call read as a value rather than an order.
+   *
+   * `call` is an instruction — "do the task" — and reading it inside another
+   * sentence produced "the robot says Do the task «doble» with 21.", an
+   * imperative nested in a statement with two full stops. As a value it has
+   * to be a noun.
+   */
+  callValue: (name: string, args: string[]) => string;
   operators: Record<BinaryOperator, string>;
   not: (operand: string) => string;
   negative: (operand: string) => string;
@@ -81,6 +96,24 @@ const PHRASES: Record<Language, Phrases> = {
        different endings reading identically is exactly what the prose view
        exists to prevent. */
     endForEachItem: 'Aquí termina el recorrido de la lista.',
+    function: (name, params) =>
+      params.length === 0
+        ? `Define una tarea llamada «${name}», que hace lo siguiente:`
+        : `Define una tarea llamada «${name}», que necesita ${params.join(' y ')}, y hace lo siguiente:`,
+    asyncFunction: (name, params) =>
+      params.length === 0
+        ? `Define una tarea llamada «${name}» que trabaja por su cuenta y hace lo siguiente:`
+        : `Define una tarea llamada «${name}» que trabaja por su cuenta, necesita ${params.join(' y ')}, y hace lo siguiente:`,
+    endFunction: 'Aquí termina la tarea.',
+    returns: (value) => (value ? `Entrega ${value} como resultado.` : 'Termina la tarea aquí.'),
+    call: (name, args) =>
+      args.length === 0
+        ? `Haz la tarea «${name}».`
+        : `Haz la tarea «${name}» con ${args.join(' y ')}.`,
+    callValue: (name, args) =>
+      args.length === 0
+        ? `el resultado de «${name}»`
+        : `el resultado de «${name}» con ${args.join(' y ')}`,
     operators: {
       '+': 'más',
       '-': 'menos',
@@ -132,6 +165,24 @@ const PHRASES: Record<Language, Phrases> = {
     reverse: (name) => `Reverse the order of ${name}.`,
     forEachItem: (variable, list) => `For each ${variable} in ${list}, repeat the following:`,
     endForEachItem: 'The walk through the list ends here.',
+    function: (name, params) =>
+      params.length === 0
+        ? `Define a task called "${name}", which does the following:`
+        : `Define a task called "${name}", which needs ${params.join(' and ')}, and does the following:`,
+    asyncFunction: (name, params) =>
+      params.length === 0
+        ? `Define a task called "${name}" that works on its own and does the following:`
+        : `Define a task called "${name}" that works on its own, needs ${params.join(' and ')}, and does the following:`,
+    endFunction: 'The task ends here.',
+    returns: (value) => (value ? `Hand back ${value} as the result.` : 'End the task here.'),
+    call: (name, args) =>
+      args.length === 0
+        ? `Do the task "${name}".`
+        : `Do the task "${name}" with ${args.join(' and ')}.`,
+    callValue: (name, args) =>
+      args.length === 0
+        ? `the result of "${name}"`
+        : `the result of "${name}" with ${args.join(' and ')}`,
     operators: {
       '+': 'plus',
       '-': 'minus',
@@ -186,6 +237,11 @@ function expressionToNatural(expression: Expression, phrases: Phrases): string {
       );
     case 'length':
       return phrases.length(expressionToNatural(expression.list, phrases));
+    case 'call':
+      return phrases.callValue(
+        expression.name || '?',
+        expression.args.map((arg) => expressionToNatural(arg, phrases)),
+      );
     case 'binary': {
       const left = expressionToNatural(expression.left, phrases);
       const right = expressionToNatural(expression.right, phrases);
@@ -264,6 +320,22 @@ function emitStatement(
         ...emitStatements(statement.body, indent + 1, number, phrases),
         closing(phrases.endForEachItem),
       ];
+    case 'function': {
+      const params = statement.params.filter(Boolean);
+      const header = statement.isAsync ? phrases.asyncFunction : phrases.function;
+      return [
+        line(header(statement.name || '?', params)),
+        ...emitStatements(statement.body, indent + 1, number, phrases),
+        closing(phrases.endFunction),
+      ];
+    }
+
+    case 'return':
+      return [line(phrases.returns(statement.value ? expr(statement.value) : null))];
+
+    case 'call':
+      return [line(phrases.call(statement.name || '?', statement.args.map((arg) => expr(arg))))];
+
     case 'say':
       return [line(phrases.say(expr(statement.value)))];
     case 'ask':

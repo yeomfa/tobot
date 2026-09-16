@@ -1131,3 +1131,67 @@ body[data-marquee] .statement-block:hover .statement-block__arm-remove {
 body[data-marquee] .drop-zone {
   opacity: 0;
 }
+
+/*
+  A function's parameters.
+
+  One small field each rather than a single comma-separated box: a comma is
+  structure, and a student typing "a, b" has to know that it is not part of a
+  name. Removing that kind of syntax is the whole point of building with
+  blocks.
+*/
+.statement-block__param {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.statement-block__param-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+/* Shown on approach rather than always: with three parameters the row would
+   otherwise carry three crosses competing with the names themselves. */
+.statement-block__param:hover .statement-block__param-remove,
+.statement-block__param:focus-within .statement-block__param-remove {
+  opacity: 1;
+}
+
+.statement-block__param-remove:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.statement-block__param-add {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.statement-block:hover .statement-block__param-add,
+.statement-block:focus-within .statement-block__param-add {
+  opacity: 1;
+}
+
+.statement-block__param-add:hover {
+  color: var(--hue-function);
+  background: color-mix(in srgb, var(--hue-function) 12%, transparent);
+}

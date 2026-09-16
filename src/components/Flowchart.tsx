@@ -261,6 +261,13 @@ function LegendItem({ shape, label }: { shape: string; label: string }) {
         {shape === 'process' && <rect x="1" y="1" width="22" height="12" rx="2" />}
         {shape === 'decision' && <path d="M12 1 L23 7 L12 13 L1 7 Z" />}
         {shape === 'io' && <path d="M4 1 H23 L20 13 H1 Z" />}
+        {shape === 'subprocess' && (
+          <>
+            <rect x="1" y="1" width="22" height="12" rx="2" />
+            <line x1="5" y1="1" x2="5" y2="13" />
+            <line x1="19" y1="1" x2="19" y2="13" />
+          </>
+        )}
       </svg>
       {label}
     </span>
@@ -302,6 +309,21 @@ function NodeShape({ node, isActive, isErrored, onSelect }: NodeShapeProps) {
           <path
             d={`M ${x + 14} ${y} H ${x + width} L ${x + width - 14} ${y + height} H ${x} Z`}
           />
+        );
+      case 'subprocess':
+        /*
+          The double-sided rectangle: a step defined somewhere else.
+
+          Drawn as the box plus its two inner rules rather than as one path,
+          so the fill and the stroke stay the node's own — the bars have to
+          read as part of the shape, not as a separate mark laid over it.
+        */
+        return (
+          <>
+            <rect x={x} y={y} width={width} height={height} rx={4} />
+            <line x1={x + 8} y1={y} x2={x + 8} y2={y + height} />
+            <line x1={x + width - 8} y1={y} x2={x + width - 8} y2={y + height} />
+          </>
         );
       default:
         return <rect x={x} y={y} width={width} height={height} rx={6} />;

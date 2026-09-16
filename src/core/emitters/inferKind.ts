@@ -24,6 +24,11 @@ export function kindOf(expression: Expression, variables: VariableKinds): Kind {
       return expression.valueKind;
     case 'variable':
       return variables.get(expression.name) ?? 'unknown';
+    /* What a function gives back depends on which `devolver` runs, so it is
+       not knowable from the call. `unknown` is the honest answer, and it is
+       what the rest of this walk already says when it cannot tell. */
+    case 'call':
+      return 'unknown';
     case 'group':
       return kindOf(expression.inner, variables);
     case 'list':
@@ -94,6 +99,20 @@ export function collectVariableKinds(
       case 'forEach':
         // The counter of a numeric range is a number, always.
         record(statement.variable, 'number');
+        collectVariableKinds(statement.body, into);
+        break;
+      /* The element of a list walk has no knowable type — a list can hold
+         anything — but the body still declares names, and skipping it lost
+         those. The name itself is recorded as unknown rather than left out,
+         so it is at least known to exist. */
+      case 'forEachItem':
+        record(statement.variable, 'unknown');
+        collectVariableKinds(statement.body, into);
+        break;
+      case 'function':
+        /* Parameters have no declared type, and the body is a scope of its
+           own — but it is walked so a function's own declarations are known
+           while reading it. */
         collectVariableKinds(statement.body, into);
         break;
       case 'if':

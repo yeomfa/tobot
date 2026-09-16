@@ -1,6 +1,7 @@
 import type { Expression, LiteralKind, Statement, ValueKind } from '../ast/types';
 import {
   displayValue,
+  MAX_CALL_DEPTH,
   MAX_LOOP_ITERATIONS,
   MAX_STEPS,
   type ExecutionState,
@@ -23,6 +24,8 @@ import {
 interface Snapshot {
   stack: Frame[];
   variables: Map<string, { value: RuntimeValue; kind: ValueKind }>;
+  /** Every scope but the global one, innermost last. */
+  scopes: Map<string, { value: RuntimeValue; kind: ValueKind }>[];
   output: OutputEntry[];
   status: ExecutionState['status'];
   error: RuntimeError | null;
@@ -33,6 +36,14 @@ interface Snapshot {
 interface Frame {
   statements: Statement[];
   index: number;
+  /**
+   * Marks the frame a `devolver` unwinds to, and whose scope it discards.
+   *
+   * Only a call frame carries it. Loops and branches push frames too, and a
+   * return inside a loop inside a function has to leave all of them — so the
+   * unwind looks for this rather than counting.
+   */
+  call?: { name: string };
   /** Loop bookkeeping, absent on plain block frames. */
   loop?: LoopState;
 }
@@ -88,6 +99,28 @@ export class Interpreter {
   private readonly program: Statement[];
 
   /**
+   * Every function in the program, by name.
+   *
+   * Collected up front rather than as the program runs, so a function can be
+   * called from above where it is written — which is how a student reads a
+   * program, with the main steps first and the details below.
+   */
+  private functions = new Map<string, Extract<Statement, { kind: 'function' }>>();
+
+  /**
+   * Scopes above the global one, innermost last.
+   *
+   * A call gets its own, holding its parameters and anything it declares, so
+   * a function cannot quietly overwrite a variable of the caller's that
+   * happens to share a name. The global scope stays `variables`, which is
+   * also what the panel shows.
+   */
+  private scopes: Map<string, { value: RuntimeValue; kind: ValueKind }>[] = [];
+
+  /** Where a `devolver` leaves its value for the call that is waiting. */
+  private returned: RuntimeValue | undefined;
+
+  /**
    * One snapshot per completed step, so stepping backwards is possible.
    *
    * Restoring a previous state is the only honest way to go back: undoing a
@@ -105,6 +138,10 @@ export class Interpreter {
 
   reset(): void {
     this.stack = [{ statements: this.program, index: 0 }];
+    this.functions.clear();
+    this.collectFunctions(this.program);
+    this.scopes = [];
+    this.returned = undefined;
     this.variables.clear();
     this.output = [];
     this.changedNames.clear();
@@ -120,6 +157,9 @@ export class Interpreter {
     return {
       stack: this.stack.map((frame) => ({ ...frame, loop: frame.loop ? { ...frame.loop } : undefined })),
       variables: new Map(this.variables),
+      /* Scopes are part of the moment like everything else, so stepping back
+         into a call restores the call's own variables with it. */
+      scopes: this.scopes.map((scope) => new Map(scope)),
       output: [...this.output],
       status: this.status,
       error: this.error,
@@ -146,6 +186,7 @@ export class Interpreter {
 
     this.stack = previous.stack;
     this.variables = previous.variables;
+    this.scopes = previous.scopes;
     this.output = previous.output;
     this.status = previous.status;
     this.error = previous.error;
@@ -247,7 +288,11 @@ export class Interpreter {
       if (frame.index < frame.statements.length) return;
 
       if (frame.loop && this.reenterLoop(frame)) return;
-      this.stack.pop();
+      const done = this.stack.pop();
+      /* A function that simply runs out of statements ends its call as surely
+         as one that returns, so its scope goes with it. Without this the
+         variables a function declared stayed visible to the caller. */
+      if (done?.call) this.scopes.pop();
     }
   }
 
@@ -283,7 +328,7 @@ export class Interpreter {
       // cannot run away the way a `while` can.
       if (loop.position >= loop.items.length) return false;
       const item = loop.items[loop.position];
-      this.variables.set(loop.statement.variable, { value: item, kind: this.kindOf(item) });
+      this.currentScope().set(loop.statement.variable, { value: item, kind: this.kindOf(item) });
       this.changedNames.add(loop.statement.variable);
       frame.index = 0;
       return true;
@@ -296,12 +341,99 @@ export class Interpreter {
     loop.current += loop.step;
     const keepGoing = loop.step > 0 ? loop.current <= loop.limit : loop.current >= loop.limit;
     if (keepGoing) {
-      this.variables.set(loop.statement.variable, { value: loop.current, kind: 'number' });
+      this.currentScope().set(loop.statement.variable, { value: loop.current, kind: 'number' });
       this.changedNames.add(loop.statement.variable);
       frame.index = 0;
       return true;
     }
     return false;
+  }
+
+  /**
+   * Finds every function in the program, at any depth.
+   *
+   * Nested declarations are walked too. Nothing stops a student putting a
+   * function inside an `if`, and refusing to see it would make the block
+   * silently dead rather than explain anything.
+   */
+  private collectFunctions(statements: Statement[]): void {
+    for (const statement of statements) {
+      if (statement.kind === 'function') {
+        if (statement.name) this.functions.set(statement.name, statement);
+        this.collectFunctions(statement.body);
+        continue;
+      }
+      if (statement.kind === 'if') {
+        this.collectFunctions(statement.then);
+        for (const arm of statement.elseIfs ?? []) this.collectFunctions(arm.body);
+        if (statement.otherwise) this.collectFunctions(statement.otherwise);
+        continue;
+      }
+      const nested = (statement as { body?: Statement[] }).body;
+      if (nested) this.collectFunctions(nested);
+    }
+  }
+
+  /** The scope a name lives in, innermost first, or null when it is unknown. */
+  private scopeOf(name: string): Map<string, { value: RuntimeValue; kind: ValueKind }> | null {
+    for (let i = this.scopes.length - 1; i >= 0; i -= 1) {
+      if (this.scopes[i].has(name)) return this.scopes[i];
+    }
+    return this.variables.has(name) ? this.variables : null;
+  }
+
+  /** Where a new name goes: the innermost scope, which is global at the top. */
+  private currentScope(): Map<string, { value: RuntimeValue; kind: ValueKind }> {
+    return this.scopes[this.scopes.length - 1] ?? this.variables;
+  }
+
+  /**
+   * Binds arguments to parameters and pushes the call's frame and scope.
+   *
+   * Arguments are evaluated in the *caller's* scope before the new one is
+   * pushed, which is the only order that makes `sumar(a, b)` mean what it
+   * looks like it means.
+   */
+  private pushCall(fn: Extract<Statement, { kind: 'function' }>, args: Expression[]): void {
+    if (this.scopes.length >= MAX_CALL_DEPTH) {
+      throw new ProgramError('errors.tooDeep', { limit: MAX_CALL_DEPTH });
+    }
+    const values = args.map((arg) => this.evaluate(arg));
+    const scope = new Map<string, { value: RuntimeValue; kind: ValueKind }>();
+    fn.params.forEach((param, index) => {
+      if (!param) return;
+      const value = values[index] ?? '';
+      scope.set(param, { value, kind: this.kindOf(value) });
+    });
+    this.scopes.push(scope);
+    this.stack.push({ statements: fn.body, index: 0, call: { name: fn.name } });
+  }
+
+  /**
+   * Runs a function to completion and hands back what it returned.
+   *
+   * Used where a call appears inside an expression, which cannot pause
+   * half-way through evaluating a tree. Stepping into a call is what the
+   * statement form is for; this is the "step over" every debugger offers.
+   */
+  private callForValue(name: string, args: Expression[]): RuntimeValue {
+    const fn = this.functions.get(name);
+    if (!fn) throw new ProgramError('errors.unknownFunction', { name });
+
+    const depth = this.stack.length;
+    this.pushCall(fn, args);
+    this.returned = undefined;
+
+    let guard = 0;
+    while (this.stack.length > depth) {
+      if (guard++ > MAX_STEPS) {
+        throw new ProgramError('errors.infiniteLoop', { limit: MAX_STEPS });
+      }
+      this.advance();
+    }
+    const value = this.returned;
+    this.returned = undefined;
+    return value ?? '';
   }
 
   private advance(): void {
@@ -323,15 +455,43 @@ export class Interpreter {
       case 'comment':
         return;
 
+      /* Declaring a function does nothing when reached: they were all
+         collected before the first step, so the block is a definition the
+         program steps over. */
+      case 'function':
+        return;
+
+      case 'call': {
+        const fn = this.functions.get(statement.name);
+        if (!fn) throw new ProgramError('errors.unknownFunction', { name: statement.name });
+        this.pushCall(fn, statement.args);
+        return;
+      }
+
+      case 'return': {
+        this.returned = statement.value ? this.evaluate(statement.value) : undefined;
+        /* Leaves every frame up to and including the call's own — a return
+           inside a loop inside a function has to leave all of them. */
+        while (this.stack.length > 0) {
+          const frame = this.stack.pop();
+          if (frame?.call) {
+            this.scopes.pop();
+            break;
+          }
+        }
+        return;
+      }
+
       case 'declare': {
         const value = this.evaluate(statement.value);
-        this.variables.set(statement.name, { value, kind: statement.valueKind });
+        this.currentScope().set(statement.name, { value, kind: statement.valueKind });
         this.changedNames.add(statement.name);
         return;
       }
 
       case 'assign': {
-        const entry = this.variables.get(statement.name);
+        const scope = this.scopeOf(statement.name);
+        const entry = scope?.get(statement.name);
         if (!entry) {
           throw new ProgramError('errors.undefinedVariable', { name: statement.name });
         }
@@ -349,12 +509,12 @@ export class Interpreter {
           const at = this.indexOf(statement.index, entry.value.length);
           const next = [...entry.value];
           next[at] = value;
-          this.variables.set(statement.name, { value: next, kind: 'list' });
+          (this.scopeOf(statement.name) ?? this.currentScope()).set(statement.name, { value: next, kind: 'list' });
           this.changedNames.add(statement.name);
           return;
         }
 
-        this.variables.set(statement.name, { value, kind: this.kindOf(value) });
+        (this.scopeOf(statement.name) ?? this.currentScope()).set(statement.name, { value, kind: this.kindOf(value) });
         this.changedNames.add(statement.name);
         return;
       }
@@ -431,7 +591,7 @@ export class Interpreter {
         if (step === 0) throw new ProgramError('errors.zeroStep');
 
         const shouldRun = step > 0 ? from <= to : from >= to;
-        this.variables.set(statement.variable, { value: from, kind: 'number' });
+        this.currentScope().set(statement.variable, { value: from, kind: 'number' });
         this.changedNames.add(statement.variable);
         if (!shouldRun || statement.body.length === 0) return;
 
@@ -450,7 +610,7 @@ export class Interpreter {
         const items = [...list];
         if (items.length === 0 || statement.body.length === 0) return;
 
-        this.variables.set(statement.variable, {
+        this.currentScope().set(statement.variable, {
           value: items[0],
           kind: this.kindOf(items[0]),
         });
@@ -464,14 +624,14 @@ export class Interpreter {
       }
 
       case 'listOp': {
-        const entry = this.variables.get(statement.name);
+        const entry = this.scopeOf(statement.name)?.get(statement.name);
         if (!entry) throw new ProgramError('errors.undefinedVariable', { name: statement.name });
         if (!Array.isArray(entry.value)) throw new ProgramError('errors.notAList');
 
         // A copy for the same reason as an indexed write: the UI's snapshots
         // hold these values, and mutating in place rewrites the run's history.
         const items = [...entry.value];
-        this.variables.set(statement.name, {
+        (this.scopeOf(statement.name) ?? this.currentScope()).set(statement.name, {
           value: this.applyListOp(statement, items),
           kind: 'list',
         });
@@ -544,7 +704,7 @@ export class Interpreter {
 
     try {
       const value = this.coerce(raw, pending.statement.expect);
-      this.variables.set(pending.statement.target, { value, kind: pending.statement.expect });
+      (this.scopeOf(pending.statement.target) ?? this.currentScope()).set(pending.statement.target, { value, kind: pending.statement.expect });
       this.changedNames.add(pending.statement.target);
       this.output.push({
         id: nextOutputId(),
@@ -613,13 +773,22 @@ export class Interpreter {
         return this.evaluate(expression.inner);
 
       case 'variable': {
-        const entry = this.variables.get(expression.name);
+        /* Innermost scope first: a parameter has to shadow a global of the
+           same name, or calling `promedio(notas)` from a program that also
+           has a `notas` would read the wrong one. */
+        const entry = this.scopeOf(expression.name)?.get(expression.name);
         if (!entry) throw new ProgramError('errors.undefinedVariable', { name: expression.name });
         return entry.value;
       }
 
       case 'list':
         return expression.items.map((item) => this.evaluate(item));
+
+      /* A call inside an expression runs to completion here: the evaluator
+         walks a tree and cannot pause in the middle of one. Stepping into a
+         call is what the statement form is for. */
+      case 'call':
+        return this.callForValue(expression.name, expression.args);
 
       case 'length': {
         const list = this.evaluate(expression.list);

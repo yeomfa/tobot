@@ -50,6 +50,14 @@
   --hue-list-soft: #fdeaf3;
   --hue-list-border: #f7bcd8;
 
+  /* Functions. Chosen the same way lists were — by measuring, not by eye. At
+     96° it sits 64° from its nearest neighbour, which is more room than any
+     other free angle had; emerald would have landed 33° from success and read
+     as the same colour at the size an icon is drawn. */
+  --hue-function: #4d7c0f;
+  --hue-function-soft: #eef7e0;
+  --hue-function-border: #c5e39a;
+
   --accent: #e8873a;
   --accent-strong: #d4722a;
   --accent-soft: #fdefe2;
@@ -191,6 +199,10 @@
   --hue-conditional: #fbbf5a;
   --hue-conditional-soft: rgba(217, 119, 6, 0.18);
   --hue-conditional-border: rgba(251, 191, 36, 0.32);
+
+  --hue-function: #a3d55e;
+  --hue-function-soft: rgba(77, 124, 15, 0.20);
+  --hue-function-border: rgba(132, 187, 58, 0.34);
 
   --hue-list: #f9a8d4;
   --hue-list-soft: rgba(219, 39, 119, 0.18);

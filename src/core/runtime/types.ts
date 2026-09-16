@@ -63,6 +63,15 @@ export interface ExecutionState {
  * iterations. Both limits report `errors.infiniteLoop` rather than hanging.
  */
 export const MAX_STEPS = 5000;
+
+/**
+ * How deep calls may nest before the program is stopped.
+ *
+ * Recursion with no base case is among the first things a student writes by
+ * accident, and the honest failure is a message naming the limit rather than
+ * a frozen tab.
+ */
+export const MAX_CALL_DEPTH = 64;
 export const MAX_LOOP_ITERATIONS = 1000;
 
 /**

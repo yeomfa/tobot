@@ -1,5 +1,8 @@
 import type {
   ForEachItemStatement,
+  FunctionStatement,
+  ReturnStatement,
+  CallStatement,
   ListOpStatement,
   AskStatement,
   CommentStatement,
@@ -175,6 +178,21 @@ export function createStatement(
         times: literal(3, 'number'),
         body: [],
       } satisfies RepeatStatement;
+    /* A function starts with one parameter rather than none: the empty case
+       is reachable by removing it, and a signature with nowhere to type is a
+       dead end of the kind an empty list of items used to be. */
+    case 'function':
+      return {
+        id,
+        kind: 'function',
+        name: suggestedName,
+        params: [''],
+        body: [],
+      } satisfies FunctionStatement;
+    case 'return':
+      return { id, kind: 'return', value: literal(0, 'number') } satisfies ReturnStatement;
+    case 'call':
+      return { id, kind: 'call', name: suggestedName, args: [] } satisfies CallStatement;
     case 'forEach':
       return {
         id,

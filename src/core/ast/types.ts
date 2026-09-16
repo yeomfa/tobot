@@ -30,7 +30,23 @@ export type Expression =
   | GroupExpression
   | ListExpression
   | IndexExpression
-  | LengthExpression;
+  | LengthExpression
+  | CallExpression;
+
+/**
+ * Calling a function for the value it gives back.
+ *
+ * The same call exists as a statement, for a function called to *do*
+ * something rather than to produce something. Two nodes rather than one
+ * because the two sit in different places — a statement list and an
+ * expression tree — and every walk over the AST treats those separately.
+ */
+export interface CallExpression {
+  kind: 'call';
+  /** The function's name, resolved when the program runs. */
+  name: string;
+  args: Expression[];
+}
 
 export interface LiteralExpression {
   kind: 'literal';
@@ -140,7 +156,10 @@ export type Statement =
   | RepeatStatement
   | ForEachStatement
   | ListOpStatement
-  | ForEachItemStatement;
+  | ForEachItemStatement
+  | FunctionStatement
+  | ReturnStatement
+  | CallStatement;
 
 interface StatementBase {
   id: NodeId;
@@ -294,6 +313,48 @@ export interface ForEachStatement extends StatementBase {
   body: Statement[];
 }
 
+/**
+ * Declaring a function: a name, what it takes, and what it does.
+ *
+ * Parameters are names only. Typing them would mean choosing a type before
+ * the student has a value in mind, and Tobot infers what it needs from what
+ * is actually passed — the same bargain the rest of the language makes.
+ *
+ * `isAsync` marks a function whose work continues while the program moves
+ * on. Tobot's clock is its own — the interpreter holds no timers and reads
+ * no real time — so an asynchronous call is scheduled rather than awaited,
+ * and everything about it lives in the interpreter's state. That is what
+ * keeps stepping backwards honest: a pending task is part of the snapshot
+ * like everything else.
+ */
+export interface FunctionStatement extends StatementBase {
+  kind: 'function';
+  name: string;
+  /** Parameter names, bound to the arguments when the function runs. */
+  params: string[];
+  body: Statement[];
+  /** Runs alongside the program rather than blocking it. */
+  isAsync?: boolean;
+}
+
+/**
+ * Handing a value back to whoever called.
+ *
+ * The value is optional: a function that only does something still needs a
+ * way to stop early, and `devolver` with nothing is how that is said.
+ */
+export interface ReturnStatement extends StatementBase {
+  kind: 'return';
+  value?: Expression;
+}
+
+/** Calling a function as an instruction, ignoring whatever it returns. */
+export interface CallStatement extends StatementBase {
+  kind: 'call';
+  name: string;
+  args: Expression[];
+}
+
 export interface Algorithm {
   id: string;
   name: string;
@@ -304,6 +365,7 @@ export interface Algorithm {
 
 /** Statement kinds that own child statement lists. */
 export type BlockStatement =
+  | FunctionStatement
   | IfStatement
   | WhileStatement
   | RepeatStatement
@@ -312,6 +374,7 @@ export type BlockStatement =
 
 export function isBlockStatement(statement: Statement): statement is BlockStatement {
   return (
+    statement.kind === 'function' ||
     statement.kind === 'if' ||
     statement.kind === 'while' ||
     statement.kind === 'repeat' ||

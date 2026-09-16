@@ -11,7 +11,20 @@ import type { NodeId, Statement } from '../ast/types';
  * their decision diamond without any iterative force simulation.
  */
 
-export type ShapeKind = 'terminal' | 'process' | 'decision' | 'io' | 'note';
+/**
+ * `subprocess` is the double-sided rectangle: a step defined elsewhere.
+ *
+ * It is the notation a call gets in every textbook, and it is what keeps a
+ * diagram readable — the main flow says *what* happens, and the function's own
+ * diagram says how.
+ */
+export type ShapeKind =
+  | 'terminal'
+  | 'process'
+  | 'decision'
+  | 'io'
+  | 'note'
+  | 'subprocess';
 
 export interface FlowNode {
   id: string;

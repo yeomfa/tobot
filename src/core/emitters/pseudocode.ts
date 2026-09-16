@@ -42,6 +42,12 @@ export interface Keywords {
   descending: string;
   reverse: string;
   length: string;
+  /** A function's header, its close, and the two ways it is used. */
+  function: string;
+  endFunction: string;
+  returns: string;
+  call: string;
+  async: string;
   start: string;
   end: string;
   and: string;
@@ -87,6 +93,11 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     to: 'HASTA',
     step: 'CON PASO',
     endFor: 'FIN PARA',
+    function: 'FUNCIÓN',
+    endFunction: 'FIN FUNCIÓN',
+    returns: 'DEVOLVER',
+    call: 'LLAMAR',
+    async: 'ASÍNCRONA',
     start: 'INICIO',
     end: 'FIN',
     and: 'Y',
@@ -130,6 +141,11 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     step: 'STEP',
     endFor: 'END FOR',
     start: 'START',
+    function: 'FUNCTION',
+    endFunction: 'END FUNCTION',
+    returns: 'RETURN',
+    call: 'CALL',
+    async: 'ASYNCHRONOUS',
     end: 'END',
     and: 'AND',
     or: 'OR',
@@ -160,6 +176,10 @@ function operatorText(operator: BinaryOperator, keywords: Keywords): string {
 }
 
 export function expressionToPseudocode(expression: Expression, keywords: Keywords): string {
+  if (expression.kind === 'call') {
+    const args = expression.args.map((arg) => expressionToPseudocode(arg, keywords)).join(', ');
+    return `${expression.name || '?'}(${args})`;
+  }
   switch (expression.kind) {
     case 'literal':
       if (expression.valueKind === 'text') return `"${String(expression.value)}"`;
@@ -253,6 +273,29 @@ function emitStatement(statement: Statement, indent: number, kw: Keywords): Emit
         line(`${kw.forEach} ${statement.variable} ${kw.in} ${expr(statement.list)} ${kw.do}`),
         ...emitStatements(statement.body, indent + 1, kw),
         line(kw.endForEach),
+      ];
+
+    case 'function': {
+      const params = statement.params.filter(Boolean).join(', ');
+      /* The marker goes after the header rather than before the keyword, so
+         every function still starts with the same word and the eye finds
+         them down the left edge. */
+      const marker = statement.isAsync ? ` (${kw.async})` : '';
+      return [
+        line(`${kw.function} ${statement.name || '?'}(${params})${marker}`),
+        ...emitStatements(statement.body, indent + 1, kw),
+        line(kw.endFunction),
+      ];
+    }
+
+    case 'return':
+      return [line(statement.value ? `${kw.returns} ${expr(statement.value)}` : kw.returns)];
+
+    case 'call':
+      return [
+        line(
+          `${kw.call} ${statement.name || '?'}(${statement.args.map((arg) => expr(arg)).join(', ')})`,
+        ),
       ];
 
     case 'say':

@@ -6,6 +6,11 @@ function quote(text: string): string {
   return JSON.stringify(text);
 }
 
+/** `nombre(a, b)` — shared by the call statement and the call expression. */
+function callToJs(name: string, args: Expression[]): string {
+  return `${name || 'sinNombre'}(${args.map((arg) => expressionToJs(arg)).join(', ')})`;
+}
+
 export function expressionToJs(expression: Expression): string {
   switch (expression.kind) {
     case 'literal':
@@ -25,6 +30,8 @@ export function expressionToJs(expression: Expression): string {
       return `${expressionToJs(expression.list)}[${expressionToJs(expression.index)}]`;
     case 'length':
       return `${expressionToJs(expression.list)}.length`;
+    case 'call':
+      return callToJs(expression.name, expression.args);
     case 'binary': {
       const left = expressionToJs(expression.left);
       const right = expressionToJs(expression.right);
@@ -154,6 +161,23 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
       ];
       return lines;
     }
+
+    case 'function': {
+      /* `async` only where the student asked for it, so an ordinary function
+         reads exactly like the one they will write in class. */
+      const keyword = statement.isAsync ? 'async function' : 'function';
+      return [
+        line(`${keyword} ${statement.name || 'sinNombre'}(${statement.params.filter(Boolean).join(', ')}) {`),
+        ...emitStatements(statement.body, indent + 1, scope),
+        closing('}'),
+      ];
+    }
+
+    case 'return':
+      return [line(statement.value ? `return ${expressionToJs(statement.value)};` : 'return;')];
+
+    case 'call':
+      return [line(`${callToJs(statement.name, statement.args)};`)];
 
     case 'listOp': {
       const { name, operation } = statement;

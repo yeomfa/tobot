@@ -36,6 +36,12 @@ function concatOperand(expression: Expression, variables: VariableKinds): string
   return `str(${expression.kind === 'group' ? expressionToPython(expression.inner, variables) : text})`;
 }
 
+/** `nombre(a, b)` — shared by the call statement and the call expression. */
+function callToPython(name: string, args: Expression[], variables: VariableKinds): string {
+  const rendered = args.map((arg) => expressionToPython(arg, variables)).join(', ');
+  return `${name || 'sin_nombre'}(${rendered})`;
+}
+
 function expressionToPython(expression: Expression, variables: VariableKinds): string {
   switch (expression.kind) {
     case 'literal':
@@ -52,6 +58,8 @@ function expressionToPython(expression: Expression, variables: VariableKinds): s
       return `${expressionToPython(expression.list, variables)}[${expressionToPython(expression.index, variables)}]`;
     case 'length':
       return `len(${expressionToPython(expression.list, variables)})`;
+    case 'call':
+      return callToPython(expression.name, expression.args, variables);
     case 'unary': {
       const operand = expressionToPython(expression.operand, variables);
       const wrapped = expression.operand.kind === 'binary' ? `(${operand})` : operand;
@@ -150,6 +158,23 @@ function emitStatement(statement: Statement, indent: number, variables: Variable
         line(`for ${statement.variable} in ${expr(statement.list)}:`),
         ...emitStatements(statement.body, indent + 1, variables),
       ];
+
+    case 'function': {
+      const keyword = statement.isAsync ? 'async def' : 'def';
+      const params = statement.params.filter(Boolean).join(', ');
+      return [
+        line(`${keyword} ${statement.name || 'sin_nombre'}(${params}):`),
+        /* `emitStatements` already writes `pass` for an empty body, which is
+           what keeps an unfinished function valid Python. */
+        ...emitStatements(statement.body, indent + 1, variables),
+      ];
+    }
+
+    case 'return':
+      return [line(statement.value ? `return ${expr(statement.value)}` : 'return')];
+
+    case 'call':
+      return [line(callToPython(statement.name, statement.args, variables))];
 
     case 'listOp': {
       const { name } = statement;

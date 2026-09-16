@@ -1,4 +1,7 @@
 import {
+  FunctionIcon as Function_,
+  ArrowUUpLeftIcon as ArrowUUpLeft,
+  ArrowRightIcon as ArrowRight,
   ListBulletsIcon as ListBullets,
   ListPlusIcon as ListPlus,
   ArrowsClockwiseIcon as ArrowsClockwise,
@@ -18,7 +21,14 @@ import type { Icon } from '@phosphor-icons/react';
 
 import type { Statement, ValueKind } from '../core/ast/types';
 
-export type Category = 'variables' | 'io' | 'conditionals' | 'loops' | 'lists' | 'notes';
+export type Category =
+  | 'variables'
+  | 'io'
+  | 'conditionals'
+  | 'loops'
+  | 'lists'
+  | 'functions'
+  | 'notes';
 
 export type StatementKind = Statement['kind'];
 
@@ -42,6 +52,12 @@ export const statementCategory: Record<StatementKind, Category> = {
      colour is what tells a student that before they read the block. */
   listOp: 'lists',
   forEachItem: 'lists',
+  /* Their own category, by the same reasoning lists got one: naming a piece of
+     work and reusing it is a new idea, not another way to write a statement,
+     and the colour says so before the block is read. */
+  function: 'functions',
+  return: 'functions',
+  call: 'functions',
 };
 
 /** Order shown in the palette, grouped by category. */
@@ -51,6 +67,7 @@ export const paletteGroups: Array<{ category: Category; kinds: StatementKind[] }
   { category: 'conditionals', kinds: ['if'] },
   { category: 'loops', kinds: ['repeat', 'forEach', 'while'] },
   { category: 'lists', kinds: ['listOp', 'forEachItem'] },
+  { category: 'functions', kinds: ['function', 'call', 'return'] },
   { category: 'notes', kinds: ['comment'] },
 ];
 
@@ -73,6 +90,12 @@ export const statementIcon: Record<StatementKind, Icon> = {
   forEach: ListNumbers,
   listOp: ListBullets,
   forEachItem: ListPlus,
+  function: Function_,
+  /* The call points forwards into the function; the return points back out of
+     it. Read together they say where control goes, which is the one thing
+     about functions that a diagram usually has to explain. */
+  call: ArrowRight,
+  return: ArrowUUpLeft,
 };
 
 /**
@@ -101,5 +124,6 @@ export const categoryIcon: Record<Category, Icon> = {
   conditionals: ArrowsSplit,
   loops: ArrowsClockwise,
   lists: ListBullets,
+  functions: Function_,
   notes: NoteBlank,
 };

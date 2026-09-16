@@ -33,6 +33,23 @@ export function createFlowLabels(dictionary: Dictionary, locale: Language): Flow
           : statement.name;
         return { text: truncate(`${target} ← ${expr(statement.value)}`), shape: 'process' };
       }
+      /* A function definition is not a step of the program: it is reached by
+         being called, and it gets its own diagram. The main flow shows it as
+         a note so the block is accounted for rather than silently absent. */
+      case 'function':
+        return { text: truncate(`${kw.function} ${statement.name || '?'}`), shape: 'note' };
+
+      case 'call': {
+        const args = statement.args.map((arg) => expr(arg)).join(', ');
+        return { text: truncate(`${statement.name || '?'}(${args})`), shape: 'subprocess' };
+      }
+
+      case 'return':
+        return {
+          text: truncate(statement.value ? `${kw.returns} ${expr(statement.value)}` : kw.returns),
+          shape: 'terminal',
+        };
+
       case 'listOp': {
         /* A list operation changes something the program holds, so it takes
            the process shape like any other assignment — it is not a decision

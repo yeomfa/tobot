@@ -118,7 +118,11 @@ export const StatementBlock = memo(function StatementBlock({
     at a list at all.
   */
   const currentName =
-    statement.kind === 'declare' || statement.kind === 'assign' || statement.kind === 'listOp'
+    statement.kind === 'declare' ||
+    statement.kind === 'assign' ||
+    statement.kind === 'listOp' ||
+    statement.kind === 'function' ||
+    statement.kind === 'call'
       ? statement.name
       : statement.kind === 'ask'
         ? statement.target
@@ -155,7 +159,11 @@ export const StatementBlock = memo(function StatementBlock({
     }
 
     callbacks.update(statement.id, (current) =>
-      current.kind === 'declare' || current.kind === 'assign' || current.kind === 'listOp'
+      current.kind === 'declare' ||
+      current.kind === 'assign' ||
+      current.kind === 'listOp' ||
+      current.kind === 'function' ||
+      current.kind === 'call'
         ? { ...current, name }
         : current.kind === 'ask'
           ? { ...current, target: name }
@@ -443,7 +451,8 @@ export const StatementBlock = memo(function StatementBlock({
       {(statement.kind === 'while' ||
         statement.kind === 'repeat' ||
         statement.kind === 'forEach' ||
-        statement.kind === 'forEachItem') && (
+        statement.kind === 'forEachItem' ||
+        statement.kind === 'function') && (
         <div className="statement-block__branches">
           <Branch
             label={d.editor.do}
@@ -456,7 +465,15 @@ export const StatementBlock = memo(function StatementBlock({
             variables={
               statement.kind === 'forEach' || statement.kind === 'forEachItem'
                 ? [statement.variable, ...variables.filter((n) => n !== statement.variable)]
-                : variables
+                : statement.kind === 'function'
+                  ? /* Parameters lead inside the body: they are what the
+                       function was given, and the only names that exist here
+                       and nowhere else. */
+                    [
+                      ...statement.params.filter(Boolean),
+                      ...variables.filter((n) => !statement.params.includes(n)),
+                    ]
+                  : variables
             }
             problems={problems}
             callbacks={callbacks}
@@ -873,6 +890,112 @@ function StatementBody({
         </>
       );
     }
+
+    case 'function':
+      return (
+        <>
+          <Keyword>{d.verbs.function}</Keyword>
+          {nameField}
+          <Keyword muted>{d.fields.needs}</Keyword>
+          {/*
+            Parameters as a row of small fields rather than one comma-separated
+            box. A student typing "a, b" into a single field has to know the
+            comma is structure and not part of a name, which is exactly the
+            kind of syntax Tobot exists to remove.
+          */}
+          {statement.params.map((param, index) => (
+            <span className="statement-block__param" key={index}>
+              <input
+                className="statement-block__name"
+                value={param}
+                placeholder={d.fields.name}
+                onChange={(event) =>
+                  callbacks.update(statement.id, (current) =>
+                    current.kind === 'function'
+                      ? {
+                          ...current,
+                          params: current.params.map((p, i) =>
+                            i === index ? sanitizeName(event.target.value, p) : p,
+                          ),
+                        }
+                      : current,
+                  )
+                }
+              />
+              {statement.params.length > 1 && (
+                <button
+                  type="button"
+                  className="statement-block__param-remove"
+                  title={d.fields.removeParam}
+                  aria-label={d.fields.removeParam}
+                  onClick={() =>
+                    callbacks.update(statement.id, (current) =>
+                      current.kind === 'function'
+                        ? { ...current, params: current.params.filter((_, i) => i !== index) }
+                        : current,
+                    )
+                  }
+                >
+                  ×
+                </button>
+              )}
+            </span>
+          ))}
+          <button
+            type="button"
+            className="statement-block__param-add"
+            onClick={() =>
+              callbacks.update(statement.id, (current) =>
+                current.kind === 'function'
+                  ? { ...current, params: [...current.params, ''] }
+                  : current,
+              )
+            }
+          >
+            + {d.fields.addParam}
+          </button>
+        </>
+      );
+
+    case 'return':
+      return (
+        <>
+          <Keyword>{d.verbs.return}</Keyword>
+          {statement.value && (
+            <ExpressionEditor
+              value={statement.value}
+              onChange={(value) =>
+                callbacks.update(statement.id, (current) =>
+                  current.kind === 'return' ? { ...current, value } : current,
+                )
+              }
+              variables={variables}
+            />
+          )}
+        </>
+      );
+
+    case 'call':
+      return (
+        <>
+          <Keyword>{d.verbs.call}</Keyword>
+          {nameField}
+          {statement.args.map((arg, index) => (
+            <ExpressionEditor
+              key={index}
+              value={arg}
+              onChange={(next) =>
+                callbacks.update(statement.id, (current) =>
+                  current.kind === 'call'
+                    ? { ...current, args: current.args.map((a, i) => (i === index ? next : a)) }
+                    : current,
+                )
+              }
+              variables={variables}
+            />
+          ))}
+        </>
+      );
 
     case 'forEachItem':
       return (
