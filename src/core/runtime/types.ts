@@ -72,6 +72,14 @@ export const MAX_STEPS = 5000;
  * a frozen tab.
  */
 export const MAX_CALL_DEPTH = 64;
+
+/**
+ * How many asynchronous calls may be in flight at once.
+ *
+ * A loop that starts a task each time round would otherwise grow the list
+ * without bound, and every one of them costs a step of every step.
+ */
+export const MAX_TASKS = 32;
 export const MAX_LOOP_ITERATIONS = 1000;
 
 /**

@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { NodeId, Statement } from '../core/ast/types';
 import { createFlowLabels } from '../core/flowchart/labels';
-import { layoutFlowchart } from '../core/flowchart/layout';
+import { layoutProgramStacked } from '../core/flowchart/layout';
 import type { FlowEdge, FlowNode } from '../core/flowchart/layout';
 import { useTranslation } from '../i18n/context';
 import './Flowchart.css';
@@ -53,8 +53,11 @@ export const Flowchart = memo(function Flowchart({
   /** `true` while the zoom is being kept in sync with the canvas size. */
   const [autoFit, setAutoFit] = useState(true);
 
+  /* The program and each of its functions, stacked into one drawing: a
+     function starts when it is called, so showing it inline in the main flow
+     would say something false about when it runs. */
   const layout = useMemo(
-    () => layoutFlowchart(program, createFlowLabels(d, language)),
+    () => layoutProgramStacked(program, createFlowLabels(d, language)),
     [program, d, language],
   );
 

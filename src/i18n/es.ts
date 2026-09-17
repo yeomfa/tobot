@@ -258,6 +258,11 @@ export const es = {
     invalidName: '«{name}» no sirve como nombre: empieza con una letra y usa solo letras, números y _.',
     reservedName: '«{name}» es una palabra reservada del lenguaje. Elige otro nombre.',
     duplicateName: 'Ya existe una variable «{name}». Al crearla de nuevo pierdes el valor anterior.',
+    noFunctionChosen: 'Falta elegir qué función llamar.',
+    wrongArgumentCount: '«{name}» necesita {expected} dato(s) y le estás pasando {got}.',
+    emptyParam: 'Uno de los datos de esta función no tiene nombre.',
+    emptyFunction: 'Esta función no hace nada todavía. Agrega instrucciones dentro.',
+    returnOutsideFunction: '«Devolver» solo tiene sentido dentro de una función.',
     kindMismatch:
       'El tipo de «{name}» no coincide con lo que guarda. El valor funciona igual, pero el tipo dice otra cosa.',
     retypeLostContent:
@@ -518,6 +523,8 @@ export const es = {
     unknownFunction: 'No existe ninguna función llamada «{name}». Revisa el nombre o créala.',
     tooDeep:
       'Las llamadas se anidaron {limit} veces y se detuvo. Si una función se llama a sí misma, necesita un caso que la detenga.',
+    tooManyTasks:
+      'Hay demasiadas tareas en marcha a la vez ({limit}). Revisa si un ciclo está lanzando una en cada vuelta.',
     divisionByZero: 'No se puede dividir entre cero.',
     notAList: 'Esto no es una lista. Solo puedes usar estas instrucciones con una lista.',
     listNotANumber: 'No puedes hacer cuentas con una lista entera. ¿Querías un elemento, o cuántos tiene?',

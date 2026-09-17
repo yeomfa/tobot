@@ -1239,3 +1239,36 @@ body[data-marquee] .drop-zone {
   margin-right: 2px;
   vertical-align: -1px;
 }
+
+/*
+  The asynchronous marker on a function.
+
+  A toggle rather than a menu entry: it is a property of the function the way
+  a type is a property of a variable, and both belong beside the thing they
+  describe. Quiet when off, because waiting is what a call normally means and
+  only the exception needs announcing.
+*/
+.statement-block__async {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 620;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-full);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.statement-block__async:hover {
+  color: var(--hue-function);
+  border-color: var(--hue-function-border);
+}
+
+.statement-block__async[data-on] {
+  color: var(--hue-function);
+  background: var(--hue-function-soft);
+  border-style: solid;
+  border-color: var(--hue-function-border);
+}

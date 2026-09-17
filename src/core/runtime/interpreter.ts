@@ -2,6 +2,7 @@ import type { Expression, LiteralKind, Statement, ValueKind } from '../ast/types
 import {
   displayValue,
   MAX_CALL_DEPTH,
+  MAX_TASKS,
   MAX_LOOP_ITERATIONS,
   MAX_STEPS,
   type ExecutionState,
@@ -21,11 +22,41 @@ import {
  */
 
 /** Everything that makes up a moment in the run, for stepping backwards. */
+/**
+ * Work started by an asynchronous call, carrying on beside the program.
+ *
+ * Its own stack and scopes, because it is its own thread of control: sharing
+ * the program's would mean the caller's next statement and the task's next
+ * statement fighting over the same frame.
+ *
+ * Tobot's clock is measured in steps, not milliseconds — the interpreter
+ * holds no timers and reads no real time — so one step of the program is one
+ * step of every pending task. That is what makes an asynchronous run
+ * reproducible, and reproducible is what lets stepping backwards work at all.
+ */
+interface Task {
+  id: number;
+  name: string;
+  /**
+   * True until the step that started it has finished.
+   *
+   * Starting a task *is* the work of that step, so letting it also take a
+   * step of its own in the same breath made it overtake the caller — the
+   * statement after the call came second, which is the opposite of what an
+   * asynchronous call means.
+   */
+  justStarted?: boolean;
+  stack: Frame[];
+  scopes: Map<string, { value: RuntimeValue; kind: ValueKind }>[];
+}
+
 interface Snapshot {
   stack: Frame[];
   variables: Map<string, { value: RuntimeValue; kind: ValueKind }>;
   /** Every scope but the global one, innermost last. */
   scopes: Map<string, { value: RuntimeValue; kind: ValueKind }>[];
+  /** Work still in flight, so stepping back restores what was running. */
+  tasks: Task[];
   output: OutputEntry[];
   status: ExecutionState['status'];
   error: RuntimeError | null;
@@ -120,6 +151,10 @@ export class Interpreter {
   /** Where a `devolver` leaves its value for the call that is waiting. */
   private returned: RuntimeValue | undefined;
 
+  /** Asynchronous calls still running. */
+  private tasks: Task[] = [];
+  private nextTaskId = 1;
+
   /**
    * One snapshot per completed step, so stepping backwards is possible.
    *
@@ -142,6 +177,8 @@ export class Interpreter {
     this.collectFunctions(this.program);
     this.scopes = [];
     this.returned = undefined;
+    this.tasks = [];
+    this.nextTaskId = 1;
     this.variables.clear();
     this.output = [];
     this.changedNames.clear();
@@ -160,6 +197,11 @@ export class Interpreter {
       /* Scopes are part of the moment like everything else, so stepping back
          into a call restores the call's own variables with it. */
       scopes: this.scopes.map((scope) => new Map(scope)),
+      tasks: this.tasks.map((task) => ({
+        ...task,
+        stack: task.stack.map((frame) => ({ ...frame, loop: frame.loop ? { ...frame.loop } : undefined })),
+        scopes: task.scopes.map((scope) => new Map(scope)),
+      })),
       output: [...this.output],
       status: this.status,
       error: this.error,
@@ -187,6 +229,7 @@ export class Interpreter {
     this.stack = previous.stack;
     this.variables = previous.variables;
     this.scopes = previous.scopes;
+    this.tasks = previous.tasks;
     this.output = previous.output;
     this.status = previous.status;
     this.error = previous.error;
@@ -252,8 +295,14 @@ export class Interpreter {
 
     try {
       this.advance();
+      /* Tasks move with the program, one step each: Tobot's clock is counted
+         in steps, so this is what "meanwhile" means here. */
+      this.advanceTasks();
       this.stepCount += 1;
-      if (this.stack.length === 0) this.status = 'finished';
+      /* Work still in flight keeps the program alive. Ending while a task had
+         statements left would drop them silently, which is the one thing an
+         asynchronous call must not do. */
+      if (this.stack.length === 0 && this.tasks.length === 0) this.status = 'finished';
       else if (this.status === 'running' && !this.pendingAsk) {
         // Stay in `running`; the driver decides whether to continue.
       }
@@ -439,6 +488,76 @@ export class Interpreter {
     return value ?? '';
   }
 
+  /**
+   * Starts an asynchronous call as work of its own.
+   *
+   * Arguments are evaluated here, in the caller's scope and at the moment of
+   * the call — the same rule a plain call follows. Waiting until the task
+   * first runs would read them a step later, when the caller may have changed
+   * them.
+   */
+  private startTask(fn: Extract<Statement, { kind: 'function' }>, args: Expression[]): void {
+    if (this.tasks.length >= MAX_TASKS) {
+      throw new ProgramError('errors.tooManyTasks', { limit: MAX_TASKS });
+    }
+    const values = args.map((arg) => this.evaluate(arg));
+    const scope = new Map<string, { value: RuntimeValue; kind: ValueKind }>();
+    fn.params.forEach((param, index) => {
+      if (!param.name) return;
+      scope.set(param.name, { value: values[index] ?? '', kind: param.type });
+    });
+    this.tasks.push({
+      id: this.nextTaskId++,
+      name: fn.name,
+      justStarted: true,
+      stack: [{ statements: fn.body, index: 0, call: { name: fn.name } }],
+      scopes: [scope],
+    });
+  }
+
+  /**
+   * One step of every task in flight, after the program's own step.
+   *
+   * Round-robin rather than running each to completion: the point of an
+   * asynchronous call is that it overlaps, and finishing them one at a time
+   * would make the order of two tasks depend on which was started first
+   * rather than on how much work each has left.
+   *
+   * A task borrows the interpreter's stack and scopes while it runs, since
+   * every `execute` below reaches for those by name. Swapping them back is
+   * what keeps the program's own position untouched.
+   */
+  private advanceTasks(): void {
+    if (this.tasks.length === 0) return;
+
+    const ownStack = this.stack;
+    const ownScopes = this.scopes;
+    const finished: number[] = [];
+
+    for (const task of this.tasks) {
+      /* Started this very step: it begins on the next one. */
+      if (task.justStarted) {
+        task.justStarted = false;
+        continue;
+      }
+      this.stack = task.stack;
+      this.scopes = task.scopes;
+      try {
+        this.advance();
+      } finally {
+        task.stack = this.stack;
+        task.scopes = this.scopes;
+      }
+      if (task.stack.length === 0) finished.push(task.id);
+    }
+
+    this.stack = ownStack;
+    this.scopes = ownScopes;
+    if (finished.length > 0) {
+      this.tasks = this.tasks.filter((task) => !finished.includes(task.id));
+    }
+  }
+
   private advance(): void {
     this.unwind();
     if (this.stack.length === 0) return;
@@ -467,7 +586,14 @@ export class Interpreter {
       case 'call': {
         const fn = this.functions.get(statement.name);
         if (!fn) throw new ProgramError('errors.unknownFunction', { name: statement.name });
-        this.pushCall(fn, statement.args);
+        /*
+          An asynchronous call starts work and moves on; a plain one is the
+          program going somewhere and coming back. The difference is entirely
+          in who owns the next step, which is why one pushes onto this stack
+          and the other gets a stack of its own.
+        */
+        if (fn.isAsync) this.startTask(fn, statement.args);
+        else this.pushCall(fn, statement.args);
         return;
       }
 

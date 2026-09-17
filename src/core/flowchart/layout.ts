@@ -476,3 +476,115 @@ export function layoutFlowchart(input: Statement[], labels: FlowLabels): FlowLay
     height: cursorY + TERMINAL_HEIGHT + padding,
   };
 }
+
+/**
+ * One diagram per function, plus the program itself.
+ *
+ * A function is a second entry point: it starts when it is called and ends
+ * when it returns, so drawing it inline in the main flow says something
+ * false about when it runs. Textbook notation gives each its own chart and
+ * shows the call as a subprocess box, which is what this produces.
+ *
+ * Definitions are lifted out of the main body rather than left in it. A
+ * `función` block is not a step the program takes — reaching it does nothing
+ * — and leaving it in the sequence draws a box for an event that never
+ * happens.
+ */
+export interface ProgramLayout {
+  /** The main program, with function definitions removed. */
+  main: FlowLayout;
+  /** One per function, in the order they are written. */
+  functions: { name: string; params: string[]; layout: FlowLayout }[];
+}
+
+export function layoutProgram(program: Statement[], labels: FlowLabels): ProgramLayout {
+  const found: Extract<Statement, { kind: 'function' }>[] = [];
+
+  /* Lifted at every depth: a function declared inside an `if` is still
+     callable, so it still needs its own diagram. What is left behind is the
+     statement list with the definitions removed. */
+  const lift = (statements: Statement[]): Statement[] =>
+    statements.flatMap((statement) => {
+      if (statement.kind === 'function') {
+        found.push(statement);
+        return [];
+      }
+      if (statement.kind === 'if') {
+        return [
+          {
+            ...statement,
+            then: lift(statement.then),
+            elseIfs: statement.elseIfs?.map((arm) => ({ ...arm, body: lift(arm.body) })),
+            otherwise: statement.otherwise ? lift(statement.otherwise) : statement.otherwise,
+          },
+        ];
+      }
+      const nested = (statement as { body?: Statement[] }).body;
+      if (nested) return [{ ...statement, body: lift(nested) } as Statement];
+      return [statement];
+    });
+
+  const mainBody = lift(program);
+
+  return {
+    main: layoutFlowchart(mainBody, labels),
+    functions: found.map((fn) => ({
+      name: fn.name,
+      params: fn.params.map((param) => param.name),
+      layout: layoutFlowchart(fn.body, labels),
+    })),
+  };
+}
+
+/**
+ * The program and its functions as one drawing, stacked.
+ *
+ * Composed into a single layout rather than handed over as several: the panel
+ * zooms, pans and exports one SVG, and every one of those would have to learn
+ * about a list of diagrams to do the same job. Shifting the coordinates keeps
+ * that machinery untouched and puts the arrangement where it can be tested.
+ *
+ * Each function is introduced by a caption naming it and what it takes, so a
+ * reader can tell which chart answers which call.
+ */
+export function layoutProgramStacked(program: Statement[], labels: FlowLabels): FlowLayout {
+  const parts = layoutProgram(program, labels);
+  const CAPTION_HEIGHT = 44;
+  const SECTION_GAP = 56;
+
+  const nodes: FlowNode[] = [...parts.main.nodes];
+  const edges: FlowEdge[] = [...parts.main.edges];
+  let width = parts.main.width;
+  let offsetY = parts.main.height;
+
+  for (const fn of parts.functions) {
+    offsetY += SECTION_GAP;
+
+    /* The caption is a node so it moves, scales and exports with everything
+       else; `nodeId` stays null because it is not a step to click on. */
+    nodes.push({
+      id: `caption_${fn.name || 'anon'}_${offsetY}`,
+      nodeId: null,
+      shape: 'note',
+      text: `${fn.name || '?'}(${fn.params.filter(Boolean).join(', ')})`,
+      x: 24,
+      y: offsetY,
+      width: Math.max(180, fn.layout.width - 48),
+      height: CAPTION_HEIGHT - 12,
+    });
+    offsetY += CAPTION_HEIGHT;
+
+    for (const node of fn.layout.nodes) nodes.push({ ...node, y: node.y + offsetY });
+    for (const edge of fn.layout.edges) {
+      edges.push({
+        ...edge,
+        points: edge.points.map((point) => ({ ...point, y: point.y + offsetY })),
+      });
+    }
+
+    width = Math.max(width, fn.layout.width);
+    offsetY += fn.layout.height;
+  }
+
+  return { nodes, edges, width, height: offsetY };
+}

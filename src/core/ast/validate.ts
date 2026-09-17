@@ -118,6 +118,47 @@ function referencedNames(expression: Expression, into: Set<string>): void {
     case 'length':
       referencedNames(expression.list, into);
       return;
+    /* The arguments of a call are ordinary expressions, and without this a
+       name used only there was invisible to every check — `doble(fantasma)`
+       raised nothing until it ran. The same silent `default` that hid groups
+       and lists before it. */
+    case 'call':
+      for (const arg of expression.args) referencedNames(arg, into);
+      return;
+    default:
+  }
+}
+
+/** Every function called anywhere in an expression, with its argument count. */
+function calledFunctions(
+  expression: Expression,
+  into: { name: string; count: number }[],
+): void {
+  switch (expression.kind) {
+    case 'call':
+      into.push({ name: expression.name, count: expression.args.length });
+      for (const arg of expression.args) calledFunctions(arg, into);
+      return;
+    case 'binary':
+      calledFunctions(expression.left, into);
+      calledFunctions(expression.right, into);
+      return;
+    case 'unary':
+      calledFunctions(expression.operand, into);
+      return;
+    case 'group':
+      calledFunctions(expression.inner, into);
+      return;
+    case 'list':
+      for (const item of expression.items) calledFunctions(item, into);
+      return;
+    case 'index':
+      calledFunctions(expression.list, into);
+      calledFunctions(expression.index, into);
+      return;
+    case 'length':
+      calledFunctions(expression.list, into);
+      return;
     default:
   }
 }
@@ -157,7 +198,59 @@ export function validate(program: Statement[]): Problem[] {
   /** Names declared so far, in execution order. */
   const declared = new Set<string>();
 
+  /*
+    Every function in the program, collected before anything is checked.
+
+    Order does not apply here the way it does to variables: the interpreter
+    gathers functions up front, so calling one written further down is not a
+    mistake — it is how a program reads, main steps first.
+  */
+  const functions = new Map<string, number>();
+  const collect = (list: Statement[]): void => {
+    for (const statement of list) {
+      if (statement.kind === 'function') {
+        if (statement.name) functions.set(statement.name, statement.params.length);
+        collect(statement.body);
+        continue;
+      }
+      if (statement.kind === 'if') {
+        collect(statement.then);
+        for (const arm of statement.elseIfs ?? []) collect(arm.body);
+        if (statement.otherwise) collect(statement.otherwise);
+        continue;
+      }
+      const nested = (statement as { body?: Statement[] }).body;
+      if (nested) collect(nested);
+    }
+  };
+  collect(program);
+
+  /** Checks one call, wherever it appears. */
+  const checkCall = (name: string, count: number, nodeId: NodeId): void => {
+    if (name === '') {
+      problems.push({ nodeId, severity: 'error', messageKey: 'noFunctionChosen' });
+      return;
+    }
+    if (!functions.has(name)) {
+      problems.push({ nodeId, severity: 'error', messageKey: 'unknownFunction', vars: { name } });
+      return;
+    }
+    const expected = functions.get(name) ?? 0;
+    if (expected !== count) {
+      problems.push({
+        nodeId,
+        severity: 'error',
+        messageKey: 'wrongArgumentCount',
+        vars: { name, expected, got: count },
+      });
+    }
+  };
+
   const checkExpression = (expression: Expression, nodeId: NodeId): void => {
+    const calls: { name: string; count: number }[] = [];
+    calledFunctions(expression, calls);
+    for (const call of calls) checkCall(call.name, call.count, nodeId);
+
     const names = new Set<string>();
     referencedNames(expression, names);
     for (const name of names) {
@@ -191,6 +284,10 @@ export function validate(program: Statement[]): Problem[] {
       problems.push({ nodeId, severity: 'warning', messageKey: 'duplicateName', vars: { name } });
     }
   };
+
+  /* Whether the walk is currently inside a function, so a stray `devolver`
+     can be told from one that has something to return to. */
+  let insideFunction = 0;
 
   const walk = (statements: Statement[]): void => {
     for (const statement of statements) {
@@ -295,6 +392,57 @@ export function validate(program: Statement[]): Problem[] {
             problems.push({ nodeId: statement.id, severity: 'warning', messageKey: 'emptyLoop' });
           }
           walk(statement.body);
+          break;
+
+        /*
+          A function's body is checked with its parameters in scope and
+          without the caller's variables: a name that happens to exist outside
+          is not in scope inside, and pretending otherwise would hide exactly
+          the mistake a scope exists to prevent.
+        */
+        case 'function': {
+          checkName(statement.name, statement.id, false);
+          const outer = new Set(declared);
+          declared.clear();
+          for (const param of statement.params) {
+            if (param.name === '') {
+              problems.push({ nodeId: statement.id, severity: 'error', messageKey: 'emptyParam' });
+              continue;
+            }
+            declared.add(param.name);
+          }
+          insideFunction += 1;
+          walk(statement.body);
+          insideFunction -= 1;
+          declared.clear();
+          for (const name of outer) declared.add(name);
+          if (statement.body.length === 0) {
+            problems.push({
+              nodeId: statement.id,
+              severity: 'warning',
+              messageKey: 'emptyFunction',
+            });
+          }
+          break;
+        }
+
+        case 'call':
+          for (const arg of statement.args) checkExpression(arg, statement.id);
+          checkCall(statement.name, statement.args.length, statement.id);
+          break;
+
+        case 'return':
+          if (statement.value) checkExpression(statement.value, statement.id);
+          /* Outside a function there is nothing to return to: the interpreter
+             unwinds to nowhere and the program simply stops, which looks like
+             the block did nothing at all. */
+          if (insideFunction === 0) {
+            problems.push({
+              nodeId: statement.id,
+              severity: 'error',
+              messageKey: 'returnOutsideFunction',
+            });
+          }
           break;
 
         case 'forEach': {

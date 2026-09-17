@@ -992,6 +992,25 @@ function StatementBody({
               )}
             </span>
           ))}
+          {/* Asynchronous is a property of the function, so it sits with the
+              signature rather than in a menu — and it is off unless asked
+              for, because "wait for this" is what a call normally means. */}
+          <button
+            type="button"
+            className="statement-block__async"
+            data-on={statement.isAsync || undefined}
+            title={d.fields.asyncHint}
+            aria-pressed={statement.isAsync ?? false}
+            onClick={() =>
+              callbacks.update(statement.id, (current) =>
+                current.kind === 'function'
+                  ? { ...current, isAsync: !current.isAsync }
+                  : current,
+              )
+            }
+          >
+            {d.fields.async}
+          </button>
           <button
             type="button"
             className="statement-block__param-add"

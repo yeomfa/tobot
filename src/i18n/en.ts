@@ -246,6 +246,11 @@ export const en: Dictionary = {
     invalidName: '"{name}" will not work as a name: start with a letter and use only letters, numbers and _.',
     reservedName: '"{name}" is a reserved word in the language. Pick another name.',
     duplicateName: 'A variable "{name}" already exists. Creating it again discards the previous value.',
+    noFunctionChosen: 'Pick which function to call.',
+    wrongArgumentCount: '"{name}" needs {expected} input(s) and you are passing {got}.',
+    emptyParam: "One of this function's inputs has no name.",
+    emptyFunction: 'This function does nothing yet. Add statements inside it.',
+    returnOutsideFunction: '"Return" only means something inside a function.',
     kindMismatch:
       'The type of "{name}" does not match what it holds. The value still works, but the type says otherwise.',
     retypeLostContent:
@@ -498,6 +503,8 @@ export const en: Dictionary = {
     unknownFunction: 'There is no function called "{name}". Check the name, or create it.',
     tooDeep:
       'Calls nested {limit} deep and stopped. A function that calls itself needs a case that ends it.',
+    tooManyTasks:
+      'Too many tasks are running at once ({limit}). Check whether a loop is starting one each time round.',
     divisionByZero: 'Cannot divide by zero.',
     notAList: 'This is not a list. These instructions only work with a list.',
     listNotANumber: 'You cannot do arithmetic with a whole list. Did you mean one item, or how many it has?',
