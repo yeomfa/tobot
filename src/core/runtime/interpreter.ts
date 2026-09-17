@@ -401,9 +401,12 @@ export class Interpreter {
     const values = args.map((arg) => this.evaluate(arg));
     const scope = new Map<string, { value: RuntimeValue; kind: ValueKind }>();
     fn.params.forEach((param, index) => {
-      if (!param) return;
+      if (!param.name) return;
       const value = values[index] ?? '';
-      scope.set(param, { value, kind: this.kindOf(value) });
+      /* The declared type is what the parameter promises; the value carries
+         whatever it carries, and the panel shows the declaration so the two
+         can be compared rather than silently reconciled. */
+      scope.set(param.name, { value, kind: param.type });
     });
     this.scopes.push(scope);
     this.stack.push({ statements: fn.body, index: 0, call: { name: fn.name } });

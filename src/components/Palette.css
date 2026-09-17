@@ -127,6 +127,24 @@
   --group-border: var(--hue-loop-border);
 }
 
+/* `lists` and `notes` had no rule at all, so both fell back to the default
+   grey — the list category has been drawing colourless since it was added. */
+.palette__group[data-category='lists'] {
+  --group-hue: var(--hue-list);
+  --group-soft: var(--hue-list-soft);
+  --group-border: var(--hue-list-border);
+}
+
+.palette__group[data-category='notes'] {
+  --group-hue: var(--slate-500);
+}
+
+.palette__group[data-category='functions'] {
+  --group-hue: var(--hue-function);
+  --group-soft: var(--hue-function-soft);
+  --group-border: var(--hue-function-border);
+}
+
 .palette__group-title {
   display: flex;
   align-items: center;

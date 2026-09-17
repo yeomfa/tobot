@@ -327,11 +327,26 @@ export interface ForEachStatement extends StatementBase {
  * keeps stepping backwards honest: a pending task is part of the snapshot
  * like everything else.
  */
+/**
+ * One input a function takes: a name, and what kind of value it expects.
+ *
+ * The type is declared rather than inferred. Tobot leaves types out wherever
+ * the value itself says what it is, but a parameter has no value until it is
+ * called — so there is nothing to infer from, and the caller has nothing
+ * telling them what to pass. Saying it is also where the idea of a type
+ * earns its keep: this is the first place a student meets one as a promise
+ * about something that has not happened yet.
+ */
+export interface Param {
+  name: string;
+  type: ValueKind;
+}
+
 export interface FunctionStatement extends StatementBase {
   kind: 'function';
   name: string;
-  /** Parameter names, bound to the arguments when the function runs. */
-  params: string[];
+  /** What the function takes, bound to the arguments when it runs. */
+  params: Param[];
   body: Statement[];
   /** Runs alongside the program rather than blocking it. */
   isAsync?: boolean;

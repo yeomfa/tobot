@@ -5,15 +5,23 @@ import {
   SortAscendingIcon as SortAscending,
   SortDescendingIcon as SortDescending,
   DotsSixVerticalIcon as DotsSixVertical,
+  FunctionIcon as FunctionGlyph,
+  PlusIcon as Plus,
   TrashIcon as Trash,
   WarningIcon as Warning,
   WarningCircleIcon as WarningCircle,
 } from '@phosphor-icons/react';
 import { memo, useState } from 'react';
 
-import { createId, createStatement, literal, retypeDeclarationDeep } from '../core/ast/factory';
+import {
+  createId,
+  createStatement,
+  emptyValue,
+  literal,
+  retypeDeclarationDeep,
+} from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
-import type { NodeId, Statement, ValueKind } from '../core/ast/types';
+import type { NodeId, Param, Statement, ValueKind } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
@@ -65,6 +73,12 @@ export interface BlockCallbacks {
 interface StatementBlockProps {
   statement: Statement;
   variables: string[];
+  /**
+   * Functions in the program, so a call can offer them rather than ask for
+   * the name to be spelled. The same reasoning as `cambiar`: a typed name
+   * only ever works if it is typed exactly, and a typo failed silently.
+   */
+  functions: FunctionInfo[];
   /** Static-check results, keyed by statement id. */
   problems: Map<NodeId, Problem[]>;
   callbacks: BlockCallbacks;
@@ -83,9 +97,16 @@ function sanitizeName(raw: string, fallback: string): string {
   return /^[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed) ? trimmed : fallback;
 }
 
+/** A function a call can point at, with what it needs. */
+export interface FunctionInfo {
+  name: string;
+  params: Param[];
+}
+
 export const StatementBlock = memo(function StatementBlock({
   statement,
   variables,
+  functions,
   problems,
   callbacks,
   isActive,
@@ -258,6 +279,7 @@ export const StatementBlock = memo(function StatementBlock({
         <div className="statement-block__content">
           <StatementBody
             statement={statement}
+            functions={functions}
             variables={variables}
             callbacks={callbacks}
             currentName={currentName}
@@ -314,6 +336,7 @@ export const StatementBlock = memo(function StatementBlock({
         <div className="statement-block__branches">
           <Branch
             label={d.editor.then}
+            functions={functions}
             statements={statement.then}
             parentId={statement.id}
             slot="then"
@@ -373,6 +396,7 @@ export const StatementBlock = memo(function StatementBlock({
               </div>
               <Branch
                 label={d.editor.then}
+                functions={functions}
                 statements={arm.body}
                 /* The arm is the parent: it has an id of its own, so blocks
                    drop into it like any other body. */
@@ -391,6 +415,7 @@ export const StatementBlock = memo(function StatementBlock({
           {statement.otherwise ? (
             <Branch
               label={d.editor.otherwise}
+              functions={functions}
               statements={statement.otherwise}
               parentId={statement.id}
               slot="otherwise"
@@ -456,6 +481,7 @@ export const StatementBlock = memo(function StatementBlock({
         <div className="statement-block__branches">
           <Branch
             label={d.editor.do}
+            functions={functions}
             statements={statement.body}
             parentId={statement.id}
             slot="body"
@@ -469,10 +495,10 @@ export const StatementBlock = memo(function StatementBlock({
                   ? /* Parameters lead inside the body: they are what the
                        function was given, and the only names that exist here
                        and nowhere else. */
-                    [
-                      ...statement.params.filter(Boolean),
-                      ...variables.filter((n) => !statement.params.includes(n)),
-                    ]
+                    (() => {
+                      const names = statement.params.map((param) => param.name).filter(Boolean);
+                      return [...names, ...variables.filter((n) => !names.includes(n))];
+                    })()
                   : variables
             }
             problems={problems}
@@ -488,6 +514,8 @@ export const StatementBlock = memo(function StatementBlock({
 });
 
 interface StatementBodyProps {
+  /** Functions a call can point at. */
+  functions: FunctionInfo[];
   statement: Statement;
   variables: string[];
   callbacks: BlockCallbacks;
@@ -499,6 +527,7 @@ interface StatementBodyProps {
 function StatementBody({
   statement,
   variables,
+  functions,
   callbacks,
   currentName,
   setName,
@@ -907,7 +936,7 @@ function StatementBody({
             <span className="statement-block__param" key={index}>
               <input
                 className="statement-block__name"
-                value={param}
+                value={param.name}
                 placeholder={d.fields.name}
                 onChange={(event) =>
                   callbacks.update(statement.id, (current) =>
@@ -915,8 +944,27 @@ function StatementBody({
                       ? {
                           ...current,
                           params: current.params.map((p, i) =>
-                            i === index ? sanitizeName(event.target.value, p) : p,
+                            i === index
+                              ? { ...p, name: sanitizeName(event.target.value, p.name) }
+                              : p,
                           ),
+                        }
+                      : current,
+                  )
+                }
+              />
+              {/* A parameter is the one place a type has to be declared: there
+                  is no value yet to infer it from, and the caller needs to
+                  know what to pass. */}
+              <TypeSelect
+                allowList
+                value={param.type}
+                onChange={(type) =>
+                  callbacks.update(statement.id, (current) =>
+                    current.kind === 'function'
+                      ? {
+                          ...current,
+                          params: current.params.map((p, i) => (i === index ? { ...p, type } : p)),
                         }
                       : current,
                   )
@@ -936,7 +984,10 @@ function StatementBody({
                     )
                   }
                 >
-                  ×
+                  {/* The same icon every other "remove this" carries. A bare
+                      × was a text character where the rest of the interface
+                      draws an icon, and read as a different kind of thing. */}
+                  <Trash weight="bold" aria-hidden="true" />
                 </button>
               )}
             </span>
@@ -947,12 +998,13 @@ function StatementBody({
             onClick={() =>
               callbacks.update(statement.id, (current) =>
                 current.kind === 'function'
-                  ? { ...current, params: [...current.params, ''] }
+                  ? { ...current, params: [...current.params, { name: '', type: 'number' }] }
                   : current,
               )
             }
           >
-            + {d.fields.addParam}
+            <Plus weight="bold" aria-hidden="true" />
+            {d.fields.addParam}
           </button>
         </>
       );
@@ -975,27 +1027,84 @@ function StatementBody({
         </>
       );
 
-    case 'call':
+    case 'call': {
+      /* Chosen rather than typed, for the same reason `cambiar` is: a name
+         that has to be spelled exactly is a name that fails silently when it
+         is not, and the program already knows which functions exist. */
+      const target = functions.find((fn) => fn.name === statement.name);
       return (
         <>
           <Keyword>{d.verbs.call}</Keyword>
-          {nameField}
-          {statement.args.map((arg, index) => (
-            <ExpressionEditor
-              key={index}
-              value={arg}
-              onChange={(next) =>
+          {functions.length > 0 ? (
+            <FunctionPicker
+              value={statement.name}
+              functions={functions}
+              onChange={(name) => {
+                const picked = functions.find((fn) => fn.name === name);
                 callbacks.update(statement.id, (current) =>
                   current.kind === 'call'
-                    ? { ...current, args: current.args.map((a, i) => (i === index ? next : a)) }
+                    ? {
+                        ...current,
+                        name,
+                        /* Arguments follow the signature: one slot per
+                           parameter, each starting as the kind that parameter
+                           asked for, so the fields are already the right sort
+                           of field. */
+                        args: (picked?.params ?? []).map(
+                          (param, index) =>
+                            current.args[index] ??
+                            (param.type === 'list'
+                              ? { kind: 'list' as const, items: [] }
+                              : emptyValue(param.type as 'number' | 'text' | 'boolean')),
+                        ),
+                      }
                     : current,
-                )
-              }
-              variables={variables}
+                );
+              }}
             />
+          ) : (
+            <span className="statement-block__hint">{d.fields.noFunctions}</span>
+          )}
+          {target?.params.map((param, index) => (
+            <span className="statement-block__arg" key={index}>
+              {/* Named, so three arguments are not three anonymous boxes. */}
+              <span className="statement-block__arg-label">{param.name || '?'}</span>
+              <ExpressionEditor
+                value={
+                  statement.args[index] ??
+                  (param.type === 'list'
+                    ? { kind: 'list', items: [] }
+                    : emptyValue(param.type as 'number' | 'text' | 'boolean'))
+                }
+                onChange={(next) =>
+                  callbacks.update(statement.id, (current) =>
+                    current.kind === 'call'
+                      ? {
+                          ...current,
+                          args: Array.from(
+                            { length: target.params.length },
+                            (_, i) =>
+                              i === index
+                                ? next
+                                : (current.args[i] ??
+                                  (target.params[i].type === 'list'
+                                    ? { kind: 'list' as const, items: [] }
+                                    : emptyValue(
+                                        target.params[i].type as 'number' | 'text' | 'boolean',
+                                      ))),
+                          ),
+                        }
+                      : current,
+                  )
+                }
+                variables={variables}
+                expect={param.type === 'list' ? 'any' : param.type}
+              />
+            </span>
           ))}
         </>
       );
+    }
 
     case 'forEachItem':
       return (
@@ -1015,6 +1124,49 @@ function StatementBody({
         </>
       );
   }
+}
+
+/**
+ * Choosing which function a call points at.
+ *
+ * The same bargain as `VariablePicker`: a name that must be spelled exactly
+ * is a name that fails quietly when it is not, and the program already knows
+ * which functions exist. Picking one also brings its signature, which is what
+ * lets the call lay out a field per parameter.
+ */
+function FunctionPicker({
+  value,
+  functions,
+  onChange,
+}: {
+  value: string;
+  functions: FunctionInfo[];
+  onChange: (name: string) => void;
+}) {
+  const { d } = useTranslation();
+  /* A call left pointing at a function that has since been renamed or
+     deleted. Shown as itself rather than blanked, so the student can see what
+     it was looking for. */
+  const dangling = value !== '' && !functions.some((fn) => fn.name === value);
+
+  return (
+    <Picker
+      value={value}
+      groups={[
+        {
+          options: [
+            ...(dangling ? [{ value, label: value, icon: Warning, danger: true }] : []),
+            ...functions
+              .filter((fn) => fn.name)
+              .map((fn) => ({ value: fn.name, label: fn.name, icon: FunctionGlyph })),
+          ],
+        },
+      ]}
+      onChange={onChange}
+      label={d.verbs.call}
+      variant="reference"
+    />
+  );
 }
 
 function Keyword({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
@@ -1096,6 +1248,7 @@ function TypeSelect({
 interface BranchProps {
   label: string;
   statements: Statement[];
+  functions: FunctionInfo[];
   parentId: NodeId;
   slot: 'then' | 'otherwise' | 'body';
   variables: string[];
@@ -1111,6 +1264,7 @@ interface BranchProps {
 function Branch({
   label,
   statements,
+  functions,
   parentId,
   slot,
   variables,
@@ -1151,6 +1305,7 @@ function Branch({
             <StatementBlock
               statement={child}
               variables={variables}
+              functions={functions}
               problems={problems}
               callbacks={callbacks}
               isActive={child.id === activeNodeId}

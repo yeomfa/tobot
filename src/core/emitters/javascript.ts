@@ -167,7 +167,7 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
          reads exactly like the one they will write in class. */
       const keyword = statement.isAsync ? 'async function' : 'function';
       return [
-        line(`${keyword} ${statement.name || 'sinNombre'}(${statement.params.filter(Boolean).join(', ')}) {`),
+        line(`${keyword} ${statement.name || 'sinNombre'}(${statement.params.map((param) => param.name).filter(Boolean).join(', ')}) {`),
         ...emitStatements(statement.body, indent + 1, scope),
         closing('}'),
       ];

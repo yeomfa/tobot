@@ -321,7 +321,7 @@ function emitStatement(
         closing(phrases.endForEachItem),
       ];
     case 'function': {
-      const params = statement.params.filter(Boolean);
+      const params = statement.params.filter((param) => param.name).map((param) => param.name);
       const header = statement.isAsync ? phrases.asyncFunction : phrases.function;
       return [
         line(header(statement.name || '?', params)),

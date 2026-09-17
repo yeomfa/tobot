@@ -186,7 +186,10 @@ export function createStatement(
         id,
         kind: 'function',
         name: suggestedName,
-        params: [''],
+        /* One input to start with, typed as a number: the commonest case,
+           and changing it is one click where adding the first one from
+           nothing is a blank row with nothing to aim at. */
+        params: [{ name: '', type: 'number' }],
         body: [],
       } satisfies FunctionStatement;
     case 'return':

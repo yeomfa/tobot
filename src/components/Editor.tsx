@@ -1,6 +1,6 @@
 import { memo, useMemo, useRef } from 'react';
 
-import { collectVariables } from '../core/ast/operations';
+import { collectFunctions, collectVariables } from '../core/ast/operations';
 import { problemsByNode, validate } from '../core/ast/validate';
 import type { Problem } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
@@ -44,6 +44,9 @@ export const Editor = memo(function Editor({
 
   // Static checks re-run on every edit; the tree is small enough that this is
   // cheaper than tracking which statement changed.
+  /* Every function in the program, so a call can offer them by name. */
+  const functions = useMemo(() => collectFunctions(algorithm.body), [algorithm.body]);
+
   const problems = useMemo(() => {
     const found = problemsByNode(validate(algorithm.body));
     /* Merged in rather than pushed through `validate`, which only ever sees
@@ -102,6 +105,7 @@ export const Editor = memo(function Editor({
               <StatementBlock
                 statement={statement}
                 variables={variables}
+                functions={functions}
                 problems={problems}
                 callbacks={callbacks}
                 isActive={statement.id === activeNodeId}

@@ -161,7 +161,7 @@ function emitStatement(statement: Statement, indent: number, variables: Variable
 
     case 'function': {
       const keyword = statement.isAsync ? 'async def' : 'def';
-      const params = statement.params.filter(Boolean).join(', ');
+      const params = statement.params.map((param) => param.name).filter(Boolean).join(', ');
       return [
         line(`${keyword} ${statement.name || 'sin_nombre'}(${params}):`),
         /* `emitStatements` already writes `pass` for an empty body, which is

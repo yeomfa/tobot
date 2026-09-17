@@ -26,7 +26,15 @@ const fn = (
   name: string,
   params: string[],
   body: Statement[],
-): Statement => ({ ...createStatement('function'), name, params, body }) as Statement;
+): Statement =>
+  ({
+    ...createStatement('function'),
+    name,
+    /* The tests care about binding, not about types, so every parameter takes
+       the one kind that holds anything the tests pass. */
+    params: params.map((param) => ({ name: param, type: 'number' as const })),
+    body,
+  }) as Statement;
 
 const say = (value: Expression): Statement =>
   ({ ...createStatement('say'), value }) as Statement;

@@ -1,6 +1,6 @@
 import { createId } from './factory';
 import { isBlockStatement } from './types';
-import type { ElseIfBranch, Expression, NodeId, Statement } from './types';
+import type { ElseIfBranch, Expression, NodeId, Statement , Param } from './types';
 
 /**
  * Every block statement stores its children under one or two named slots.
@@ -299,6 +299,35 @@ export function moveStatement(
  * scope that nobody had written — every other block then offered it as a real
  * choice, because by then it was one.
  */
+/**
+ * Every function declared in the program, with what it takes.
+ *
+ * Walks into bodies: a function declared inside an `if` is still callable —
+ * the interpreter collects them the same way — and hiding it from the picker
+ * would make the block look broken rather than explain anything.
+ */
+export function collectFunctions(
+  statements: Statement[],
+  into: { name: string; params: Param[] }[] = [],
+): { name: string; params: Param[] }[] {
+  for (const statement of statements) {
+    if (statement.kind === 'function') {
+      if (statement.name) into.push({ name: statement.name, params: statement.params });
+      collectFunctions(statement.body, into);
+      continue;
+    }
+    if (statement.kind === 'if') {
+      collectFunctions(statement.then, into);
+      for (const arm of statement.elseIfs ?? []) collectFunctions(arm.body, into);
+      if (statement.otherwise) collectFunctions(statement.otherwise, into);
+      continue;
+    }
+    const nested = (statement as { body?: Statement[] }).body;
+    if (nested) collectFunctions(nested, into);
+  }
+  return into;
+}
+
 export function collectVariables(statements: Statement[]): string[] {
   const names: string[] = [];
   const add = (name: string): void => {

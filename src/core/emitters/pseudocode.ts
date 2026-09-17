@@ -48,6 +48,8 @@ export interface Keywords {
   returns: string;
   call: string;
   async: string;
+  /** Type names, for a signature that says what it takes. */
+  types: Record<'number' | 'text' | 'boolean' | 'list', string>;
   start: string;
   end: string;
   and: string;
@@ -98,6 +100,7 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     returns: 'DEVOLVER',
     call: 'LLAMAR',
     async: 'ASÍNCRONA',
+    types: { number: 'NÚMERO', text: 'TEXTO', boolean: 'LÓGICO', list: 'LISTA' },
     start: 'INICIO',
     end: 'FIN',
     and: 'Y',
@@ -146,6 +149,7 @@ export const pseudocodeKeywords: Record<Language, Keywords> = {
     returns: 'RETURN',
     call: 'CALL',
     async: 'ASYNCHRONOUS',
+    types: { number: 'NUMBER', text: 'TEXT', boolean: 'BOOLEAN', list: 'LIST' },
     end: 'END',
     and: 'AND',
     or: 'OR',
@@ -276,7 +280,13 @@ function emitStatement(statement: Statement, indent: number, kw: Keywords): Emit
       ];
 
     case 'function': {
-      const params = statement.params.filter(Boolean).join(', ');
+      /* The type goes with the name here: pseudocode is where a student reads
+         the shape of a program, and a signature that says what it takes is
+         part of that shape. */
+      const params = statement.params
+        .filter((param) => param.name)
+        .map((param) => `${param.name}: ${kw.types[param.type]}`)
+        .join(', ');
       /* The marker goes after the header rather than before the keyword, so
          every function still starts with the same word and the eye finds
          them down the left edge. */

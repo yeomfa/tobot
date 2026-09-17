@@ -394,6 +394,7 @@ export const en: Dictionary = {
     anItem: 'an item of…',
     howMany: 'how many…',
     items: 'items',
+    noFunctions: 'create a function first',
     needs: 'needs',
     addParam: 'another input',
     removeParam: 'Remove this input',

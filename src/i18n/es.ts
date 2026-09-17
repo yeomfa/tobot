@@ -414,6 +414,7 @@ export const es = {
     anItem: 'un elemento de…',
     howMany: 'cuántos tiene…',
     items: 'elementos',
+    noFunctions: 'crea una función primero',
     needs: 'necesita',
     addParam: 'otro dato',
     removeParam: 'Quitar este dato',
