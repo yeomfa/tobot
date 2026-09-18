@@ -302,3 +302,14 @@
   background: var(--hue-variable-soft);
   border-color: var(--hue-variable-border);
 }
+
+/* An option that is shown so it can be found, and disabled so it is not
+   chosen by mistake. Its hint carries the reason. */
+.picker__option:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.picker__option:disabled:hover {
+  background: transparent;
+}

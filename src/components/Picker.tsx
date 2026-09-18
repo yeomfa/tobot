@@ -22,6 +22,15 @@ export interface PickerOption<T extends string> {
    * action, not a state the caret could be showing.
    */
   danger?: boolean;
+  /**
+   * Shown but not choosable, with its `hint` saying why.
+   *
+   * Absent is worse than unavailable: a student who goes looking for an option
+   * and finds nothing learns nothing, while one who finds it greyed out with a
+   * reason learns what the option needs. The same bargain the canvas menu
+   * makes with grouping.
+   */
+  disabled?: boolean;
 }
 
 export interface PickerGroup<T extends string> {
@@ -205,6 +214,7 @@ export function Picker<T extends string>({
                       key={option.value}
                       type="button"
                       role="option"
+                      disabled={option.disabled}
                       aria-selected={selected}
                       className="picker__option"
                       data-selected={selected || undefined}
@@ -219,7 +229,7 @@ export function Picker<T extends string>({
                         <OptionIcon className="picker__option-icon" weight="bold" aria-hidden="true" />
                       )}
                       <span className="picker__option-label">{option.label}</span>
-                      {option.hint && !group.dense && (
+                      {(option.hint || option.disabled) && !group.dense && option.hint && (
                         <span className="picker__option-hint">{option.hint}</span>
                       )}
                       {selected && !group.dense && (

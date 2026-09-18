@@ -1,6 +1,6 @@
 import { castExpression, createId, emptyValue } from './factory';
 import { isBlockStatement } from './types';
-import type { ElseIfBranch, Expression, NodeId, Statement , Param } from './types';
+import type { ElseIfBranch, Expression, NodeId, Statement , Param, ValueKind } from './types';
 
 /**
  * Every block statement stores its children under one or two named slots.
@@ -312,7 +312,16 @@ export function collectFunctions(
 ): { name: string; params: Param[] }[] {
   for (const statement of statements) {
     if (statement.kind === 'function') {
-      if (statement.name) into.push({ name: statement.name, params: statement.params });
+      /*
+        Unnamed ones are collected too.
+
+        Filtering them out meant the option to use a function's result simply
+        did not appear until the function had a name, with nothing saying why
+        — a student who had just dropped a `función` block and gone looking
+        for the result found an empty menu. Listed, the picker can show it as
+        unavailable and name the reason.
+      */
+      into.push({ name: statement.name, params: statement.params });
       collectFunctions(statement.body, into);
       continue;
     }
@@ -872,4 +881,112 @@ export function syncCallsTo(
     });
 
   return walk(statements);
+}
+
+/** A name in scope, with what it was declared to hold. */
+export interface ScopedName {
+  name: string;
+  /** `unknown` where the declaration does not say — a loop element, say. */
+  kind: ValueKind | 'unknown';
+}
+
+/**
+ * The names visible at one statement, rather than everywhere in the program.
+ *
+ * `collectVariables` answers a different question — every name the algorithm
+ * declares anywhere — and using it as the picker's list told the student that
+ * a variable created three blocks further down was available now, and that a
+ * function could see the caller's variables. Neither is true when it runs.
+ *
+ * The rules are the ones the interpreter already follows:
+ *
+ *   - a name is visible after it is declared, not before;
+ *   - a block sees the names of the blocks it sits inside;
+ *   - a loop's counter is visible inside its own body and nowhere else;
+ *   - a function sees its parameters and what it declares, and nothing from
+ *     outside — which is what makes a parameter a parameter.
+ */
+export function namesInScopeAt(program: Statement[], targetId: NodeId): ScopedName[] {
+  const found: ScopedName[] | null = search(program, []);
+  return found ?? [];
+
+  function search(list: Statement[], outer: ScopedName[]): ScopedName[] | null {
+    /* Accumulated as the walk goes, so a statement only ever sees what came
+       before it. */
+    const visible = [...outer];
+
+    for (const statement of list) {
+      if (statement.id === targetId) return visible;
+
+      const bodies = bodiesFor(statement, visible);
+      for (const { body, scope } of bodies) {
+        const hit = search(body, scope);
+        if (hit) return hit;
+      }
+
+      declaredBy(statement).forEach((entry) => {
+        if (entry.name !== '') visible.push(entry);
+      });
+    }
+    return null;
+  }
+
+  /** What a statement adds to the scope *after* it. */
+  function declaredBy(statement: Statement): ScopedName[] {
+    switch (statement.kind) {
+      case 'declare':
+        return [{ name: statement.name, kind: statement.valueKind }];
+      case 'ask':
+        return [{ name: statement.target, kind: statement.expect }];
+      default:
+        return [];
+    }
+  }
+
+  /** The bodies a statement owns, each with the scope it runs in. */
+  function bodiesFor(
+    statement: Statement,
+    visible: ScopedName[],
+  ): { body: Statement[]; scope: ScopedName[] }[] {
+    switch (statement.kind) {
+      case 'if': {
+        const arms = [{ body: statement.then, scope: visible }];
+        for (const arm of statement.elseIfs ?? []) arms.push({ body: arm.body, scope: visible });
+        if (statement.otherwise) arms.push({ body: statement.otherwise, scope: visible });
+        return arms;
+      }
+      case 'while':
+      case 'repeat':
+        return [{ body: statement.body, scope: visible }];
+      /* The counter belongs to the loop: visible inside, gone after. */
+      case 'forEach':
+        return [
+          {
+            body: statement.body,
+            scope: [...visible, { name: statement.variable, kind: 'number' as const }],
+          },
+        ];
+      /* What a list holds is not knowable from the declaration, so the element
+         is in scope without a kind rather than with a guessed one. */
+      case 'forEachItem':
+        return [
+          {
+            body: statement.body,
+            scope: [...visible, { name: statement.variable, kind: 'unknown' as const }],
+          },
+        ];
+      /* A function starts fresh: its parameters, and nothing of the caller's. */
+      case 'function':
+        return [
+          {
+            body: statement.body,
+            scope: statement.params
+              .filter((param) => param.name !== '')
+              .map((param) => ({ name: param.name, kind: param.type })),
+          },
+        ];
+      default:
+        return [];
+    }
+  }
 }

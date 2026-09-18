@@ -1,6 +1,6 @@
-import { memo, useMemo, useRef } from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 
-import { collectFunctions, collectVariables } from '../core/ast/operations';
+import { collectFunctions, namesInScopeAt } from '../core/ast/operations';
 import { problemsByNode, validate } from '../core/ast/validate';
 import type { Problem } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
@@ -38,14 +38,24 @@ export const Editor = memo(function Editor({
   retypeLosses,
 }: EditorProps) {
   const { d } = useTranslation();
-  // Every declared name is offered wherever an expression can reference one.
-  const variables = collectVariables(algorithm.body);
   const count = algorithm.body.length;
 
   // Static checks re-run on every edit; the tree is small enough that this is
   // cheaper than tracking which statement changed.
   /* Every function in the program, so a call can offer them by name. */
   const functions = useMemo(() => collectFunctions(algorithm.body), [algorithm.body]);
+
+  /*
+    What each block can name, asked per block.
+
+    One list for the whole program told the student that a variable created
+    further down was available now, and that a function could see the caller's
+    variables — neither of which the interpreter allows.
+  */
+  const scopeOf = useCallback(
+    (nodeId: NodeId) => namesInScopeAt(algorithm.body, nodeId),
+    [algorithm.body],
+  );
 
   const problems = useMemo(() => {
     const found = problemsByNode(validate(algorithm.body));
@@ -104,7 +114,9 @@ export const Editor = memo(function Editor({
             <div key={statement.id} className="editor__item">
               <StatementBlock
                 statement={statement}
-                variables={variables}
+                /* Resolved per block rather than once for the program: what a
+                   statement can name depends on where it sits. */
+                scopeOf={scopeOf}
                 functions={functions}
                 problems={problems}
                 callbacks={callbacks}

@@ -397,6 +397,7 @@ export const en: Dictionary = {
   fields: {
     aList: 'a list',
     anItem: 'an item of…',
+    nameItFirst: 'name the function first',
     aResult: "a function's result",
     howMany: 'how many…',
     items: 'items',

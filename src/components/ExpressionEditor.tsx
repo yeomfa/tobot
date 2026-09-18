@@ -40,6 +40,15 @@ interface ExpressionEditorProps {
    * a function could return something no expression could receive.
    */
   functions?: { name: string; params: { name: string; type: ValueKind }[] }[];
+  /**
+   * Lists in scope, for the two options that read from one.
+   *
+   * They used to appear wherever any variable existed at all — a program with
+   * a single number offered "un elemento de", which can only ever point at
+   * nothing. The comment beside them said they needed a list to name; the
+   * check asked whether there was a variable.
+   */
+  lists?: string[];
   /** Restricts literal entry when the slot has a known type. */
   expect?: LiteralKind | 'any';
   /** Conditions get comparison operators; values get arithmetic. */
@@ -156,6 +165,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   onChange,
   variables,
   functions = [],
+  lists = [],
   expect = 'any',
   mode = 'value',
   placeholder,
@@ -481,7 +491,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       /* Seeded with the first function and a slot per parameter, so the value
          is usable the moment it appears rather than after two more choices. */
       case 'call': {
-        const first = functions[0];
+        const first = functions.find((fn) => fn.name) ?? functions[0];
         onChange({
           kind: 'call',
           name: first?.name ?? '',
@@ -505,15 +515,18 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       /* Both of these need a list to point at, and the variable already in
          hand is the likeliest one — asking first would mean a menu inside a
          menu for the common case. */
+      /* Seeded with a list rather than whatever variable came first: these
+         read from one, and starting them pointed at a number produced a value
+         that could never work. */
       case 'index':
         onChange({
           kind: 'index',
-          list: { kind: 'variable', name: firstName },
+          list: { kind: 'variable', name: lists[0] ?? firstName },
           index: literal(0, 'number'),
         });
         return;
       case 'length':
-        onChange({ kind: 'length', list: { kind: 'variable', name: firstName } });
+        onChange({ kind: 'length', list: { kind: 'variable', name: lists[0] ?? firstName } });
         return;
       case 'literal':
         onChange(expect === 'any' ? literal('', 'text') : emptyValue(expect));
@@ -849,6 +862,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   }
                   variables={variables}
                   functions={functions}
+                  lists={lists}
                   expect={param.type === 'list' ? 'any' : (param.type as LiteralKind)}
                   nested
                 />
@@ -1168,20 +1182,27 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               if (expect === 'any') {
                 options.push({ value: 'list' as const, label: d.fields.aList, icon: ListBullets });
               }
-              /* These read *from* a list, so they need one to name. */
-              if (canReference) {
+              /* These read *from* a list, so they need one to name — a list,
+                 not merely a variable. */
+              if (lists.length > 0) {
                 options.push(
                   { value: 'index' as const, label: d.fields.anItem, icon: ListNumbers },
                   { value: 'length' as const, label: d.fields.howMany, icon: Hash },
                 );
               }
-              /* Only where a function exists to call. Offering it with none
-                 written would produce a value pointing at nothing. */
+              /*
+                Offered as soon as a `función` block exists, even unnamed, and
+                disabled until one can actually be called. Hiding it meant the
+                student found nothing where they expected the option and had
+                no way to learn that naming the function was what was missing.
+              */
               if (functions.length > 0) {
                 options.push({
                   value: 'call' as const,
                   label: d.fields.aResult,
                   icon: FunctionGlyph,
+                  disabled: !functions.some((fn) => fn.name),
+                  hint: functions.some((fn) => fn.name) ? undefined : d.fields.nameItFirst,
                 });
               }
               return options.length

@@ -23,6 +23,7 @@ import {
 } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
 import type { Expression, NodeId, Param, Statement, ValueKind } from '../core/ast/types';
+import type { ScopedName } from '../core/ast/operations';
 import type { Problem } from '../core/ast/validate';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
@@ -75,7 +76,14 @@ export interface BlockCallbacks {
 
 interface StatementBlockProps {
   statement: Statement;
-  variables: string[];
+  /**
+   * What this block can name, asked per block.
+   *
+   * A list for the whole program said a variable created further down was
+   * available now, and that a function could see the caller's variables.
+   * Where a block sits is what decides the answer.
+   */
+  scopeOf: (nodeId: NodeId) => ScopedName[];
   /**
    * Functions in the program, so a call can offer them rather than ask for
    * the name to be spelled. The same reasoning as `cambiar`: a typed name
@@ -128,7 +136,7 @@ export interface FunctionInfo {
 
 export const StatementBlock = memo(function StatementBlock({
   statement,
-  variables,
+  scopeOf,
   functions,
   problems,
   callbacks,
@@ -139,6 +147,12 @@ export const StatementBlock = memo(function StatementBlock({
   depth,
 }: StatementBlockProps) {
   const { d, t } = useTranslation();
+  const scope = scopeOf(statement.id);
+  const variables = scope.map((entry) => entry.name);
+  /* Only a list can be indexed or measured, so the options that read *from*
+     one are offered only where there is one — they used to appear wherever any
+     variable existed at all. */
+  const lists = scope.filter((entry) => entry.kind === 'list').map((entry) => entry.name);
   const isSelected = callbacks.isSelected(statement.id);
   /* Set on pointer down, so a press inside a field does not start a drag. */
   const [draggable, setDraggable] = useState(true);
@@ -303,6 +317,7 @@ export const StatementBlock = memo(function StatementBlock({
           <StatementBody
             statement={statement}
             functions={functions}
+            lists={lists}
             variables={variables}
             callbacks={callbacks}
             currentName={currentName}
@@ -359,11 +374,11 @@ export const StatementBlock = memo(function StatementBlock({
         <div className="statement-block__branches">
           <Branch
             label={d.editor.then}
+            scopeOf={scopeOf}
             functions={functions}
             statements={statement.then}
             parentId={statement.id}
             slot="then"
-            variables={variables}
             problems={problems}
             callbacks={callbacks}
             activeNodeId={activeNodeId}
@@ -396,6 +411,7 @@ export const StatementBlock = memo(function StatementBlock({
                   }
                   variables={variables}
                   functions={functions}
+                  lists={lists}
                   mode="condition"
                   expect="boolean"
                 />
@@ -420,13 +436,13 @@ export const StatementBlock = memo(function StatementBlock({
               </div>
               <Branch
                 label={d.editor.then}
+                scopeOf={scopeOf}
                 functions={functions}
                 statements={arm.body}
                 /* The arm is the parent: it has an id of its own, so blocks
                    drop into it like any other body. */
                 parentId={arm.id}
                 slot="body"
-                variables={variables}
                 problems={problems}
                 callbacks={callbacks}
                 activeNodeId={activeNodeId}
@@ -439,11 +455,11 @@ export const StatementBlock = memo(function StatementBlock({
           {statement.otherwise ? (
             <Branch
               label={d.editor.otherwise}
+              scopeOf={scopeOf}
               functions={functions}
               statements={statement.otherwise}
               parentId={statement.id}
               slot="otherwise"
-              variables={variables}
               problems={problems}
               callbacks={callbacks}
               activeNodeId={activeNodeId}
@@ -505,26 +521,14 @@ export const StatementBlock = memo(function StatementBlock({
         <div className="statement-block__branches">
           <Branch
             label={d.editor.do}
+            scopeOf={scopeOf}
             functions={functions}
             statements={statement.body}
             parentId={statement.id}
             slot="body"
-            /* Inside a loop the counter is what a student reaches for, so it
-               leads the dropdown instead of sorting wherever it was declared —
-               usually last, under every other name in the program. */
-            variables={
-              statement.kind === 'forEach' || statement.kind === 'forEachItem'
-                ? [statement.variable, ...variables.filter((n) => n !== statement.variable)]
-                : statement.kind === 'function'
-                  ? /* Parameters lead inside the body: they are what the
-                       function was given, and the only names that exist here
-                       and nowhere else. */
-                    (() => {
-                      const names = statement.params.map((param) => param.name).filter(Boolean);
-                      return [...names, ...variables.filter((n) => !names.includes(n))];
-                    })()
-                  : variables
-            }
+            /* No adjusting here any more: the scope walk already knows a
+               loop's counter is visible inside its body and that a function
+               starts fresh, so the block simply asks per statement. */
             problems={problems}
             callbacks={callbacks}
             activeNodeId={activeNodeId}
@@ -540,6 +544,8 @@ export const StatementBlock = memo(function StatementBlock({
 interface StatementBodyProps {
   /** Functions a call can point at. */
   functions: FunctionInfo[];
+  /** Names of the lists in scope, for the options that read from one. */
+  lists: string[];
   statement: Statement;
   variables: string[];
   callbacks: BlockCallbacks;
@@ -552,6 +558,7 @@ function StatementBody({
   statement,
   variables,
   functions,
+  lists,
   callbacks,
   currentName,
   setName,
@@ -665,6 +672,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             /* A list is built rather than typed, so a declaration of that kind
                constrains nothing — the expression editor offers everything and
                the student assembles the list in place. */
@@ -724,6 +732,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             placeholder={d.fields.message}
           />
         </>
@@ -742,6 +751,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             placeholder={d.fields.question}
           />
           <Keyword muted>{d.fields.saveIn}</Keyword>
@@ -772,6 +782,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             mode="condition"
           />
         </>
@@ -790,6 +801,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             mode="condition"
           />
         </>
@@ -808,6 +820,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             expect="number"
           />
           <Keyword muted>{d.fields.times}</Keyword>
@@ -829,6 +842,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             expect="number"
           />
           <Keyword muted>{d.fields.to}</Keyword>
@@ -841,6 +855,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             expect="number"
           />
           <Keyword muted>{d.fields.step}</Keyword>
@@ -853,6 +868,7 @@ function StatementBody({
             }
             variables={variables}
             functions={functions}
+            lists={lists}
             expect="number"
           />
         </>
@@ -931,6 +947,7 @@ function StatementBody({
                 onChange={(index) => update({ index })}
                 variables={variables}
                 functions={functions}
+                lists={lists}
                 expect="number"
               />
             </>
@@ -1156,6 +1173,7 @@ function StatementBody({
                 }
                 variables={variables}
                 functions={functions}
+                lists={lists}
                 expect={param.type === 'list' ? 'any' : param.type}
               />
             </span>
@@ -1308,9 +1326,9 @@ interface BranchProps {
   label: string;
   statements: Statement[];
   functions: FunctionInfo[];
+  scopeOf: (nodeId: NodeId) => ScopedName[];
   parentId: NodeId;
   slot: 'then' | 'otherwise' | 'body';
-  variables: string[];
   problems: Map<NodeId, Problem[]>;
   callbacks: BlockCallbacks;
   activeNodeId: NodeId | null;
@@ -1324,9 +1342,9 @@ function Branch({
   label,
   statements,
   functions,
+  scopeOf,
   parentId,
   slot,
-  variables,
   problems,
   callbacks,
   activeNodeId,
@@ -1363,7 +1381,7 @@ function Branch({
           <div key={child.id} className="branch__item">
             <StatementBlock
               statement={child}
-              variables={variables}
+              scopeOf={scopeOf}
               functions={functions}
               problems={problems}
               callbacks={callbacks}
