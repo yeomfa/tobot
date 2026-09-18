@@ -9,13 +9,14 @@ import {
   insertStatements,
   renameVariable,
   renameLoopVariable,
+  syncCallsTo,
   moveStatement,
   removeStatement,
   removeStatements,
   updateStatement,
 } from '../core/ast/operations';
 import type { Location } from '../core/ast/operations';
-import type { Algorithm, NodeId, Statement } from '../core/ast/types';
+import type { Algorithm, NodeId, Param, Statement } from '../core/ast/types';
 import { createAlgorithmStore } from './storage';
 
 /** How many edits back the student can undo. */
@@ -135,6 +136,14 @@ export interface AlgorithmController {
    * the program renames unrelated variables that happen to share the name.
    */
   renameLoopVariable: (loopId: NodeId, to: string) => void;
+  /**
+   * Changes a function's parameters and brings its calls along.
+   *
+   * One edit rather than two, so undo takes back the signature and the call
+   * sites together — split, an undo would leave the program in a state the
+   * student never created.
+   */
+  setParams: (functionId: NodeId, params: Param[]) => void;
   /** Copies a statement and drops the copy directly below the original. */
   duplicate: (id: NodeId) => void;
   replaceBody: (body: Statement[]) => void;
@@ -249,6 +258,18 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
       [edit],
     ),
     remove: useCallback((id: NodeId) => edit((body) => removeStatement(body, id)), [edit]),
+    setParams: useCallback(
+      (functionId: NodeId, params: Param[]) =>
+        edit((body) => {
+          const target = findStatement(body, functionId);
+          if (!target || target.kind !== 'function') return body;
+          const updated = updateStatement(body, functionId, (statement) =>
+            statement.kind === 'function' ? { ...statement, params } : statement,
+          );
+          return syncCallsTo(updated, target.name, params);
+        }),
+      [edit],
+    ),
     renameLoopVariable: useCallback(
       (loopId: NodeId, to: string) => edit((body) => renameLoopVariable(body, loopId, to)),
       [edit],

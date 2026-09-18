@@ -14,6 +14,7 @@ import {
 import { memo, useState } from 'react';
 
 import {
+  castExpression,
   createId,
   createStatement,
   emptyValue,
@@ -21,7 +22,7 @@ import {
   retypeDeclarationDeep,
 } from '../core/ast/factory';
 import type { Location } from '../core/ast/operations';
-import type { NodeId, Param, Statement, ValueKind } from '../core/ast/types';
+import type { Expression, NodeId, Param, Statement, ValueKind } from '../core/ast/types';
 import type { Problem } from '../core/ast/validate';
 import { useTranslation } from '../i18n/context';
 import { ExpressionEditor } from './ExpressionEditor';
@@ -51,6 +52,8 @@ export interface BlockCallbacks {
    * happened to share the name — the list being walked included.
    */
   renameLoopVar: (loopId: NodeId, to: string) => void;
+  /** Changes a function's parameters, bringing its calls with them. */
+  setParams: (functionId: NodeId, params: Param[]) => void;
   /** Copies this statement, with its whole body, directly below itself. */
   duplicate: (id: NodeId) => void;
   onExplain: (conceptId: string) => void;
@@ -95,6 +98,26 @@ interface StatementBlockProps {
 function sanitizeName(raw: string, fallback: string): string {
   const trimmed = raw.trim().replace(/\s+/g, '_');
   return /^[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed) ? trimmed : fallback;
+}
+
+/**
+ * The value a call should show for one argument, given what the parameter
+ * now asks for.
+ *
+ * A literal is re-read into the parameter's kind, so changing `n` from number
+ * to text turns the `0` into `"0"` rather than leaving a number field under a
+ * text parameter. Anything built — a variable, a sum — is left alone: it
+ * carries no kind of its own to rewrite, and validation is what reports a
+ * mismatch there.
+ */
+function argumentFor(current: Expression | undefined, type: ValueKind): Expression {
+  if (type === 'list') {
+    return current && current.kind !== 'literal' ? current : { kind: 'list', items: [] };
+  }
+  const want = type as 'number' | 'text' | 'boolean';
+  if (!current) return emptyValue(want);
+  if (current.kind !== 'literal') return current;
+  return current.valueKind === want ? current : castExpression(current, want);
 }
 
 /** A function a call can point at, with what it needs. */
@@ -960,27 +983,28 @@ function StatementBody({
                 allowList
                 value={param.type}
                 onChange={(type) =>
-                  callbacks.update(statement.id, (current) =>
-                    current.kind === 'function'
-                      ? {
-                          ...current,
-                          params: current.params.map((p, i) => (i === index ? { ...p, type } : p)),
-                        }
-                      : current,
+                  callbacks.setParams(
+                    statement.id,
+                    statement.params.map((p, i) => (i === index ? { ...p, type } : p)),
                   )
                 }
               />
-              {statement.params.length > 1 && (
-                <button
+              {/*
+                Every parameter can go, including the last one. A function
+                that takes nothing is ordinary — `saludar()` is the first one
+                most students write — and keeping one back by analogy with a
+                list, whose last item cannot be removed, made the commonest
+                signature unreachable.
+              */}
+              <button
                   type="button"
                   className="statement-block__param-remove"
                   title={d.fields.removeParam}
                   aria-label={d.fields.removeParam}
                   onClick={() =>
-                    callbacks.update(statement.id, (current) =>
-                      current.kind === 'function'
-                        ? { ...current, params: current.params.filter((_, i) => i !== index) }
-                        : current,
+                    callbacks.setParams(
+                      statement.id,
+                      statement.params.filter((_, i) => i !== index),
                     )
                   }
                 >
@@ -989,7 +1013,6 @@ function StatementBody({
                       draws an icon, and read as a different kind of thing. */}
                   <Trash weight="bold" aria-hidden="true" />
                 </button>
-              )}
             </span>
           ))}
           {/* Asynchronous is a property of the function, so it sits with the
@@ -1015,11 +1038,10 @@ function StatementBody({
             type="button"
             className="statement-block__param-add"
             onClick={() =>
-              callbacks.update(statement.id, (current) =>
-                current.kind === 'function'
-                  ? { ...current, params: [...current.params, { name: '', type: 'number' }] }
-                  : current,
-              )
+              callbacks.setParams(statement.id, [
+                ...statement.params,
+                { name: '', type: 'number' },
+              ])
             }
           >
             <Plus weight="bold" aria-hidden="true" />
@@ -1089,12 +1111,14 @@ function StatementBody({
               {/* Named, so three arguments are not three anonymous boxes. */}
               <span className="statement-block__arg-label">{param.name || '?'}</span>
               <ExpressionEditor
-                value={
-                  statement.args[index] ??
-                  (param.type === 'list'
-                    ? { kind: 'list', items: [] }
-                    : emptyValue(param.type as 'number' | 'text' | 'boolean'))
-                }
+                /*
+                  Re-read against the signature every time rather than stored
+                  and forgotten. Changing a parameter's type used to leave the
+                  call holding a field of the old kind, with no way to fix it
+                  short of deleting the block and adding it again — the
+                  signature is the source of truth, so the argument follows it.
+                */
+                value={argumentFor(statement.args[index], param.type)}
                 onChange={(next) =>
                   callbacks.update(statement.id, (current) =>
                     current.kind === 'call'

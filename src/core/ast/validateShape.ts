@@ -1,5 +1,5 @@
 import { createId } from './factory';
-import type { Expression, ListOperation, LiteralKind, Statement, ValueKind } from './types';
+import type { Expression, ListOperation, LiteralKind, Param, Statement, ValueKind } from './types';
 
 /**
  * Structural validation for algorithms arriving from outside the app.
@@ -118,6 +118,14 @@ function isExpression(value: unknown, depth: number): value is Expression {
       return isExpression(value.list, depth + 1) && isExpression(value.index, depth + 1);
     case 'length':
       return isExpression(value.list, depth + 1);
+    /* A call used as a value. Without this every expression holding one was
+       refused, which took the whole statement with it. */
+    case 'call':
+      return (
+        typeof value.name === 'string' &&
+        Array.isArray(value.args) &&
+        value.args.every((arg) => isExpression(arg, depth + 1))
+      );
     default:
       return false;
   }
@@ -288,6 +296,55 @@ function sanitizeStatement(value: unknown, depth: number, budget: Budget): State
         list: value.list,
         body: sanitizeList(value.body, next, budget),
       };
+
+    /*
+      The three that came with functions, and all three were missing.
+
+      Everything loaded from storage and everything arriving on the clipboard
+      goes through this gate, so without them a function could not be copied,
+      could not be pasted, and would not survive a reload. The same shape of
+      omission as `listOp` and `forEachItem` before them — a silent `default`
+      in a walk over statement kinds, in the one place where it costs the
+      student their work.
+    */
+    case 'function': {
+      if (!isName(value.name) || !Array.isArray(value.params)) return null;
+      const params: Param[] = [];
+      for (const entry of value.params) {
+        if (!isRecord(entry) || !isName(entry.name)) return null;
+        params.push({
+          name: entry.name,
+          type: VALUE_KINDS.includes(entry.type as ValueKind)
+            ? (entry.type as ValueKind)
+            : 'number',
+        });
+      }
+      return {
+        id,
+        kind: 'function',
+        name: value.name,
+        params,
+        body: sanitizeList(value.body, next, budget),
+        ...(typeof value.isAsync === 'boolean' ? { isAsync: value.isAsync } : {}),
+      };
+    }
+
+    case 'return':
+      /* The value is optional: a function that only does something still needs
+         a way to stop early. An unreadable one is refused rather than dropped,
+         since that is a malformed tree and not an absent value. */
+      if (value.value !== undefined && !isExpression(value.value, next)) return null;
+      return {
+        id,
+        kind: 'return',
+        ...(value.value !== undefined ? { value: value.value as Expression } : {}),
+      };
+
+    case 'call': {
+      if (!isName(value.name) || !Array.isArray(value.args)) return null;
+      if (!value.args.every((arg) => isExpression(arg, next))) return null;
+      return { id, kind: 'call', name: value.name, args: value.args as Expression[] };
+    }
 
     default:
       // An unknown kind would reach a `switch` somewhere that has no case for

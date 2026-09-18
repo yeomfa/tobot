@@ -1,4 +1,4 @@
-import { createId } from './factory';
+import { castExpression, createId, emptyValue } from './factory';
 import { isBlockStatement } from './types';
 import type { ElseIfBranch, Expression, NodeId, Statement , Param } from './types';
 
@@ -722,4 +722,129 @@ function findElseIfArm(statements: Statement[], id: NodeId): ElseIfBranch | null
     if (hit) return hit;
   }
   return null;
+}
+
+/**
+ * Brings every call to `name` back in line with what the function now takes.
+ *
+ * A signature is not only a declaration: it is a promise the call sites are
+ * holding. Changing a parameter's type or removing one used to leave them
+ * holding the old shape — a text field under a number parameter, an argument
+ * for an input that no longer exists — with no way to fix it short of
+ * deleting the block and adding it again.
+ *
+ * Literals are re-read into the new kind, so what the student typed survives
+ * wherever it can. Anything built is kept as it is: it has no kind of its own
+ * to rewrite, and the static checks are what report a mismatch there.
+ */
+export function syncCallsTo(
+  statements: Statement[],
+  name: string,
+  params: Param[],
+): Statement[] {
+  if (name === '') return statements;
+
+  const fit = (args: Expression[]): Expression[] =>
+    params.map((param, index) => {
+      const current = args[index];
+      if (param.type === 'list') {
+        return current && current.kind !== 'literal' ? current : { kind: 'list', items: [] };
+      }
+      const want = param.type;
+      if (!current) return emptyValue(want);
+      if (current.kind !== 'literal') return current;
+      return current.valueKind === want ? current : castExpression(current, want);
+    });
+
+  const inExpression = (expression: Expression): Expression => {
+    switch (expression.kind) {
+      case 'call':
+        return {
+          ...expression,
+          args:
+            expression.name === name
+              ? fit(expression.args.map(inExpression))
+              : expression.args.map(inExpression),
+        };
+      case 'binary':
+        return {
+          ...expression,
+          left: inExpression(expression.left),
+          right: inExpression(expression.right),
+        };
+      case 'unary':
+        return { ...expression, operand: inExpression(expression.operand) };
+      case 'group':
+        return { ...expression, inner: inExpression(expression.inner) };
+      case 'list':
+        return { ...expression, items: expression.items.map(inExpression) };
+      case 'index':
+        return {
+          ...expression,
+          list: inExpression(expression.list),
+          index: inExpression(expression.index),
+        };
+      case 'length':
+        return { ...expression, list: inExpression(expression.list) };
+      default:
+        return expression;
+    }
+  };
+
+  const walk = (list: Statement[]): Statement[] =>
+    list.map((statement) => {
+      switch (statement.kind) {
+        case 'call':
+          return statement.name === name
+            ? { ...statement, args: fit(statement.args.map(inExpression)) }
+            : { ...statement, args: statement.args.map(inExpression) };
+        case 'declare':
+        case 'assign':
+          return { ...statement, value: inExpression(statement.value) };
+        case 'say':
+          return { ...statement, value: inExpression(statement.value) };
+        case 'return':
+          return statement.value ? { ...statement, value: inExpression(statement.value) } : statement;
+        case 'ask':
+          return { ...statement, prompt: inExpression(statement.prompt) };
+        case 'if':
+          return {
+            ...statement,
+            condition: inExpression(statement.condition),
+            then: walk(statement.then),
+            elseIfs: statement.elseIfs?.map((arm) => ({
+              ...arm,
+              condition: inExpression(arm.condition),
+              body: walk(arm.body),
+            })),
+            otherwise: statement.otherwise ? walk(statement.otherwise) : statement.otherwise,
+          };
+        case 'while':
+          return { ...statement, condition: inExpression(statement.condition), body: walk(statement.body) };
+        case 'repeat':
+          return { ...statement, times: inExpression(statement.times), body: walk(statement.body) };
+        case 'forEach':
+          return {
+            ...statement,
+            from: inExpression(statement.from),
+            to: inExpression(statement.to),
+            step: inExpression(statement.step),
+            body: walk(statement.body),
+          };
+        case 'forEachItem':
+          return { ...statement, list: inExpression(statement.list), body: walk(statement.body) };
+        case 'function':
+          return { ...statement, body: walk(statement.body) };
+        case 'listOp':
+          return {
+            ...statement,
+            value: statement.value ? inExpression(statement.value) : statement.value,
+            index: statement.index ? inExpression(statement.index) : statement.index,
+          };
+        default:
+          return statement;
+      }
+    });
+
+  return walk(statements);
 }
