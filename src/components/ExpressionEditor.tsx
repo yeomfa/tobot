@@ -126,7 +126,15 @@ const KINDS: LiteralKind[] = ['number', 'text', 'boolean'];
  * for a value or a variable, and removing — which is what makes them
  * reversible once made.
  */
-const NO_LITERAL_KIND = new Set<Expression['kind']>(['group', 'list', 'index', 'length']);
+const NO_LITERAL_KIND = new Set<Expression['kind']>([
+  'group',
+  'list',
+  'index',
+  'length',
+  /* What a function hands back is decided by its `devolver`, not by the call,
+     so there is no kind here to change. */
+  'call',
+]);
 
 
 /**
@@ -480,7 +488,11 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     value.kind === 'variable' ||
     value.kind === 'list' ||
     value.kind === 'index' ||
-    value.kind === 'length'
+    value.kind === 'length' ||
+    /* Without this a call read as a literal already, so choosing "un valor"
+       matched what it thought it was and returned without changing anything —
+       the part could be switched to a call and never switched back. */
+    value.kind === 'call'
       ? value.kind
       : 'literal';
 
@@ -561,7 +573,12 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     value.kind === 'group' ||
     value.kind === 'list' ||
     value.kind === 'index' ||
-    value.kind === 'length';
+    value.kind === 'length' ||
+    /* A call is built the same way and was stuck the same way: switched to
+       one, a part offered no menu at all, so there was no route back to a
+       plain value. Exactly what the comment above describes for the three
+       before it. */
+    value.kind === 'call';
 
   /**
    * What the parts *inside* this expression hold, which is not what the
@@ -1164,11 +1181,19 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             */
             ...(() => {
               const options = [];
+              /*
+                Typing a value needs nothing at all.
+
+                It was gated on a variable existing, alongside "una variable",
+                because the two were written as a pair. Scope made that visible:
+                a block with no names in scope — the first statement of a
+                program, or anything inside a fresh function — lost the way
+                back to a plain value, so a part switched to something else was
+                stuck as that thing.
+              */
+              options.push({ value: 'literal' as const, label: d.fields.aValue, icon: Keyboard });
               if (canReference) {
-                options.push(
-                  { value: 'literal' as const, label: d.fields.aValue, icon: Keyboard },
-                  { value: 'variable' as const, label: d.fields.aVariable, icon: Tag },
-                );
+                options.push({ value: 'variable' as const, label: d.fields.aVariable, icon: Tag });
               }
               /*
                 Only where the slot has no declared type of its own.
