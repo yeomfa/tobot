@@ -269,6 +269,24 @@
     --hue-loop-soft: rgba(124, 58, 237, 0.2);
     --hue-loop-border: rgba(167, 139, 250, 0.34);
 
+    /*
+      Lists and functions were missing from this block.
+
+      There are two dark palettes: the explicit `[data-theme='dark']` above,
+      and this one for a system set to dark — which is the default, so it is
+      the one most people actually see. A hue defined only in the first falls
+      back to its light value here, and the light "soft" fills are near-white:
+      hovering a list or a function in the palette lit up a white card on a
+      dark panel. Lists have been doing it since the day they were added.
+    */
+    --hue-list: #f9a8d4;
+    --hue-list-soft: rgba(219, 39, 119, 0.18);
+    --hue-list-border: rgba(244, 114, 182, 0.32);
+
+    --hue-function: #a3d55e;
+    --hue-function-soft: rgba(77, 124, 15, 0.20);
+    --hue-function-border: rgba(132, 187, 58, 0.34);
+
     --accent: #f59e4c;
     --accent-strong: #e8873a;
     --accent-soft: rgba(232, 135, 58, 0.16);

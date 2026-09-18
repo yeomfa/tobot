@@ -26,6 +26,10 @@ const STOPS: Stop[] = [
   { target: '.app__palette', titleKey: 'paletteTitle', bodyKey: 'paletteBody' },
   { target: '.app__canvas', titleKey: 'canvasTitle', bodyKey: 'canvasBody' },
   { target: '.app__drawer-tabs', titleKey: 'drawerTitle', bodyKey: 'drawerBody' },
+  /* Selecting is the newest gesture and the least discoverable: nothing on
+     screen suggests a block can be picked up, and everything that follows from
+     it — the bar, the inspector — only appears once one is. */
+  { target: '.app__robot', titleKey: 'selectTitle', bodyKey: 'selectBody' },
   { target: '.app__robot', titleKey: 'robotTitle', bodyKey: 'robotBody' },
   // Points at the robot's own transport rather than the header button, which
   // is where a student actually drives a run from.

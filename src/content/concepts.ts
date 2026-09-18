@@ -9,7 +9,14 @@ import type { Language } from '../i18n/types';
  * and are citable in an academic setting.
  */
 
-export type ConceptId = 'variables' | 'output' | 'input' | 'conditionals' | 'loops';
+export type ConceptId =
+  | 'variables'
+  | 'output'
+  | 'input'
+  | 'conditionals'
+  | 'loops'
+  | 'lists'
+  | 'functions';
 
 export interface Reference {
   label: string;
@@ -30,7 +37,7 @@ export interface ConceptCopy {
 export interface Concept {
   id: ConceptId;
   /** Drives the accent colour, matching the statement palette. */
-  category: 'variables' | 'io' | 'conditionals' | 'loops';
+  category: 'variables' | 'io' | 'conditionals' | 'loops' | 'lists' | 'functions';
   statements: string[];
   readingMinutes: number;
   copy: Record<Language, ConceptCopy>;
@@ -332,6 +339,130 @@ export const concepts: Concept[] = [
         label: 'More Control Flow Tools: The Python Tutorial',
         publisher: 'Python Software Foundation',
         url: 'https://docs.python.org/3/tutorial/controlflow.html',
+        language: 'en',
+      },
+    ],
+  },
+  {
+    id: 'lists',
+    category: 'lists',
+    statements: ['listOp', 'forEachItem'],
+    readingMinutes: 4,
+    copy: {
+      es: {
+        title: 'Listas',
+        summary: 'Una sola variable que guarda muchos valores en orden, en vez de una variable por cada uno.',
+        keyIdea:
+          'Una lista tiene orden y tamaño. Cada elemento ocupa una posición, y el tamaño cambia cuando agregas o quitas.',
+        body: [
+          'Cuando necesitas guardar las notas de un curso, no creas una variable por estudiante: creas una lista. Es una sola caja con compartimentos numerados, y cada compartimento guarda un valor.',
+          'El orden importa y es parte de la información. La primera nota es la primera por algo, y ordenar la lista cambia ese orden a propósito. Por eso una lista no es lo mismo que un montón de valores sueltos.',
+          'Para recorrer una lista tienes dos caminos. «Para cada elemento» te entrega los valores uno por uno y es el más directo cuando solo quieres verlos. «Desde… hasta» te da las posiciones, y lo necesitas cuando además te importa en qué lugar está cada cosa.',
+          'El nombre que liga «para cada elemento» existe solo dentro de ese ciclo. Fuera de él no hay ningún valor con ese nombre, igual que el contador de un ciclo desaparece cuando el ciclo termina.',
+        ],
+        mistakes: [
+          'Contar las posiciones desde uno. En la mayoría de lenguajes la primera posición es la cero, y este es el error más común al empezar.',
+          'Pedir una posición que no existe, por ejemplo la número cinco en una lista de tres elementos.',
+          'Hacer cuentas con la lista entera en vez de con un elemento suyo: sumar «notas» no es sumar una nota.',
+        ],
+      },
+      en: {
+        title: 'Lists',
+        summary: 'One variable holding many values in order, instead of one variable for each.',
+        keyIdea:
+          'A list has an order and a size. Each item sits at a position, and the size changes as you add or remove.',
+        body: [
+          'When you need to store a class\u2019s marks you do not create one variable per student: you create a list. It is a single box with numbered compartments, each holding one value.',
+          'The order matters and is part of the information. The first mark is first for a reason, and sorting the list changes that order on purpose. This is what makes a list different from a pile of separate values.',
+          'There are two ways to walk a list. "For each item" hands you the values one at a time and is the direct route when you only want to see them. "From… to" gives you the positions instead, which you need when where something sits also matters.',
+          'The name bound by "for each item" exists only inside that loop. Outside it there is no value by that name, just as a loop counter disappears when its loop ends.',
+        ],
+        mistakes: [
+          'Counting positions from one. In most languages the first position is zero, and this is the commonest beginner error.',
+          'Asking for a position that does not exist \u2014 the fifth item of a three-item list.',
+          'Doing arithmetic on the whole list instead of on one of its items: adding "marks" is not adding a mark.',
+        ],
+      },
+    },
+    references: [
+      {
+        label: 'Array: JavaScript',
+        publisher: 'MDN Web Docs',
+        url: 'https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array',
+        language: 'es',
+      },
+      {
+        label: 'Data Structures: The Python Tutorial',
+        publisher: 'Python Software Foundation',
+        url: 'https://docs.python.org/3/tutorial/datastructures.html',
+        language: 'en',
+      },
+    ],
+  },
+  {
+    id: 'functions',
+    category: 'functions',
+    statements: ['function', 'call', 'return'],
+    readingMinutes: 5,
+    copy: {
+      es: {
+        title: 'Funciones',
+        summary: 'Un grupo de instrucciones con nombre, que puedes usar tantas veces como quieras.',
+        keyIdea:
+          'Una función se define una vez y se ejecuta cada vez que la llamas. Sus datos son suyos: no ve las variables de afuera.',
+        body: [
+          'Cuando un grupo de pasos se repite en varios sitios, ponerle nombre lo convierte en una sola idea. En vez de copiar cinco instrucciones tres veces, escribes «calcular promedio» una vez y la llamas tres.',
+          'Definir una función no la ejecuta. El bloque «función» dice qué hace y se queda esperando; nada ocurre hasta que algo la llama. Por eso puedes escribirla debajo del programa principal y llamarla desde arriba: el robot las conoce todas antes de empezar.',
+          'Los parámetros son los datos que la función necesita para trabajar. Al definirla dices cómo se llaman y de qué tipo son; al llamarla das los valores concretos. Esos nombres existen solo dentro de la función, y por eso una función con un parámetro llamado «n» no toca ninguna variable «n» que tengas afuera.',
+          'Con «devolver» la función entrega un resultado a quien la llamó, y ahí termina. Una función que devuelve algo se puede usar dentro de una expresión, como cualquier otro valor: puedes guardar su resultado en una variable o compararlo.',
+          'Si marcas una función como asíncrona, el programa la pone en marcha y sigue con lo suyo sin esperarla. Aquí el tiempo se mide en pasos: cada paso del programa es también un paso de cada tarea en marcha, lo que hace que la ejecución sea siempre la misma y puedas devolverte igual que en cualquier otro programa.',
+        ],
+        mistakes: [
+          'Esperar que definir la función haga algo. Hay que llamarla; si nunca la llamas, su cuerpo no se ejecuta.',
+          'Usar dentro de la función una variable de afuera. No la ve: lo que necesite tiene que llegarle como parámetro.',
+          'Llamar con más o menos datos de los que pide. Cada parámetro necesita su valor.',
+          'Olvidar «devolver» en una función de la que esperas un resultado: sin él no entrega nada.',
+          'Que una función se llame a sí misma sin un caso que la detenga. El robot corta la ejecución y te avisa, en vez de quedarse colgado.',
+        ],
+      },
+      en: {
+        title: 'Functions',
+        summary: 'A named group of statements you can use as many times as you like.',
+        keyIdea:
+          'A function is defined once and runs each time you call it. Its data is its own: it cannot see the variables outside.',
+        body: [
+          'When a group of steps repeats in several places, giving it a name turns it into a single idea. Instead of copying five statements three times, you write "work out the average" once and call it three times.',
+          'Defining a function does not run it. The "function" block says what it does and waits; nothing happens until something calls it. That is why you can write it below the main program and call it from above: the robot knows them all before it starts.',
+          'Parameters are the data the function needs in order to work. Defining it says what they are called and what type they hold; calling it supplies the actual values. Those names exist only inside the function, which is why a function with a parameter called "n" never touches an "n" you have outside.',
+          '"Return" hands a result back to whoever called, and ends the function there. A function that returns something can be used inside an expression like any other value: you can store its result in a variable, or compare it.',
+          'Marking a function asynchronous starts it and lets the program carry on without waiting. Time here is counted in steps: each step of the program is also one step of every task under way, which keeps a run reproducible and stepping backwards as honest as in any other program.',
+        ],
+        mistakes: [
+          'Expecting the definition to do something. You have to call it; a function never called never runs.',
+          'Using an outside variable inside the function. It cannot see one: whatever it needs must arrive as a parameter.',
+          'Calling with more or fewer values than it asks for. Every parameter needs one.',
+          'Forgetting "return" in a function you expect a result from: without it, nothing comes back.',
+          'A function that calls itself with no case that ends it. The robot stops the run and tells you, rather than hanging.',
+        ],
+      },
+    },
+    references: [
+      {
+        label: 'Funciones: Aprender desarrollo web',
+        publisher: 'MDN Web Docs',
+        url: 'https://developer.mozilla.org/es/docs/Learn_web_development/Core/Scripting/Functions',
+        language: 'es',
+      },
+      {
+        label: 'Defining Functions: The Python Tutorial',
+        publisher: 'Python Software Foundation',
+        url: 'https://docs.python.org/3/tutorial/controlflow.html#defining-functions',
+        language: 'en',
+      },
+      {
+        label: 'Scope and the function stack',
+        publisher: 'MDN Web Docs',
+        url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions',
         language: 'en',
       },
     ],
