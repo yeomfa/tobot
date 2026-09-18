@@ -395,6 +395,7 @@ export const StatementBlock = memo(function StatementBlock({
                     )
                   }
                   variables={variables}
+                  functions={functions}
                   mode="condition"
                   expect="boolean"
                 />
@@ -663,6 +664,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             /* A list is built rather than typed, so a declaration of that kind
                constrains nothing — the expression editor offers everything and
                the student assembles the list in place. */
@@ -704,6 +706,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
           />
         </>
       );
@@ -720,6 +723,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             placeholder={d.fields.message}
           />
         </>
@@ -737,6 +741,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             placeholder={d.fields.question}
           />
           <Keyword muted>{d.fields.saveIn}</Keyword>
@@ -766,6 +771,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             mode="condition"
           />
         </>
@@ -783,6 +789,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             mode="condition"
           />
         </>
@@ -800,6 +807,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             expect="number"
           />
           <Keyword muted>{d.fields.times}</Keyword>
@@ -820,6 +828,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             expect="number"
           />
           <Keyword muted>{d.fields.to}</Keyword>
@@ -831,6 +840,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             expect="number"
           />
           <Keyword muted>{d.fields.step}</Keyword>
@@ -842,6 +852,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
             expect="number"
           />
         </>
@@ -907,6 +918,7 @@ function StatementBody({
                 value={statement.value ?? literal(0, 'number')}
                 onChange={(value) => update({ value })}
                 variables={variables}
+                functions={functions}
               />
             </>
           )}
@@ -918,6 +930,7 @@ function StatementBody({
                 value={statement.index ?? literal(0, 'number')}
                 onChange={(index) => update({ index })}
                 variables={variables}
+                functions={functions}
                 expect="number"
               />
             </>
@@ -1063,6 +1076,7 @@ function StatementBody({
                 )
               }
               variables={variables}
+              functions={functions}
             />
           )}
         </>
@@ -1141,6 +1155,7 @@ function StatementBody({
                   )
                 }
                 variables={variables}
+                functions={functions}
                 expect={param.type === 'list' ? 'any' : param.type}
               />
             </span>
@@ -1163,6 +1178,7 @@ function StatementBody({
               )
             }
             variables={variables}
+            functions={functions}
           />
         </>
       );

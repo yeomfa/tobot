@@ -458,6 +458,10 @@ export function renameVariable(
         };
       case 'length':
         return { ...expression, list: inExpression(expression.list) };
+      /* Arguments are ordinary expressions; without this a variable passed to
+         a function kept the old name after a rename. */
+      case 'call':
+        return { ...expression, args: expression.args.map(inExpression) };
       default:
         return expression;
     }
@@ -545,6 +549,27 @@ export function renameVariable(
             value: statement.value ? inExpression(statement.value) : statement.value,
             index: statement.index ? inExpression(statement.index) : statement.index,
           };
+        /*
+          A function's body is a scope of its own.
+
+          Left out entirely, this walk renamed a variable outside a function
+          and left the one inside untouched — the `preguntar` being edited did
+          not change while an unrelated declaration did.
+
+          A parameter of the same name shadows the outer one, so the rename
+          stops at the door: inside, `from` means the parameter, and renaming
+          it would be renaming something else that happens to share a spelling.
+        */
+        case 'function': {
+          const shadowed = statement.params.some((param) => param.name === from);
+          return shadowed ? statement : { ...statement, body: walk(statement.body) };
+        }
+        case 'call':
+          return { ...statement, args: statement.args.map(inExpression) };
+        case 'return':
+          return statement.value
+            ? { ...statement, value: inExpression(statement.value) }
+            : statement;
         default:
           return statement;
       }

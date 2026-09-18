@@ -12,9 +12,6 @@ const reload = (body: Statement[]): Statement[] =>
 const fn = (name: string, params: Param[], body: Statement[] = []): Statement =>
   ({ ...createStatement('function'), name, params, body }) as Statement;
 
-const callStatement = (name: string, args = [] as Statement['id'][] extends never ? never[] : never[]) =>
-  ({ ...createStatement('call'), name, args: [] }) as Statement;
-
 /**
  * Everything arriving from outside — storage, or the clipboard — passes the
  * shape gate, so a kind missing from it cannot be copied, cannot be pasted,

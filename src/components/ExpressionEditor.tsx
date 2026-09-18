@@ -6,6 +6,7 @@ import {
   KeyboardIcon as Keyboard,
   ListBulletsIcon as ListBullets,
   ListNumbersIcon as ListNumbers,
+  FunctionIcon as FunctionGlyph,
   ListPlusIcon as ListPlus,
   PlusIcon as Plus,
   TagIcon as Tag,
@@ -15,7 +16,7 @@ import {
 import { Fragment, memo, useEffect, useRef, useState } from 'react';
 
 import { castExpression, emptyValue, literal, nextItemLike } from '../core/ast/factory';
-import type { BinaryOperator, Expression, LiteralKind } from '../core/ast/types';
+import type { BinaryOperator, Expression, LiteralKind, ValueKind } from '../core/ast/types';
 import { useTranslation } from '../i18n/context';
 import { precedenceOf } from '../core/emitters/precedence';
 import { ASSOCIATIVE, flattenChain, groupParts, removeAt, ungroup } from './chain';
@@ -31,6 +32,14 @@ interface ExpressionEditorProps {
   onChange: (next: Expression) => void;
   /** Variables in scope, offered in the reference dropdown. */
   variables: string[];
+  /**
+   * Functions whose result can be used here.
+   *
+   * A `devolver` had nowhere to go: the AST, the interpreter and all four
+   * emitters handled a call as a value, and the editor never offered one — so
+   * a function could return something no expression could receive.
+   */
+  functions?: { name: string; params: { name: string; type: ValueKind }[] }[];
   /** Restricts literal entry when the slot has a known type. */
   expect?: LiteralKind | 'any';
   /** Conditions get comparison operators; values get arithmetic. */
@@ -146,6 +155,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
   value,
   onChange,
   variables,
+  functions = [],
   expect = 'any',
   mode = 'value',
   placeholder,
@@ -455,7 +465,7 @@ export const ExpressionEditor = memo(function ExpressionEditor({
    * choices are, which matters most for the students who do not yet know that
    * "a value" and "a variable" are different things.
    */
-  type Source = 'literal' | 'variable' | 'list' | 'index' | 'length';
+  type Source = 'literal' | 'variable' | 'list' | 'index' | 'length' | 'call';
   const source: Source =
     value.kind === 'variable' ||
     value.kind === 'list' ||
@@ -468,6 +478,21 @@ export const ExpressionEditor = memo(function ExpressionEditor({
     if (next === source) return;
     const firstName = variables[0] ?? '';
     switch (next) {
+      /* Seeded with the first function and a slot per parameter, so the value
+         is usable the moment it appears rather than after two more choices. */
+      case 'call': {
+        const first = functions[0];
+        onChange({
+          kind: 'call',
+          name: first?.name ?? '',
+          args: (first?.params ?? []).map((param) =>
+            param.type === 'list'
+              ? { kind: 'list' as const, items: [] }
+              : emptyValue(param.type as LiteralKind),
+          ),
+        });
+        return;
+      }
       case 'variable':
         onChange({ kind: 'variable', name: firstName });
         return;
@@ -772,6 +797,63 @@ export const ExpressionEditor = memo(function ExpressionEditor({
           />
           <span className="expr__bracket" aria-hidden="true">
             ]
+          </span>
+        </span>
+      )}
+
+      {value.kind === 'call' && (
+        <span className="expr__call">
+          {/* Chosen, never typed — the same rule the call statement follows. */}
+          <Picker
+            value={value.name}
+            groups={[
+              {
+                options: functions
+                  .filter((fn) => fn.name)
+                  .map((fn) => ({ value: fn.name, label: fn.name, icon: FunctionGlyph })),
+              },
+            ]}
+            onChange={(name) => {
+              const picked = functions.find((fn) => fn.name === name);
+              onChange({
+                kind: 'call',
+                name,
+                /* One slot per parameter, seeded to the kind it asks for, so
+                   the fields are already the right sort of field. */
+                args: (picked?.params ?? []).map((param, index) =>
+                  param.type === 'list'
+                    ? ({ kind: 'list', items: [] } as Expression)
+                    : (value.args[index] ?? emptyValue(param.type as LiteralKind)),
+                ),
+              });
+            }}
+            label={d.fields.aResult}
+            variant="reference"
+          />
+          <span className="expr__call-args">
+            {(functions.find((fn) => fn.name === value.name)?.params ?? []).map((param, index) => (
+              <span className="expr__call-arg" key={index}>
+                <span className="expr__call-label">{param.name || '?'}</span>
+                <ExpressionEditor
+                  value={
+                    value.args[index] ??
+                    (param.type === 'list'
+                      ? { kind: 'list', items: [] }
+                      : emptyValue(param.type as LiteralKind))
+                  }
+                  onChange={(next) =>
+                    onChange({
+                      ...value,
+                      args: value.args.map((arg, i) => (i === index ? next : arg)),
+                    })
+                  }
+                  variables={variables}
+                  functions={functions}
+                  expect={param.type === 'list' ? 'any' : (param.type as LiteralKind)}
+                  nested
+                />
+              </span>
+            ))}
           </span>
         </span>
       )}
@@ -1093,6 +1175,15 @@ export const ExpressionEditor = memo(function ExpressionEditor({
                   { value: 'length' as const, label: d.fields.howMany, icon: Hash },
                 );
               }
+              /* Only where a function exists to call. Offering it with none
+                 written would produce a value pointing at nothing. */
+              if (functions.length > 0) {
+                options.push({
+                  value: 'call' as const,
+                  label: d.fields.aResult,
+                  icon: FunctionGlyph,
+                });
+              }
               return options.length
                 ? [{ label: expect === 'any' ? d.fields.value : undefined, options }]
                 : [];
@@ -1168,7 +1259,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
               choice === 'variable' ||
               choice === 'list' ||
               choice === 'index' ||
-              choice === 'length'
+              choice === 'length' ||
+              choice === 'call'
             ) {
               setSource(choice);
             }

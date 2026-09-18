@@ -387,6 +387,53 @@ export type BlockStatement =
   | ForEachStatement
   | ForEachItemStatement;
 
+/**
+ * Every list of statements a statement owns, in the order they run.
+ *
+ * Exhaustive on purpose, and checked by the compiler: the `never` in the
+ * default branch means adding a kind that owns a body fails the build here
+ * rather than silently disappearing from a walk somewhere else.
+ *
+ * That has happened six times. `listOp` and `forEachItem` were missing from
+ * the shape validator, from `renameVariable`, from `countReferences` and from
+ * `collectVariables`; call arguments were missing from `referencedNames`; and
+ * a function's body was missing from `renameVariable` — which renamed a
+ * variable *outside* a function while leaving the one inside untouched. Every
+ * one of them was a `switch` whose `default` returned something plausible, and
+ * a plausible default is invisible to the type checker.
+ */
+export function bodiesOf(statement: Statement): Statement[][] {
+  switch (statement.kind) {
+    case 'if': {
+      const bodies = [statement.then];
+      for (const arm of statement.elseIfs ?? []) bodies.push(arm.body);
+      if (statement.otherwise) bodies.push(statement.otherwise);
+      return bodies;
+    }
+    case 'while':
+    case 'repeat':
+    case 'forEach':
+    case 'forEachItem':
+    case 'function':
+      return [statement.body];
+    case 'comment':
+    case 'declare':
+    case 'assign':
+    case 'say':
+    case 'ask':
+    case 'listOp':
+    case 'return':
+    case 'call':
+      return [];
+    default: {
+      /* Adding a statement kind lands here as a compile error naming the kind
+         that has not been accounted for. */
+      const exhaustive: never = statement;
+      return exhaustive;
+    }
+  }
+}
+
 export function isBlockStatement(statement: Statement): statement is BlockStatement {
   return (
     statement.kind === 'function' ||

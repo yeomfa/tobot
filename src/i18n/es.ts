@@ -417,6 +417,7 @@ export const es = {
   fields: {
     aList: 'una lista',
     anItem: 'un elemento de…',
+    aResult: 'el resultado de una función',
     howMany: 'cuántos tiene…',
     items: 'elementos',
     noFunctions: 'crea una función primero',
