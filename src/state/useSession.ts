@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 
 import { hasStoredSession } from './storage';
-import { getSupabase, isSupabaseConfigured } from './supabase';
+import { getSupabase, hasAuthCallback, isSupabaseConfigured, whenSupabaseClient } from './supabase';
 
 export interface Profile {
   firstName: string;
@@ -64,17 +64,20 @@ export function useSession(): SessionController {
     browser and there is nothing to restore — settling immediately means the
     landing page renders without first downloading an auth client to be told
     what the absence of a key already said.
+
+    Someone returning from Google is the exception: their session is in the
+    address rather than in storage, and settling immediately sent them to a
+    guarded route that bounced them back to `/login` — replacing the URL, and
+    with it the token nothing had read yet. Waiting here is what gives the
+    client time to exchange it.
   */
-  const [loading, setLoading] = useState(isSupabaseConfigured && hasStoredSession());
+  const [loading, setLoading] = useState(
+    isSupabaseConfigured && (hasStoredSession() || hasAuthCallback()),
+  );
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
-    // Nothing stored means nobody to restore; the client stays undownloaded
-    // until a sign-in actually needs it.
-    if (!hasStoredSession()) return;
-
-    const pending = getSupabase();
-    if (!pending) return;
+    if (!isSupabaseConfigured) return;
 
     let cancelled = false;
     /* The subscription does not exist yet when this effect returns, so the
@@ -83,25 +86,52 @@ export function useSession(): SessionController {
        unsubscribed the moment it is created. */
     let unsubscribe: (() => void) | null = null;
 
-    void pending.then((supabase) => {
-      if (cancelled) return;
+    /*
+      Two ways to reach a client, and what separates them is who pays for the
+      download.
 
-      void supabase.auth.getSession().then(({ data }) => {
+      A student with a stored session to restore, or one arriving back from a
+      provider with a token in the address, needs a client now and asks for
+      one. Everyone else waits for whoever creates the first — which in
+      practice is the sign-in form, the moment they press the button.
+
+      Giving up instead of waiting is what was broken: nothing was subscribed
+      when the form created its client, so a successful sign-in updated
+      localStorage and never React, and the student sat on the form that had
+      just accepted their password. It looked like a rejected login with no
+      error message, and a reload proved otherwise.
+    */
+    const pending =
+      hasStoredSession() || hasAuthCallback() ? getSupabase() : whenSupabaseClient();
+    if (!pending) return;
+
+    void pending
+      .then((supabase) => {
         if (cancelled) return;
-        setSession(data.session);
-        setLoading(false);
-      });
 
-      // Fires on sign-in, sign-out and token refresh, including in another tab.
-      const { data } = supabase.auth.onAuthStateChange((_event, next) => {
-        if (cancelled) return;
-        setSession(next);
-        setLoading(false);
-      });
+        void supabase.auth.getSession().then(({ data }) => {
+          if (cancelled) return;
+          setSession(data.session);
+          setLoading(false);
+        });
 
-      unsubscribe = () => data.subscription.unsubscribe();
-      if (cancelled) unsubscribe();
-    });
+        // Fires on sign-in, sign-out and token refresh, including in another tab.
+        const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+          if (cancelled) return;
+          setSession(next);
+          setLoading(false);
+        });
+
+        unsubscribe = () => data.subscription.unsubscribe();
+        if (cancelled) unsubscribe();
+      })
+      .catch(() => {
+        /* A client that never arrives — an offline first load, a blocked
+           chunk — must not strand the app on its blank loading screen. The
+           sign-in form is the honest thing to show: it is what someone
+           without a session would see anyway. */
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
       cancelled = true;

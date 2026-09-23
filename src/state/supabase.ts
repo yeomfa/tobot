@@ -35,11 +35,45 @@ export const isSupabaseConfigured = Boolean(url && publishableKey);
  */
 let clientPromise: Promise<SupabaseClient> | null = null;
 
+/*
+ * Resolves with the client the first time anything creates one.
+ *
+ * `useSession` is what has to hold the `onAuthStateChange` subscription, but
+ * it must not be what downloads the client — that would undo the whole point
+ * of the lazy import above, since every visitor mounts the hook and almost
+ * none of them sign in. So the hook waits here instead: when the sign-in form
+ * asks for a client, the hook is handed the same one and starts listening.
+ *
+ * Without this the hook simply gave up when there was no session to restore,
+ * and nothing was subscribed when the form created a client moments later. A
+ * correct password then left the student looking at the form that had just
+ * accepted it.
+ *
+ * A promise rather than a set of callbacks because it settles exactly once and
+ * serves waiters that arrive after it just as well as before — which is the
+ * only hard part here, and what a hand-rolled listener list gets wrong by
+ * firing twice or not at all.
+ */
+let announceClient!: (client: SupabaseClient) => void;
+const firstClient = new Promise<SupabaseClient>((resolve) => {
+  announceClient = resolve;
+});
+
+/**
+ * Waits for a client without asking for one to be created.
+ *
+ * For code that needs to know about a session if there is one, but has no
+ * business making a visitor download an auth client to find out.
+ */
+export function whenSupabaseClient(): Promise<SupabaseClient> {
+  return firstClient;
+}
+
 export function getSupabase(): Promise<SupabaseClient> | null {
   if (!isSupabaseConfigured) return null;
 
-  clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) =>
-    createClient(url as string, publishableKey as string, {
+  clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) => {
+    const client = createClient(url as string, publishableKey as string, {
       auth: {
         // Students move between the lab and home, so the session should
         // survive a closed tab.
@@ -47,10 +81,54 @@ export function getSupabase(): Promise<SupabaseClient> | null {
         autoRefreshToken: true,
         detectSessionInUrl: true,
       },
-    }),
-  );
+    });
+    // Hands the waiting session hook its client. A no-op on every call after
+    // the first, because a promise resolves once.
+    announceClient(client);
+    return client;
+  });
 
   return clientPromise;
+}
+
+/**
+ * Whether these two parts of an address are an auth provider sending someone
+ * back.
+ *
+ * Pure, and handed the strings rather than reading `window` itself, so the
+ * rule can be tested: this module reads `import.meta.env` at load time, which
+ * a test cannot vary.
+ *
+ * Both halves of the URL matter, and each flow uses a different one. The PKCE
+ * exchange comes back as `?code=`; the implicit flow and an email confirmation
+ * link come back as `#access_token=`; and either turns into `error=` in its
+ * own half when the student declines at Google's consent screen. A flow this
+ * misses is a token sitting in the address with nothing that will read it.
+ */
+export function isAuthCallback(search: string, hash: string): boolean {
+  const query = new URLSearchParams(search);
+  // A fragment is query syntax once the `#` is off the front.
+  const fragment = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+
+  // A parameter that is present but empty carries nothing to exchange, so an
+  // existence check is not enough.
+  const carries = (params: URLSearchParams, keys: string[]): boolean =>
+    keys.some((key) => Boolean(params.get(key)));
+
+  return (
+    carries(query, ['code', 'token_hash', 'error', 'error_description']) ||
+    carries(fragment, ['access_token', 'error', 'error_description'])
+  );
+}
+
+/** The same question, asked of the address actually being visited. */
+export function hasAuthCallback(): boolean {
+  if (!isSupabaseConfigured) return false;
+  try {
+    return isAuthCallback(window.location.search, window.location.hash);
+  } catch {
+    return false;
+  }
 }
 
 /**
