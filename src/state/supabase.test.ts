@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isAuthCallback } from './supabase';
+import { authCallbackError, isAuthCallback } from './supabase';
 
 /**
  * The same rule `supabase.ts` applies to `VITE_SUPABASE_GOOGLE`.
@@ -124,3 +124,32 @@ describe('spotting an auth provider sending someone back', () => {
   });
 });
 
+/**
+ * Reading what the provider refused to do.
+ *
+ * A recovery link that has expired and a student who declines at Google's
+ * consent screen both come back with an error and no token. There is no
+ * session to create and no event to emit, so without reading this the form
+ * simply reappears as though the link had never been clicked.
+ */
+describe('reading why a provider turned someone away', () => {
+  it('prefers the sentence written for a person over the code', () => {
+    expect(
+      authCallbackError('?error=access_denied&error_description=Email+link+has+expired', ''),
+    ).toBe('Email link has expired');
+  });
+
+  it('falls back to the code when that is all there is', () => {
+    expect(authCallbackError('?error=access_denied', '')).toBe('access_denied');
+  });
+
+  it('reads the fragment, which is where the implicit flow puts it', () => {
+    expect(authCallbackError('', '#error=access_denied&error_description=Expired')).toBe('Expired');
+  });
+
+  it('says nothing about an address that carries no complaint', () => {
+    expect(authCallbackError('', '')).toBeNull();
+    expect(authCallbackError('?code=9f2c1a', '')).toBeNull();
+    expect(authCallbackError('', '#access_token=abc')).toBeNull();
+  });
+});

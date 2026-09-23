@@ -21,6 +21,16 @@ export interface SessionController {
   displayName: string | null;
   /** One or two letters for the avatar. */
   initials: string | null;
+  /**
+   * Whether this session came from a recovery link rather than a password.
+   *
+   * It is still a real session, which is the trap: without this the app would
+   * wave the student through to their work having never asked for the new
+   * password the link was sent for.
+   */
+  recovering: boolean;
+  /** Called once the new password is saved, releasing the gate. */
+  finishRecovery: () => void;
   /** Saves a changed name and reflects it immediately. */
   updateProfile: (next: Profile) => Promise<void>;
   signOut: () => Promise<void>;
@@ -75,6 +85,7 @@ export function useSession(): SessionController {
     isSupabaseConfigured && (hasStoredSession() || hasAuthCallback()),
   );
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [recovering, setRecovering] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -116,8 +127,13 @@ export function useSession(): SessionController {
         });
 
         // Fires on sign-in, sign-out and token refresh, including in another tab.
-        const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+        const { data } = supabase.auth.onAuthStateChange((event, next) => {
           if (cancelled) return;
+          /* The one notice that a session arrived by link rather than by
+             password. It is emitted while the recovery address is being read,
+             before anything renders, which is why the flag can be trusted to
+             be set by the time a route asks. */
+          if (event === 'PASSWORD_RECOVERY') setRecovering(true);
           setSession(next);
           setLoading(false);
         });
@@ -191,6 +207,8 @@ export function useSession(): SessionController {
     [userId],
   );
 
+  const finishRecovery = useCallback(() => setRecovering(false), []);
+
   const signOut = useCallback(async () => {
     const supabase = await getSupabase();
     if (!supabase) return;
@@ -209,6 +227,8 @@ export function useSession(): SessionController {
     profile,
     displayName: nameFrom(profile, email),
     initials: initialsFrom(profile, email),
+    recovering,
+    finishRecovery,
     updateProfile,
     signOut,
   };

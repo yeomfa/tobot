@@ -132,6 +132,61 @@ export function hasAuthCallback(): boolean {
 }
 
 /**
+ * What a provider said went wrong, if it said anything.
+ *
+ * A recovery link that has expired, or a student who declines at Google's
+ * consent screen, comes back with an `error` and no token. Nothing downstream
+ * would otherwise notice: there is no session to create and no event to emit,
+ * so the sign-in form would simply reappear as though the link had never been
+ * clicked.
+ *
+ * `error_description` first because it is the sentence meant for a person;
+ * `error` is a code like `access_denied`.
+ */
+export function authCallbackError(search: string, hash: string): string | null {
+  const query = new URLSearchParams(search);
+  const fragment = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+
+  for (const params of [query, fragment]) {
+    const described = params.get('error_description');
+    if (described) return described;
+    const code = params.get('error');
+    if (code) return code;
+  }
+  return null;
+}
+
+/*
+ * Captured at module load, which is the only moment it can be.
+ *
+ * The client strips the token and the error from the address as soon as it has
+ * read them, and this module is imported at startup while the client is still
+ * a dynamic import that has not been asked for. By the time the sign-in form
+ * mounts and wants something to display, the address is clean.
+ */
+const arrival = ((): string | null => {
+  if (!isSupabaseConfigured) return null;
+  try {
+    return authCallbackError(window.location.search, window.location.hash);
+  } catch {
+    return null;
+  }
+})();
+
+/**
+ * Why the provider turned this visit away, for the form to explain.
+ *
+ * It describes how this page was loaded, not a current state, and so answers
+ * the same for as long as the page lives. Left that way on purpose: consuming
+ * it on the first read would be tidier, but React calls a `useState`
+ * initialiser twice under StrictMode, and a message that disappears in
+ * development is worse than one that outstays its welcome in a corner case.
+ */
+export function arrivalError(): string | null {
+  return arrival;
+}
+
+/**
  * Whether Google sign-in should be offered.
  *
  * Configuring Google is a separate step in two consoles, so the button only

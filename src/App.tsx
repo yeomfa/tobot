@@ -188,6 +188,14 @@ export default function App() {
   // runs on localStorage exactly as before.
   const needsAuth = isSupabaseConfigured && !auth.session && !skippedAuth;
 
+  /*
+    A recovery link signs the student in before it asks anything, so `needsAuth`
+    alone would wave them straight past the one question the link exists to put.
+    Until the new password is saved, the gate stays shut for the same reason it
+    would be if there were no session at all.
+  */
+  const gated = needsAuth || auth.recovering;
+
   if (isSupabaseConfigured && auth.loading) {
     return (
       <I18nProvider language={language}>
@@ -251,9 +259,14 @@ export default function App() {
           <Route
             path={ROUTES.login}
             element={
-              // Someone already signed in has no business on the sign-in page.
-              needsAuth ? (
-                <SignIn onSkip={skipAuth} />
+              // Someone already signed in has no business on the sign-in page,
+              // unless a recovery link is what put them there.
+              gated ? (
+                <SignIn
+                  onSkip={skipAuth}
+                  recovering={auth.recovering}
+                  onRecovered={auth.finishRecovery}
+                />
               ) : (
                 // Back to wherever the gate interrupted them, not to a fixed
                 // page: someone sent to sign in from the editor wants the
@@ -275,7 +288,7 @@ export default function App() {
           <Route
             path={`${ROUTES.library}/:section`}
             element={
-              needsAuth ? (
+              gated ? (
                 <RedirectToLogin to={ROUTES.library} remember={redirectAfterAuth} />
               ) : (
                 <Workspace
@@ -291,7 +304,7 @@ export default function App() {
           <Route
             path={ROUTES.editor}
             element={
-              needsAuth ? (
+              gated ? (
                 <RedirectToLogin to={ROUTES.editor} remember={redirectAfterAuth} />
               ) : (
                 <Workspace
