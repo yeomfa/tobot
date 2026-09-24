@@ -173,12 +173,28 @@ export async function joinClassroom(code: string): Promise<string | null> {
   return typeof data === 'string' ? data : null;
 }
 
+/**
+ * Who is in a room, and what they are called.
+ *
+ * Two queries rather than one embedded select. PostgREST can only join tables
+ * that a foreign key connects, and `classroom_members.user_id` points at
+ * `auth.users` — the same id a profile has, but not the same table. Asking for
+ * `profiles(...)` from here returns "could not find a relationship", which is
+ * exactly what it said.
+ *
+ * The obvious fix is a second foreign key onto `profiles`, and it is the wrong
+ * one: it would make a profile row a *requirement* for being in a class, so an
+ * account without one could not join at all. A missing name is a small
+ * problem; a student who cannot enter the room is not. So the names are looked
+ * up separately and anyone without one simply has none.
+ */
 export async function membersOf(classroomId: string): Promise<Member[]> {
   const supabase = await getSupabase();
   if (!supabase) return [];
+
   const { data, error } = await supabase
     .from('classroom_members')
-    .select('user_id, joined_at, profiles(first_name, last_name)')
+    .select('user_id, joined_at')
     .eq('classroom_id', classroomId);
 
   if (error) {
@@ -186,16 +202,33 @@ export async function membersOf(classroomId: string): Promise<Member[]> {
     return [];
   }
 
-  return (data ?? []).map((row) => {
-    const profile = (row as { profiles?: unknown }).profiles as
-      | { first_name?: unknown; last_name?: unknown }
-      | null;
-    return {
-      userId: String(row.user_id),
-      name: fullName(profile?.first_name, profile?.last_name),
-      joinedAt: String(row.joined_at),
-    };
-  });
+  const rows = data ?? [];
+  const ids = rows.map((row) => String(row.user_id));
+  const names = new Map<string, string>();
+
+  if (ids.length > 0) {
+    /* Readable because of the `shares_classroom` policy, which is the whole
+       reason classmates can be named at all. A failure here costs the names
+       and not the list. */
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .in('id', ids);
+
+    if (profileError) {
+      console.error('[tobot] could not read member names:', profileError.message);
+    } else {
+      for (const profile of profiles ?? []) {
+        names.set(String(profile.id), fullName(profile.first_name, profile.last_name));
+      }
+    }
+  }
+
+  return rows.map((row) => ({
+    userId: String(row.user_id),
+    name: names.get(String(row.user_id)) ?? '',
+    joinedAt: String(row.joined_at),
+  }));
 }
 
 export async function assignmentsOf(classroomId: string): Promise<Assignment[]> {

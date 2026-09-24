@@ -137,6 +137,20 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- The trigger above only fires for accounts created after it exists, so every
+-- account that signed up before this table did has no row and therefore no
+-- name — which is how a classroom ends up listing "Sin nombre" for everybody.
+-- Idempotent, so it costs nothing on a database that is already caught up.
+insert into public.profiles (id, first_name, last_name)
+select
+  u.id,
+  nullif(coalesce(u.raw_user_meta_data ->> 'first_name',
+                  u.raw_user_meta_data ->> 'given_name', ''), ''),
+  nullif(coalesce(u.raw_user_meta_data ->> 'last_name',
+                  u.raw_user_meta_data ->> 'family_name', ''), '')
+from auth.users u
+on conflict (id) do nothing;
+
 -- ---------------------------------------------------------------------------
 -- Code documents.
 --
