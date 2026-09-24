@@ -102,6 +102,16 @@ const EXAMPLE_ICONS: Record<string, Icon> = {
   guess: Target,
 };
 
+/**
+ * The last list of saved algorithms this session fetched.
+ *
+ * Module scope, so it outlives the screen. Not a cache in any careful sense —
+ * it is never invalidated and never trusted for long: the effect refetches on
+ * every mount regardless, and this only decides what is on screen while that
+ * happens. Showing yesterday's list for 300ms beats showing nothing.
+ */
+let lastKnown: Algorithm[] | null = null;
+
 const SECTIONS: Array<{ id: Section; icon: Icon }> = [
   { id: 'algorithms', icon: FolderOpen },
   { id: 'challenges', icon: PuzzlePiece },
@@ -250,20 +260,27 @@ export const Home = memo(function Home({
       ),
     [levelFilter, topicFilter],
   );
-  const [saved, setSaved] = useState<Algorithm[]>([]);
+  /* Seeded from the last list this session saw, so coming back to the library
+     shows what was there instead of starting again from nothing. The screen
+     unmounts every time the editor opens, and without this each return was a
+     fresh first load — which is what "a veces parece que fuera a cargar" was
+     describing. */
+  const [saved, setSaved] = useState<Algorithm[]>(() => lastKnown ?? []);
   /* Starts true, because the list is being fetched before the first paint.
      Without it an empty array and a list that has not arrived look identical,
      and a signed-in student was told they had nothing saved every time the
      library opened — for as long as the network took to disagree. */
-  const [loadingSaved, setLoadingSaved] = useState(true);
   /*
-    Whether the wait has gone on long enough to be worth mentioning.
+    Whether the list has ever arrived — not whether a fetch is in flight.
 
-    Separate from `loadingSaved`, which is the fact. Locally the list resolves
-    in a microtask, so saying so immediately painted three skeleton cards and
-    took them away on the next frame — a flicker carrying no information, and
-    on every visit to the library.
+    The difference is the whole bug this replaces. Marking every fetch as
+    "loading" blanked a list the reader was already looking at in order to go
+    and get the same list again, which is what the flicker was: content, then
+    nothing, then content.
   */
+  const [loaded, setLoaded] = useState(lastKnown !== null);
+  const hasLoaded = useRef(lastKnown !== null);
+  /* Whether the *first* wait has gone on long enough to be worth mentioning. */
   const [slowFetch, setSlowFetch] = useState(false);
   const [importError, setImportError] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -293,23 +310,44 @@ export const Home = memo(function Home({
 
   useEffect(() => {
     let cancelled = false;
-    setLoadingSaved(true);
-    // Long enough that a local read never reaches it, short enough that a slow
-    // network is never a blank pause with nothing to explain it.
-    const announce = setTimeout(() => {
-      if (!cancelled) setSlowFetch(true);
-    }, 250);
+
+    /* Only a first load has nothing to show. A refetch keeps what is on screen
+       until the new list replaces it, so nothing blinks. Long enough that a
+       local read never reaches it, short enough that a slow network is never a
+       blank pause with nothing to explain it. */
+    const announce = hasLoaded.current
+      ? null
+      : setTimeout(() => {
+          if (!cancelled) setSlowFetch(true);
+        }, 250);
 
     void (async () => {
-      const list = await createAlgorithmStore().list();
-      if (cancelled) return;
-      setSaved(list);
-      setLoadingSaved(false);
-      setSlowFetch(false);
+      try {
+        const list = await createAlgorithmStore().list();
+        lastKnown = list;
+        if (!cancelled) setSaved(list);
+      } catch (thrown) {
+        /*
+          A `finally` and not a bare await, because this can reject: the store
+          reaches the auth client through a dynamic import, and an import fails
+          when its chunk is gone — which is exactly what happens to a tab left
+          open across a deploy. Without settling here the screen waited for a
+          list that was never coming, forever. An empty library is the wrong
+          answer; a permanent blank is not an answer at all.
+        */
+        console.error('[tobot] could not load the library:', thrown);
+      } finally {
+        if (!cancelled) {
+          hasLoaded.current = true;
+          setLoaded(true);
+          setSlowFetch(false);
+        }
+      }
     })();
+
     return () => {
       cancelled = true;
-      clearTimeout(announce);
+      if (announce !== null) clearTimeout(announce);
     };
   }, [revision]);
 
@@ -630,11 +668,10 @@ export const Home = memo(function Home({
                 </div>
                 {importError && <p className="home__error">{d.library.importError}</p>}
 
-                {/* Three states, not two. Between the fetch starting and the
-                    delay elapsing there is nothing to show — falling through
-                    to the empty message here would bring back the bug the
-                    skeleton exists to fix, only briefer. */}
-                {slowFetch ? (
+                {/* Only ever blank before the first list arrives. Once it
+                    has, the library shows what it has while it fetches again,
+                    which is what stops it blinking. */}
+                {!loaded && slowFetch ? (
                   /* Cards rather than a spinner: the list is about to be a
                      grid of them, and showing its shape means nothing jumps
                      into place when the real ones arrive. */
@@ -648,7 +685,7 @@ export const Home = memo(function Home({
                       </div>
                     ))}
                   </div>
-                ) : loadingSaved ? null : saved.length === 0 ? (
+                ) : !loaded ? null : saved.length === 0 ? (
                   <p className="home__empty">{d.library.empty}</p>
                 ) : (
                   <div className="home__grid">
