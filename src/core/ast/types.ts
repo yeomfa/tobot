@@ -376,6 +376,27 @@ export interface Algorithm {
   body: Statement[];
   createdAt: string;
   updatedAt: string;
+  /**
+   * Which surface authors this one.
+   *
+   * `blocks` is everything that existed before and stays the default, so
+   * nothing already saved has to be migrated or even touched. A `code`
+   * algorithm carries its program in `source` and leaves `body` empty: it is
+   * text, and text is the one thing this AST was built never to parse.
+   *
+   * The two are one type rather than two because everything around them is
+   * the same — a name, a place in the library, a row in the database, an
+   * export file. Splitting them would have duplicated all of that to express
+   * a difference that only two screens care about.
+   */
+  kind?: 'blocks' | 'code';
+  /** The program, when `kind` is `code`. */
+  source?: string;
+}
+
+/** Narrow test used wherever a screen has to pick a surface. */
+export function isCode(algorithm: Algorithm): boolean {
+  return algorithm.kind === 'code';
 }
 
 /** Statement kinds that own child statement lists. */

@@ -92,9 +92,19 @@ function reviveAlgorithm(value: unknown): Algorithm | null {
   const record = value as Record<string, unknown>;
   if (typeof record.id !== 'string' || typeof record.name !== 'string') return null;
 
+  /* Anything that is not the word `code` is a block algorithm, which is what
+     every row written before this existed looks like. Reading it this way
+     rather than trusting the field means storage needs no migration and a
+     hand-edited value cannot invent a third kind. */
+  const kind = record.kind === 'code' ? 'code' : 'blocks';
+
   return {
     id: record.id,
     name: record.name,
+    kind,
+    // Text, so there is nothing to walk — but it is still storage the student
+    // can edit, so anything that is not a string is no program at all.
+    source: kind === 'code' && typeof record.source === 'string' ? record.source : undefined,
     body: sanitizeStatements(record.body),
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : new Date().toISOString(),
     updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : new Date().toISOString(),

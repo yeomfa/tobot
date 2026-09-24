@@ -38,14 +38,27 @@ function run(body: Statement[], answers: string[] = []) {
   return state;
 }
 
-/** Executes emitted JavaScript in a sandbox, capturing console output. */
-function runEmittedJs(body: Statement[], answers: string[] = []): string[] {
+/**
+ * Executes emitted JavaScript in a sandbox, capturing console output.
+ *
+ * Wrapped in an async function, and awaited, because that is how the emitted
+ * program actually runs: asking waits, so `ask` emits `await prompt(...)` and
+ * the whole program needs a context that allows it. The worker that runs a
+ * code document wraps it exactly this way, so this harness is now checking the
+ * arrangement it ships in rather than a simpler one it does not.
+ */
+async function runEmittedJs(body: Statement[], answers: string[] = []): Promise<string[]> {
   const source = renderLines(emitters.javascript.emit(wrap(body), { locale: 'es' }));
   const logged: string[] = [];
   const pending = [...answers];
-  const sandbox = new Function('prompt', 'console', source);
-  sandbox(
-    () => pending.shift() ?? '',
+  const sandbox = new Function(
+    'prompt',
+    'console',
+    `return (async () => {\n${source}\n})();`,
+  ) as (prompt: unknown, console: unknown) => Promise<void>;
+
+  await sandbox(
+    () => Promise.resolve(pending.shift() ?? ''),
     { log: (value: unknown) => logged.push(String(value)) },
   );
   return logged;
@@ -202,7 +215,9 @@ describe('javascript emitter', () => {
     const source = renderLines(emitters.javascript.emit(wrap(body), { locale: 'es' }));
     expect(source.match(/let nota/g)).toHaveLength(1);
     // Must be syntactically valid, which a duplicate `let` would not be.
-    expect(() => new Function('prompt', 'console', source)).not.toThrow();
+    expect(() =>
+      new Function('prompt', 'console', `return (async () => {\n${source}\n})();`),
+    ).not.toThrow();
   });
 
   it('parenthesises only where precedence requires it', () => {
@@ -291,9 +306,9 @@ describe('emitted javascript matches the interpreter', () => {
     },
   ];
 
-  it('produces identical output for the same answers', () => {
+  it('produces identical output for the same answers', async () => {
     const interpreted = spoken(run(program, ['4.5']));
-    const executed = runEmittedJs(program, ['4.5']);
+    const executed = await runEmittedJs(program, ['4.5']);
     expect(executed).toEqual(interpreted);
     expect(interpreted).toEqual([
       'Aprobaste',
@@ -388,9 +403,9 @@ describe('comments', () => {
     );
   });
 
-  it('keeps emitted JavaScript valid', () => {
+  it('keeps emitted JavaScript valid', async () => {
     // A comment must not break the program it annotates.
-    expect(runEmittedJs(withComment)).toEqual(['hola']);
+    expect(await runEmittedJs(withComment)).toEqual(['hola']);
   });
 });
 
@@ -400,13 +415,15 @@ describe('multi-line comments', () => {
     { id: createId(), kind: 'say', value: literal('ok', 'text') },
   ];
 
-  it('marks every line so the code stays valid', () => {
+  it('marks every line so the code stays valid', async () => {
     const js = renderLines(emitters.javascript.emit(wrap(multi), { locale: 'es' }));
     expect(js).toContain('// Primera línea');
     expect(js).toContain('// Segunda línea');
     // A bare second line would be a syntax error.
-    expect(() => new Function('prompt', 'console', js)).not.toThrow();
-    expect(runEmittedJs(multi)).toEqual(['ok']);
+    expect(() =>
+      new Function('prompt', 'console', `return (async () => {\n${js}\n})();`),
+    ).not.toThrow();
+    expect(await runEmittedJs(multi)).toEqual(['ok']);
   });
 
   it('uses one comment marker across every view', () => {

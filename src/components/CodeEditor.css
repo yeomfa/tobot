@@ -1,0 +1,86 @@
+/**
+ * The code surface and the card that explains what is under the pointer.
+ *
+ * Almost nothing here is colour: the editor's own theme is built in the
+ * component from the same `--code-*` tokens the read-only view uses, so the
+ * two surfaces cannot drift apart. What is left is the frame around it and
+ * the hover card, which CodeMirror renders into the document rather than
+ * inside the editor, and so cannot be themed from there.
+ */
+
+.codeeditor {
+  height: 100%;
+  overflow: hidden;
+  background: var(--code-bg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.codeeditor .cm-editor {
+  height: 100%;
+}
+
+/* The tooltip is appended to the body, so it is reached by class rather than
+   by nesting. */
+.cm-tooltip {
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--bg-raised) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.cm-tooltip-autocomplete > ul > li {
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  color: var(--text-inverse);
+  background: var(--accent);
+}
+
+.cm-completionDetail {
+  margin-left: var(--space-2);
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+.codehint {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 320px;
+  padding: var(--space-3);
+}
+
+.codehint__signature {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--code-keyword);
+}
+
+.codehint__summary {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.codehint__example {
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--code-text);
+  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+}
+
+/* The one thing on the card that is a warning rather than an explanation:
+   this function does not exist outside Tobot. */
+.codehint__badge {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}

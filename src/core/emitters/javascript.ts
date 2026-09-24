@@ -110,7 +110,17 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
 
     case 'ask': {
       const promptText = expressionToJs(statement.prompt);
-      const raw = `prompt(${promptText})`;
+      /*
+        `await`, because asking waits.
+
+        In a page `prompt` blocks the thread and the keyword would be noise. In
+        Tobot the question goes to the robot and comes back as a promise, so
+        without it the program computes with the promise and prints `NaN` —
+        silently, which is the worst way for a beginner to be wrong. Emitting
+        it here keeps one truth across all of it: what the code tab shows is
+        what "Open in JavaScript" writes, and what the runner runs.
+      */
+      const raw = `await prompt(${promptText})`;
       const keyword = bind(scope, statement.target);
       return [line(`${keyword}${statement.target} = ${coerceInput(raw, statement.expect)};`)];
     }

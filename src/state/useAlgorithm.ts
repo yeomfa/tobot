@@ -56,6 +56,7 @@ interface EditorState {
 type Action =
   | { type: 'edit'; transform: (body: Statement[]) => Statement[] }
   | { type: 'rename'; name: string }
+  | { type: 'write'; source: string }
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'load'; algorithm: Algorithm };
@@ -82,6 +83,24 @@ function reducer(state: EditorState, action: Action): EditorState {
       return {
         ...state,
         algorithm: { ...state.algorithm, name: action.name, updatedAt: new Date().toISOString() },
+      };
+
+    /*
+      Writing code, which deliberately leaves the undo stack alone.
+      That stack holds `Statement[]`, and text is not statements — but more to
+      the point, the code editor keeps its own history, keystroke by keystroke,
+      which is finer than anything this reducer could offer and is what the
+      student's fingers already expect from Ctrl+Z.
+    */
+    case 'write':
+      if (state.algorithm.source === action.source) return state;
+      return {
+        ...state,
+        algorithm: {
+          ...state.algorithm,
+          source: action.source,
+          updatedAt: new Date().toISOString(),
+        },
       };
 
     case 'undo': {
@@ -122,6 +141,8 @@ export interface AlgorithmController {
   canUndo: boolean;
   canRedo: boolean;
   setName: (name: string) => void;
+  /** Replaces the program of a code document. */
+  setSource: (source: string) => void;
   add: (statement: Statement, location: Location) => void;
   update: (id: NodeId, update: (statement: Statement) => Statement) => void;
   remove: (id: NodeId) => void;
@@ -247,6 +268,7 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
     canUndo: state.past.length > 0,
     canRedo: state.future.length > 0,
     setName: useCallback((name: string) => dispatch({ type: 'rename', name }), []),
+    setSource: useCallback((source: string) => dispatch({ type: 'write', source }), []),
     add: useCallback(
       (statement: Statement, location: Location) =>
         edit((body) => insertStatement(body, statement, location)),

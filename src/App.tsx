@@ -24,6 +24,7 @@ import type { NodeId, Statement } from './core/ast/types';
 import type { Location as SlotLocation } from './core/ast/operations';
 import { findLocation, findStatement } from './core/ast/operations';
 import { problemsByNode, validate } from './core/ast/validate';
+import { isCode } from './core/ast/types';
 import { decodeStatements, encodeStatements } from './core/ast/clipboard';
 import type { ConceptId } from './content/concepts';
 import { ConceptDrawer } from './components/ConceptDrawer';
@@ -45,6 +46,8 @@ import { DEFAULT_SECTION, ROUTES, sectionPath } from './routes';
 const Landing = lazy(async () => ({ default: (await import('./components/Landing')).Landing }));
 const Home = lazy(async () => ({ default: (await import('./components/Home')).Home }));
 const SignIn = lazy(async () => ({ default: (await import('./components/SignIn')).SignIn }));
+import { CodeWorkspace } from './components/CodeWorkspace';
+import type { CodeEditorHandle, CodeEditorReport } from './components/CodeEditor';
 import { canGroupAnything } from './components/chain';
 import { CanvasMenu } from './components/CanvasMenu';
 import { CanvasToolbar } from './components/CanvasToolbar';
@@ -68,6 +71,7 @@ import { createAlgorithmStore, createPreferenceStore } from './state/storage';
 import type { Preferences } from './state/storage';
 import { useAlgorithm } from './state/useAlgorithm';
 import { useExecution } from './state/useExecution';
+import { useCodeExecution } from './state/useCodeExecution';
 import { useSession } from './state/useSession';
 import { isSupabaseConfigured } from './state/supabase';
 import { useResizable } from './state/useResizable';
@@ -426,7 +430,7 @@ function Workbench({
   panels,
   onPanelsChange,
 }: WorkbenchProps) {
-  const { d, language } = useTranslation();
+  const { d, t, language } = useTranslation();
 
   /**
    * A newcomer starts with the welcome example; anyone returning starts blank
@@ -460,6 +464,22 @@ function Workbench({
   }, [algorithm]);
 
   const execution = useExecution(algorithm.body);
+  /* The other way a program can run. Both hooks are held because hooks cannot
+     be conditional, and the idle one costs a few pieces of state and no
+     worker: nothing is created until something is run. */
+  const codeRun = useCodeExecution(
+    useCallback(
+      (message: string, line: number | null) =>
+        line === null ? message : t('code.errorAt', { line, message }),
+      [t],
+    ),
+  );
+  const writing = isCode(algorithm);
+  /* The code editor owns its own undo stack, so the header's buttons have to
+     reach into it rather than into the reducer's — which holds statements, and
+     is empty for a document made of text. */
+  const codeHandle = useRef<CodeEditorHandle | null>(null);
+  const [codeReport, setCodeReport] = useState<CodeEditorReport | null>(null);
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeId | null>(null);
   const selection = useSelection(algorithm.body);
@@ -847,6 +867,15 @@ function Workbench({
     setScreen('editor');
   }, [load, d.app.untitled, setScreen]);
 
+  /* A code document starts with a comment rather than an empty page: a blank
+     editor asks a beginner to invent both a problem and its first line, and
+     the one thing worth saying here is which two functions get them moving. */
+  const createCode = useCallback(() => {
+    const blank = createEmptyAlgorithm(d.code.blank);
+    load({ ...blank, kind: 'code', source: d.code.starter });
+    setScreen('editor');
+  }, [load, d.code.blank, d.code.starter, setScreen]);
+
   /** Opening anything from the landing view moves to the editor with it. */
   const openAlgorithm = useCallback(
     (next: Parameters<typeof load>[0]) => {
@@ -859,8 +888,11 @@ function Workbench({
   /** The header's Run reveals the robot if it was hidden, then starts. */
   const startRun = useCallback(() => {
     setRobotOpen(true);
-    execution.play();
-  }, [execution, setRobotOpen]);
+    // One button, two engines. Which one depends on what is being written,
+    // and the header has no business knowing more than that.
+    if (isCode(algorithm)) codeRun.run(algorithm.source ?? '');
+    else execution.play();
+  }, [algorithm, codeRun, execution, setRobotOpen]);
 
   /* The same checks the editor runs, computed once here and handed to both.
      Validating on every render — twice, since the editor does it too — is a
@@ -968,8 +1000,8 @@ function Workbench({
             <button
               type="button"
               className="app__icon-button"
-              onClick={controller.undo}
-              disabled={!controller.canUndo}
+              onClick={writing ? () => codeHandle.current?.undo() : controller.undo}
+              disabled={writing ? !codeReport?.canUndo : !controller.canUndo}
               title={`${d.actions.undo} · ⌘Z`}
               aria-label={d.actions.undo}
             >
@@ -978,8 +1010,8 @@ function Workbench({
             <button
               type="button"
               className="app__icon-button"
-              onClick={controller.redo}
-              disabled={!controller.canRedo}
+              onClick={writing ? () => codeHandle.current?.redo() : controller.redo}
+              disabled={writing ? !codeReport?.canRedo : !controller.canRedo}
               title={`${d.actions.redo} · ⇧⌘Z`}
               aria-label={d.actions.redo}
             >
@@ -987,6 +1019,11 @@ function Workbench({
             </button>
           </div>
 
+          {/* Three rails a code document does not have. Left on screen they
+              were buttons that pressed and changed nothing, which is worse
+              than their absence. */}
+          {!writing && (
+            <>
           <span className="app__divider" aria-hidden="true" />
 
           {/* Panel toggles, grouped so their state reads at a glance. */}
@@ -1034,6 +1071,8 @@ function Workbench({
               />
             </button>
           </div>
+            </>
+          )}
 
           <span className="app__divider" aria-hidden="true" />
 
@@ -1055,15 +1094,19 @@ function Workbench({
           >
             <BookOpenText />
           </button>
-          <button
-            type="button"
-            className="app__icon-button"
-            onClick={() => setShowExport(true)}
-            title={d.actions.export}
-            aria-label={d.actions.export}
-          >
-            <Export />
-          </button>
+          {/* The export dialog offers the emitted languages of a statement
+              tree. A code document is already text in one of them. */}
+          {!writing && (
+            <button
+              type="button"
+              className="app__icon-button"
+              onClick={() => setShowExport(true)}
+              title={d.actions.export}
+              aria-label={d.actions.export}
+            >
+              <Export />
+            </button>
+          )}
 
           <span className="app__divider" aria-hidden="true" />
 
@@ -1121,6 +1164,7 @@ function Workbench({
             onThemeChange={onThemeChange}
             onOpen={openAlgorithm}
             onCreate={createNew}
+            onCreateCode={createCode}
             onOpenConcept={setOpenConcept}
               currentName={algorithm.name}
             onBackToEditor={() => setScreen('editor')}
@@ -1129,6 +1173,16 @@ function Workbench({
             initials={initials}
             onSignOut={onSignOut}
             onSignIn={onSignIn}
+          />
+        </main>
+      ) : writing ? (
+        <main className="app__main app__main--code">
+          <CodeWorkspace
+            source={algorithm.source ?? ''}
+            onChange={controller.setSource}
+            execution={codeRun}
+            onEditorReady={(api) => (codeHandle.current = api)}
+            onReport={setCodeReport}
           />
         </main>
       ) : (

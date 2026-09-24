@@ -334,7 +334,12 @@
 
 /* The landing view fills the main area on its own, so it opts out of the
    editor's three-column grid. */
-.app__main--home {
+.app__main--home,
+/* The code workbench brings its own three parts and wants the whole row. Left
+   in the block grid it landed in the palette's `auto` track and sized itself
+   to its content, which is how a full-width workbench ended up occupying half
+   the window. */
+.app__main--code {
   display: block;
   overflow: hidden;
 }
@@ -603,3 +608,4 @@
     display: none;
   }
 }
+

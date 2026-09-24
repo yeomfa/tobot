@@ -136,3 +136,28 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- ---------------------------------------------------------------------------
+-- Code documents.
+--
+-- Added after the fact, and additive on purpose: both columns have defaults or
+-- allow null, so running this on a database full of block algorithms changes
+-- nothing about them. `kind` defaults to 'blocks' precisely so every existing
+-- row answers the question correctly without being rewritten.
+--
+-- The program is text rather than jsonb because it is text. The whole point of
+-- this kind is that it is the one thing the app does not parse.
+-- ---------------------------------------------------------------------------
+alter table public.algorithms
+  add column if not exists kind text not null default 'blocks';
+
+alter table public.algorithms
+  add column if not exists source text;
+
+-- A third kind would be a bug rather than a feature, and the database is the
+-- last place that can still say so.
+alter table public.algorithms
+  drop constraint if exists algorithms_kind_check;
+alter table public.algorithms
+  add constraint algorithms_kind_check check (kind in ('blocks', 'code'));
+

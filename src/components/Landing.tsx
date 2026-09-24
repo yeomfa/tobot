@@ -12,6 +12,7 @@ import {
   SunIcon as Sun,
   TranslateIcon as Translate,
   TreeStructureIcon as TreeStructure,
+  TerminalWindowIcon as Terminal,
 } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 
@@ -40,6 +41,9 @@ const FEATURES = [
   { key: 'robot', icon: ChatCircleText, hue: 'accent', wide: false },
   { key: 'concepts', icon: GraduationCap, hue: 'loop', wide: false },
   { key: 'validation', icon: Check, hue: 'success', wide: false },
+  /* The way out of the blocks, which the copy above has always promised and
+     until now happened somewhere else. */
+  { key: 'write', icon: Terminal, hue: 'function', wide: true },
 ] as const;
 
 type Theme = Preferences['theme'];

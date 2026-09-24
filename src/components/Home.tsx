@@ -13,6 +13,8 @@ import {
   HardDrivesIcon as HardDrives,
   MoonIcon as Moon,
   PencilSimpleIcon as PencilSimple,
+  CodeIcon,
+  SquaresFourIcon,
   PlusIcon as Plus,
   PuzzlePieceIcon as PuzzlePiece,
   SealCheckIcon as SealCheck,
@@ -34,6 +36,7 @@ import { concepts } from '../content/concepts';
 import type { ConceptId } from '../content/concepts';
 import { algorithmFromChallenge, challenges } from '../content/challenges';
 import { algorithmFromExample, examples } from '../content/library';
+import { createId } from '../core/ast/factory';
 import type { Algorithm } from '../core/ast/types';
 import { languageNames, LANGUAGES } from '../i18n';
 import type { Language } from '../i18n';
@@ -44,6 +47,8 @@ import {
   sectionPath,
   type LibrarySection,
 } from '../routes';
+import { isCode } from '../core/ast/types';
+import { emitters } from '../core/emitters';
 import { createAlgorithmStore } from '../state/storage';
 import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
@@ -61,6 +66,8 @@ interface HomeProps {
   onThemeChange: (theme: 'light' | 'dark' | 'system') => void;
   onOpen: (algorithm: Algorithm) => void;
   onCreate: () => void;
+  /** Starts a code document rather than a block one. */
+  onCreateCode: () => void;
   onOpenConcept: (id: ConceptId) => void;
   /** Name of the algorithm open in the editor, for the way back. */
   currentName: string;
@@ -188,6 +195,7 @@ export const Home = memo(function Home({
   onThemeChange,
   onOpen,
   onCreate,
+  onCreateCode,
   onOpenConcept,
   currentName,
   onBackToEditor,
@@ -233,6 +241,20 @@ export const Home = memo(function Home({
     [levelFilter, topicFilter],
   );
   const [saved, setSaved] = useState<Algorithm[]>([]);
+  /* Starts true, because the list is being fetched before the first paint.
+     Without it an empty array and a list that has not arrived look identical,
+     and a signed-in student was told they had nothing saved every time the
+     library opened — for as long as the network took to disagree. */
+  const [loadingSaved, setLoadingSaved] = useState(true);
+  /*
+    Whether the wait has gone on long enough to be worth mentioning.
+
+    Separate from `loadingSaved`, which is the fact. Locally the list resolves
+    in a microtask, so saying so immediately painted three skeleton cards and
+    took them away on the next frame — a flicker carrying no information, and
+    on every visit to the library.
+  */
+  const [slowFetch, setSlowFetch] = useState(false);
   const [importError, setImportError] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
   /*
@@ -261,14 +283,55 @@ export const Home = memo(function Home({
 
   useEffect(() => {
     let cancelled = false;
+    setLoadingSaved(true);
+    // Long enough that a local read never reaches it, short enough that a slow
+    // network is never a blank pause with nothing to explain it.
+    const announce = setTimeout(() => {
+      if (!cancelled) setSlowFetch(true);
+    }, 250);
+
     void (async () => {
       const list = await createAlgorithmStore().list();
-      if (!cancelled) setSaved(list);
+      if (cancelled) return;
+      setSaved(list);
+      setLoadingSaved(false);
+      setSlowFetch(false);
     })();
     return () => {
       cancelled = true;
+      clearTimeout(announce);
     };
   }, [revision]);
+
+  /**
+   * Opens a block algorithm as a code document.
+   *
+   * The graduation this whole surface exists for, and it costs almost nothing
+   * because the JavaScript emitter already writes the program: the first thing
+   * the student meets in the editor is their own algorithm, already written
+   * out. Learning to read code is much easier when the code says something you
+   * wrote yourself.
+   *
+   * A new document rather than a conversion. The blocks stay where they are —
+   * this is a door out, not a door that closes behind you.
+   */
+  const openAsCode = (algorithm: Algorithm): void => {
+    const source = emitters.javascript
+      .emit(algorithm, { locale: language })
+      .map((line) => `${'  '.repeat(line.indent)}${line.text}`)
+      .join('\n');
+
+    onOpen({
+      ...algorithm,
+      id: createId(),
+      name: `${algorithm.name} (${d.code.badge})`,
+      kind: 'code',
+      source: `${source}\n`,
+      body: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  };
 
   /** Reads a `.json` exported from the app, validating it before opening. */
   const importFile = async (file: File): Promise<void> => {
@@ -515,6 +578,20 @@ export const Home = memo(function Home({
                     <ArrowRight className="home__start-arrow" weight="bold" aria-hidden="true" />
                   </button>
 
+                  {/* The second way to start, beside the first rather than
+                      hidden behind it: writing code is not an advanced mode of
+                      building blocks, it is the other thing this app does. */}
+                  <button type="button" className="home__start-card" onClick={onCreateCode}>
+                    <span className="home__start-icon">
+                      <CodeIcon weight="bold" />
+                    </span>
+                    <span className="home__start-text">
+                      <span className="home__start-name">{d.code.newCode}</span>
+                      <span className="home__start-hint">{d.code.newHint}</span>
+                    </span>
+                    <ArrowRight className="home__start-arrow" weight="bold" aria-hidden="true" />
+                  </button>
+
                   <button
                     type="button"
                     className="home__start-card home__start-card--quiet"
@@ -543,7 +620,25 @@ export const Home = memo(function Home({
                 </div>
                 {importError && <p className="home__error">{d.library.importError}</p>}
 
-                {saved.length === 0 ? (
+                {/* Three states, not two. Between the fetch starting and the
+                    delay elapsing there is nothing to show — falling through
+                    to the empty message here would bring back the bug the
+                    skeleton exists to fix, only briefer. */}
+                {slowFetch ? (
+                  /* Cards rather than a spinner: the list is about to be a
+                     grid of them, and showing its shape means nothing jumps
+                     into place when the real ones arrive. */
+                  <div className="home__grid" aria-busy="true" aria-live="polite">
+                    <span className="home__sr">{d.library.loading}</span>
+                    {[0, 1, 2].map((slot) => (
+                      <div key={slot} className="home__card home__card--ghost" aria-hidden="true">
+                        <span className="home__ghost-line home__ghost-line--name" />
+                        <span className="home__ghost-line home__ghost-line--chip" />
+                        <span className="home__ghost-line home__ghost-line--meta" />
+                      </div>
+                    ))}
+                  </div>
+                ) : loadingSaved ? null : saved.length === 0 ? (
                   <p className="home__empty">{d.library.empty}</p>
                 ) : (
                   <div className="home__grid">
@@ -559,16 +654,47 @@ export const Home = memo(function Home({
                           title={algorithm.name}
                         >
                           <span className="home__card-name">{algorithm.name}</span>
+                          {/* Which of the two things this is, said as a mark
+                              rather than as the last word of a grey sentence.
+                              It is the first question asked of a card and it
+                              was the hardest thing on it to find. */}
+                          <span
+                            className="home__card-kind"
+                            data-kind={isCode(algorithm) ? 'code' : 'blocks'}
+                          >
+                            {isCode(algorithm) ? (
+                              <CodeIcon weight="bold" aria-hidden="true" />
+                            ) : (
+                              <SquaresFourIcon weight="bold" aria-hidden="true" />
+                            )}
+                            {isCode(algorithm) ? d.code.badge : d.library.blocks}
+                          </span>
                           <span className="home__card-meta">
                             {fill(d.library.lastEdited, { date: formatDate(algorithm.updatedAt) })}
-                            {' · '}
-                            {algorithm.body.length === 1
-                              ? d.editor.statementCountOne
-                              : fill(d.editor.statementCount, { count: algorithm.body.length })}
+                            {/* A code document has no statements to count —
+                                counting its empty body said "0 instructions"
+                                about a program that may be forty lines long. */}
+                            {!isCode(algorithm) &&
+                              ` · ${
+                                algorithm.body.length === 1
+                                  ? d.editor.statementCountOne
+                                  : fill(d.editor.statementCount, { count: algorithm.body.length })
+                              }`}
                           </span>
                         </button>
 
                         <div className="home__card-actions">
+                          {!isCode(algorithm) && algorithm.body.length > 0 && (
+                            <button
+                              type="button"
+                              className="home__card-action"
+                              onClick={() => openAsCode(algorithm)}
+                              title={d.code.openAsCode}
+                              aria-label={d.code.openAsCode}
+                            >
+                              <CodeIcon />
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="home__card-action"

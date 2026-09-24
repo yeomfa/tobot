@@ -777,6 +777,7 @@
 }
 
 .home__card--saved {
+  position: relative;
   background: var(--bg-inset);
   padding: 0;
   overflow: hidden;
@@ -787,7 +788,9 @@
   flex-direction: column;
   gap: var(--space-1);
   flex: 1;
-  padding: var(--space-5) var(--space-5) var(--space-2);
+  /* Room on the right for the corner mark, so a long name wraps before it
+     rather than under it. */
+  padding: var(--space-5) calc(var(--space-5) + 90px) var(--space-2) var(--space-5);
   text-align: left;
 }
 
@@ -876,4 +879,102 @@
 .home__version {
   font-family: var(--font-mono);
   font-size: 10px;
+}
+
+/* Which of the two things a saved card is. A mark rather than the last word of
+   a grey sentence: it is the first question asked of a card, and as running
+   text it was the hardest thing on it to find. */
+.home__card-kind {
+  /* A corner mark rather than a line of its own. It answers "which of the two
+     is this" at a glance and then gets out of the way — in the flow it took a
+     whole row to say one word, and pushed the date down with it. */
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  border-radius: var(--radius-full);
+}
+
+.home__card-kind svg {
+  width: 12px;
+  height: 12px;
+}
+
+.home__card-kind[data-kind='code'] {
+  color: var(--hue-function);
+  background: var(--hue-function-soft);
+}
+
+.home__card-kind[data-kind='blocks'] {
+  color: var(--hue-variable);
+  background: var(--hue-variable-soft);
+}
+
+/* The list while it is still being fetched. Shaped like what is coming, so
+   nothing jumps when it arrives. */
+/* One card breathing, rather than three bars blinking in lock-step. The pulse
+   is on the card because that is the object a reader sees waiting. */
+.home__card--ghost {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+  animation: home-ghost 2s ease-in-out infinite;
+}
+
+.home__ghost-line {
+  display: block;
+  height: 12px;
+  background: var(--bg-inset);
+  border-radius: var(--radius-full);
+}
+
+.home__ghost-line--name {
+  width: 60%;
+  height: 16px;
+}
+
+.home__ghost-line--chip {
+  width: 84px;
+  height: 18px;
+}
+
+.home__ghost-line--meta {
+  width: 45%;
+  height: 10px;
+}
+
+/* `ease-in-out` and not `--ease-out`: that token is a one-shot curve for a
+   transition that starts and stops, and on a loop it accelerates and stalls.
+   Slow and shallow, so it reads as a surface waiting rather than a warning. */
+@keyframes home-ghost {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+/* Motion here is decoration; the text under it says the same thing. */
+@media (prefers-reduced-motion: reduce) {
+  .home__card--ghost {
+    animation: none;
+  }
+}
+
+/* Announced, not shown: the skeleton says "loading" to the eye already. */
+.home__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

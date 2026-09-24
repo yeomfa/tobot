@@ -83,7 +83,7 @@ export const es = {
     steps: {
       build: {
         title: 'Arma tu algoritmo',
-        body: 'Arrastra instrucciones desde el panel. No existe el error de sintaxis: los bloques solo encajan de formas que tienen sentido.',
+        body: 'Arrastra instrucciones desde el panel. Mientras armas con bloques no existe el error de sintaxis: solo encajan de formas que tienen sentido.',
       },
       compare: {
         title: 'Entiende qué hace',
@@ -120,6 +120,10 @@ export const es = {
       validation: {
         title: 'Errores en español',
         body: 'Tobot revisa mientras armas y te dice qué falta con palabras claras, no con jerga de compilador.',
+      },
+      write: {
+        title: 'Y cuando estés listo, escríbelo',
+        body: 'Abre tu algoritmo en JavaScript de verdad y sigue desde ahí. El robot te acompaña igual: ejecuta, pregunta y te dice en qué línea falló.',
       },
     },
 
@@ -384,6 +388,39 @@ export const es = {
     showPassword: 'Mostrar la contraseña',
     hidePassword: 'Ocultar la contraseña',
   },
+
+  code: {
+    tidy: 'Ordenar la sangría',
+    assignInCondition: 'Aquí un «=» guarda en vez de comparar, y la condición siempre se cumple. Para comparar usa «===».',
+    openAsCode: 'Abrir en JavaScript',
+    errorAt: 'Línea {line}: {message}',
+    clearConsole: 'Limpiar la salida',
+    copy: 'Copiar el código',
+    copied: 'Copiado',
+    download: 'Descargar .js',
+    goToProblem: 'Ir al aviso',
+    find: 'Buscar',
+    wrap: 'Ajustar líneas',
+    textBigger: 'Agrandar la letra',
+    textSmaller: 'Achicar la letra',
+    position: 'Línea {line}, columna {column}',
+    problemsOne: '1 aviso',
+    problems: '{count} avisos',
+    noProblems: 'Sin avisos',
+    reference: 'Lo que puedes usar',
+    referenceHint: 'Pasa el ratón por una para saber más. Ctrl+Espacio la escribe por ti.',
+    newCode: 'Escribir en JavaScript',
+    newHint: 'Un documento de código, para cuando ya quieras escribirlo tú',
+    badge: 'JavaScript',
+    starter: 'console.log("¡Hola!");\n',
+    blank: 'Código sin título',
+    run: 'Ejecutar',
+    stop: 'Detener',
+    running: 'Ejecutando…',
+    onlyInTobot: 'En Tobot pregunta el robot. Fuera de Tobot, «prompt» pregunta igual.',
+    tooLong: 'El programa no terminó y lo detuvimos. Revisa que algún ciclo llegue a su fin.',
+    missingAwait: 'Falta «await» delante. Sin él te quedas con la pregunta, no con la respuesta.',
+  },
   verbs: {
     forEachItem: 'para cada',
     function: 'función',
@@ -579,6 +616,8 @@ export const es = {
     includeComments: 'Incluir comentarios explicativos',
   },
   library: {
+    blocks: 'Bloques',
+    loading: 'Cargando tus algoritmos…',
     title: 'Mis algoritmos',
     empty: 'Todavía no has guardado ningún algoritmo',
     saved: 'Guardados',

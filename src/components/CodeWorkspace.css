@@ -1,0 +1,308 @@
+/**
+ * The code workbench.
+ *
+ * Deliberately the same shape as the block one — work on the left, robot on
+ * the right, transcript underneath — so moving between the two documents feels
+ * like changing what you are writing rather than which program you are in.
+ */
+
+.codework {
+  display: grid;
+  /* The same two-part shape as the block workbench: work on the left, robot on
+     the right. `minmax(0, 1fr)` and not `1fr`, or the editor's own scroller
+     pushes the column wider than the window. */
+  grid-template-columns: minmax(0, 1fr) var(--panel-min-width);
+  gap: var(--space-3);
+  min-height: 0;
+  height: 100%;
+  padding: var(--space-3);
+  background: var(--bg-app);
+}
+
+.codework__main {
+  display: grid;
+  /* Editor takes what is left; the transcript keeps a constant height so it
+     does not grow and shrink under the reader as lines arrive. */
+  grid-template-rows: auto minmax(0, 1fr) auto 200px;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: 0;
+}
+
+.codework__stop {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-inverse);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.codework__stop svg {
+  width: 15px;
+  height: 15px;
+}
+
+.codework__stop {
+  justify-content: center;
+  width: 100%;
+  background: var(--danger);
+}
+
+.codework__status {
+  font-size: var(--text-xs);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.codework__editor {
+  min-height: 0;
+}
+
+.codework__loading {
+  height: 100%;
+  background: var(--code-bg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+/* Shorter than the editor on purpose: the transcript is read in glances while
+   the program runs, and the program is what is being worked on. */
+.codework__console {
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.codework__robot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-3);
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.codework__answer {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.codework__answer input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.codework__answer input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+.codework__answer button {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-inverse);
+  background: var(--accent);
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 900px) {
+  .codework {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* The controls that act on the text rather than on the program. */
+.codework__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.codework__tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.codework__tool svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* The same mark at two sizes reads as "smaller" and "larger" without a second
+   icon to learn. */
+.codework__tool-small {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.codework__tool:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+}
+
+.codework__tool[data-active] {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.codework__tool:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.codework__tool-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 var(--space-1);
+  background: var(--border-subtle);
+}
+
+.codework__status {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.codework__status [data-warning] {
+  font-weight: 650;
+  color: var(--danger);
+}
+
+.codework__running {
+  font-size: var(--text-xs);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* The palette's job on a text surface: what is there to call. */
+.codework__reference {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.codework__reference h2 {
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+.codework__reference ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  list-style: none;
+}
+
+.codework__reference li {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.codework__reference code {
+  padding: 2px var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--code-name);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+/* Marks the ones that are ours rather than JavaScript's. */
+.codework__reference li span {
+  font-size: var(--text-xs);
+  color: var(--accent-strong);
+}
+
+.codework__reference p {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Run and stop, where the robot is. */
+.codework__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.codework__run,
+.codework__stop {
+  flex: 1;
+}
+
+.codework__run {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-inverse);
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.codework__run svg {
+  width: 15px;
+  height: 15px;
+}
+
+.codework__run:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+.codework__run:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* The warning count, which now goes somewhere. */
+.codework__warning {
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--danger);
+}
+
+.codework__warning:hover {
+  text-decoration: underline;
+}
