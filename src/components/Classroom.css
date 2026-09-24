@@ -1,0 +1,348 @@
+/**
+ * The classroom.
+ *
+ * Two panels rather than a page each for the teacher and the student: they are
+ * looking at the same room, and what differs between them is which buttons are
+ * there, not where anything is.
+ */
+
+.classroom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.classroom__notice,
+.classroom__empty,
+.classroom__hint {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.classroom__error {
+  font-size: var(--text-sm);
+  color: var(--danger);
+}
+
+.classroom__start {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.classroom__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.classroom__panel h2 {
+  font-size: var(--text-lg);
+  font-weight: 680;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.classroom__panel h3 {
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+.classroom__panel h4 {
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+.classroom__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.classroom__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.classroom__row input,
+.classroom__compose input,
+.classroom__compose textarea {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.classroom__row input:focus,
+.classroom__compose input:focus,
+.classroom__compose textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+/* A code is read off a board and typed. Monospaced and spaced out so a B and
+   an 8 are told apart at the back of the room. */
+.classroom__code-input,
+.classroom__code code {
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.classroom__row button,
+.classroom__add,
+.classroom__panel button:not(.classroom__quiet) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-inverse);
+  background: var(--accent);
+  border-radius: var(--radius-md);
+}
+
+.classroom__row button svg,
+.classroom__add svg {
+  width: 15px;
+  height: 15px;
+}
+
+.classroom__row button:hover:not(:disabled),
+.classroom__add:hover {
+  background: var(--accent-strong);
+}
+
+.classroom__row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* The secondary shape: everything that is not the main verb of its panel. */
+.classroom__quiet {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.classroom__quiet:hover {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+}
+
+.classroom__quiet svg {
+  width: 14px;
+  height: 14px;
+}
+
+.classroom__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.classroom__head h2 {
+  font-size: var(--text-lg);
+  font-weight: 680;
+  color: var(--text-primary);
+}
+
+.classroom__picker {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.classroom__code {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
+}
+
+.classroom__code-label {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.classroom__code button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--accent-strong);
+}
+
+.classroom__code button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.classroom__role {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.classroom__body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.classroom__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.classroom__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+}
+
+.classroom__list strong {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.classroom__meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.classroom__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.classroom__compose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+}
+
+.classroom__compose label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.classroom__compose label span {
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+.classroom__case {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--space-2);
+  align-items: end;
+  padding: var(--space-3);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+}
+
+.classroom__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.classroom__table th {
+  padding: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  text-align: left;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.classroom__table td {
+  padding: var(--space-2);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.classroom__table tbody tr:first-child td strong {
+  color: var(--accent-strong);
+}
+
+.classroom__people {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.classroom__people svg {
+  width: 15px;
+  height: 15px;
+}
+
+.classroom__members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.classroom__members li {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border-radius: var(--radius-full);
+}
+
+@media (max-width: 900px) {
+  .classroom__body {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom__case {
+    grid-template-columns: 1fr;
+  }
+}

@@ -18,6 +18,7 @@ import {
   CompassIcon as Compass,
   DesktopIcon as Desktop,
   ExportIcon as Export,
+  UploadSimpleIcon as UploadSimple,
 } from '@phosphor-icons/react';
 
 import type { NodeId, Statement } from './core/ast/types';
@@ -72,6 +73,7 @@ import type { Preferences } from './state/storage';
 import { useAlgorithm } from './state/useAlgorithm';
 import { useExecution } from './state/useExecution';
 import { useCodeExecution } from './state/useCodeExecution';
+import { handIn } from './state/classroomStore';
 import { useSession } from './state/useSession';
 import { isSupabaseConfigured } from './state/supabase';
 import { useResizable } from './state/useResizable';
@@ -478,6 +480,10 @@ function Workbench({
   /* The code editor owns its own undo stack, so the header's buttons have to
      reach into it rather than into the reducer's — which holds statements, and
      is empty for a document made of text. */
+  /* The assignment the open algorithm came from, so it can be handed back.
+     Null for anything opened any other way, which is nearly everything. */
+  const [openAssignment, setOpenAssignment] = useState<string | null>(null);
+  const [handedIn, setHandedIn] = useState(false);
   const codeHandle = useRef<CodeEditorHandle | null>(null);
   const [codeReport, setCodeReport] = useState<CodeEditorReport | null>(null);
   const [openConcept, setOpenConcept] = useState<ConceptId | null>(null);
@@ -879,11 +885,30 @@ function Workbench({
   /** Opening anything from the landing view moves to the editor with it. */
   const openAlgorithm = useCallback(
     (next: Parameters<typeof load>[0]) => {
+      // Opening anything else leaves the assignment behind with it.
+      setOpenAssignment(null);
+      setHandedIn(false);
       load(next);
       setScreen('editor');
     },
     [load, setScreen],
   );
+
+  const openAssignmentWork = useCallback(
+    (next: Parameters<typeof load>[0], assignmentId: string) => {
+      load(next);
+      setOpenAssignment(assignmentId);
+      setHandedIn(false);
+      setScreen('editor');
+    },
+    [load, setScreen],
+  );
+
+  const submitWork = useCallback(async () => {
+    if (!openAssignment) return;
+    await handIn(openAssignment, algorithm);
+    setHandedIn(true);
+  }, [openAssignment, algorithm]);
 
   /** The header's Run reveals the robot if it was hidden, then starts. */
   const startRun = useCallback(() => {
@@ -1147,6 +1172,21 @@ function Workbench({
             </>
           )}
 
+          {/* Only while the thing on screen came from one. Handing in replaces
+              whatever was sent before, which is what a student expects from a
+              button that says so. */}
+          {openAssignment && (
+            <button
+              type="button"
+              className="app__hand-in"
+              onClick={() => void submitWork()}
+              disabled={handedIn}
+            >
+              <UploadSimple weight="bold" />
+              {handedIn ? d.classroom.handedIn : d.classroom.handIn}
+            </button>
+          )}
+
           <button type="button" className="app__run" onClick={startRun}>
             <Play weight="fill" /> {d.actions.run}
           </button>
@@ -1165,6 +1205,8 @@ function Workbench({
             onOpen={openAlgorithm}
             onCreate={createNew}
             onCreateCode={createCode}
+            currentAlgorithm={algorithm}
+            onOpenAssignment={openAssignmentWork}
             onOpenConcept={setOpenConcept}
               currentName={algorithm.name}
             onBackToEditor={() => setScreen('editor')}

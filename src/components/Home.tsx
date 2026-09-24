@@ -14,6 +14,7 @@ import {
   MoonIcon as Moon,
   PencilSimpleIcon as PencilSimple,
   CodeIcon,
+  UsersThreeIcon,
   SquaresFourIcon,
   PlusIcon as Plus,
   PuzzlePieceIcon as PuzzlePiece,
@@ -47,6 +48,7 @@ import {
   sectionPath,
   type LibrarySection,
 } from '../routes';
+import { Classroom } from './Classroom';
 import { isCode } from '../core/ast/types';
 import { emitters } from '../core/emitters';
 import { createAlgorithmStore } from '../state/storage';
@@ -68,6 +70,10 @@ interface HomeProps {
   onCreate: () => void;
   /** Starts a code document rather than a block one. */
   onCreateCode: () => void;
+  /** What is open in the editor, which is what a teacher sets as work. */
+  currentAlgorithm: Algorithm;
+  /** Opens an assignment, remembering which one so it can be handed in. */
+  onOpenAssignment: (algorithm: Algorithm, assignmentId: string) => void;
   onOpenConcept: (id: ConceptId) => void;
   /** Name of the algorithm open in the editor, for the way back. */
   currentName: string;
@@ -100,6 +106,7 @@ const SECTIONS: Array<{ id: Section; icon: Icon }> = [
   { id: 'algorithms', icon: FolderOpen },
   { id: 'challenges', icon: PuzzlePiece },
   { id: 'examples', icon: Lightbulb },
+  { id: 'classroom', icon: UsersThreeIcon },
   { id: 'concepts', icon: BookOpenText },
 ];
 
@@ -107,6 +114,7 @@ function sectionLabel(d: ReturnType<typeof useTranslation>['d'], id: Section): s
   if (id === 'algorithms') return d.library.saved;
   if (id === 'challenges') return d.library.challenges;
   if (id === 'examples') return d.library.examples;
+  if (id === 'classroom') return d.classroom.section;
   return d.concepts.title;
 }
 
@@ -196,6 +204,8 @@ export const Home = memo(function Home({
   onOpen,
   onCreate,
   onCreateCode,
+  currentAlgorithm,
+  onOpenAssignment,
   onOpenConcept,
   currentName,
   onBackToEditor,
@@ -879,6 +889,14 @@ export const Home = memo(function Home({
                   })}
                 </div>
               </>
+            )}
+
+            {section === 'classroom' && (
+              <Classroom
+                signedIn={Boolean(email)}
+                current={currentAlgorithm}
+                onOpen={onOpenAssignment}
+              />
             )}
 
             {section === 'concepts' && (

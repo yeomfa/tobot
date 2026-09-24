@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createId, literal, variable } from './ast/factory';
 import type { Algorithm, BinaryOperator, Expression, Statement } from './ast/types';
 import { emitters, renderLines } from './emitters';
+import { runToEnd } from './runtime/headless';
 import { Interpreter } from './runtime/interpreter';
 import { MAX_STEPS } from './runtime/types';
 
@@ -20,23 +21,10 @@ function wrap(body: Statement[]): Algorithm {
   };
 }
 
-/** Runs a program to completion, feeding `answers` to each `ask` in order. */
-function run(body: Statement[], answers: string[] = []) {
-  const machine = new Interpreter(body);
-  let state = machine.getState();
-  let pending = [...answers];
-  let guard = 0;
-
-  while (state.status !== 'finished' && state.status !== 'error') {
-    if (guard++ > 5000) throw new Error('program did not terminate');
-    if (state.status === 'awaitingInput') {
-      state = machine.provideInput(pending.shift() ?? '');
-      continue;
-    }
-    state = machine.step();
-  }
-  return state;
-}
+/* Runs a program to completion, feeding `answers` to each `ask` in order.
+   It lives in `runtime/headless.ts` now, because marking a classroom's work
+   needs the same driver and one copy is easier to keep honest than two. */
+const run = runToEnd;
 
 /**
  * Executes emitted JavaScript in a sandbox, capturing console output.

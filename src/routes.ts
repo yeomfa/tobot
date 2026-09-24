@@ -15,7 +15,13 @@
  */
 
 /** The library's sections, in the order the rail lists them. */
-export const LIBRARY_SECTIONS = ['algorithms', 'challenges', 'examples', 'concepts'] as const;
+export const LIBRARY_SECTIONS = [
+  'algorithms',
+  'challenges',
+  'examples',
+  'classroom',
+  'concepts',
+] as const;
 
 export type LibrarySection = (typeof LIBRARY_SECTIONS)[number];
 

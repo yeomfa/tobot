@@ -609,3 +609,32 @@
   }
 }
 
+/* Handing work back to a classroom. Shaped like Run — both are "I am done,
+   take this" — but quieter, because running is what happens many times and
+   handing in is what happens once. */
+.app__hand-in {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
+}
+
+.app__hand-in svg {
+  width: 15px;
+  height: 15px;
+}
+
+.app__hand-in:hover:not(:disabled) {
+  color: var(--text-inverse);
+  background: var(--accent);
+}
+
+.app__hand-in:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
