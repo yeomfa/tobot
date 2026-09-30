@@ -469,13 +469,14 @@ function Workbench({
   /* The other way a program can run. Both hooks are held because hooks cannot
      be conditional, and the idle one costs a few pieces of state and no
      worker: nothing is created until something is run. */
-  const codeRun = useCodeExecution(
-    useCallback(
+  const codeRun = useCodeExecution({
+    describeError: useCallback(
       (message: string, line: number | null) =>
         line === null ? message : t('code.errorAt', { line, message }),
       [t],
     ),
-  );
+    tooLong: d.code.tooLong,
+  });
   const writing = isCode(algorithm);
   /* The code editor owns its own undo stack, so the header's buttons have to
      reach into it rather than into the reducer's — which holds statements, and
@@ -733,35 +734,50 @@ function Workbench({
     const onKeyDown = (event: KeyboardEvent): void => {
       if (!(event.metaKey || event.ctrlKey)) return;
       const target = event.target as HTMLElement | null;
-      /* Inside a field these belong to the text being typed: Ctrl+C there must
-         copy the characters, not the block around them. */
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+      /*
+        Inside anything editable these belong to the text being typed: Ctrl+C
+        there must copy the characters, not the block around them.
+
+        Asking whether the element *is editable* rather than naming two tags.
+        The code editor's surface is a `contenteditable` div, so a tag check
+        left it unexempt — and since Ctrl+V was cancelled here and handed to a
+        decoder that only understands blocks, pasting into the code editor did
+        nothing whatsoever. There was no error and no clue; the keystroke simply
+        had no effect.
+      */
+      if (target?.closest('input, textarea, [contenteditable=""], [contenteditable="true"]')) {
+        return;
+      }
 
       const key = event.key.toLowerCase();
       if (key === 'z') {
+        /* A code document's history belongs to the editor, which handles this
+           itself through its own keymap. Reaching into the block undo stack
+           from here would step through a tree the student is not looking at. */
+        if (writing) return;
         event.preventDefault();
         if (event.shiftKey) controller.redo();
         else controller.undo();
         return;
       }
-      if (key === 'c' && selection.ids.length > 0) {
+      if (key === 'c' && !writing && selection.ids.length > 0) {
         event.preventDefault();
         void copySelection();
         return;
       }
-      if (key === 'x' && selection.ids.length > 0) {
+      if (key === 'x' && !writing && selection.ids.length > 0) {
         event.preventDefault();
         void cutSelection();
         return;
       }
-      if (key === 'v') {
+      if (key === 'v' && !writing) {
         event.preventDefault();
         void pasteFromClipboard();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [controller, selection, copySelection, cutSelection, pasteFromClipboard]);
+  }, [controller, selection, copySelection, cutSelection, pasteFromClipboard, writing]);
 
   const showConcept = useCallback((conceptId: string) => {
     setOpenConcept(conceptId as ConceptId);
@@ -888,10 +904,14 @@ function Workbench({
       // Opening anything else leaves the assignment behind with it.
       setOpenAssignment(null);
       setHandedIn(false);
+      /* And leaves the selection, which is a set of node ids from the tree
+         being closed. Carried over, Ctrl+C in the next document copied blocks
+         that were no longer on screen. */
+      selection.clear();
       load(next);
       setScreen('editor');
     },
-    [load, setScreen],
+    [load, setScreen, selection],
   );
 
   const openAssignmentWork = useCallback(
@@ -1044,15 +1064,13 @@ function Workbench({
             </button>
           </div>
 
-          {/* Three rails a code document does not have. Left on screen they
-              were buttons that pressed and changed nothing, which is worse
-              than their absence. */}
-          {!writing && (
-            <>
           <span className="app__divider" aria-hidden="true" />
 
-          {/* Panel toggles, grouped so their state reads at a glance. */}
+          {/* Panel toggles, grouped so their state reads at a glance. Only the
+              palette is missing from a code document; hiding all three was an
+              over-correction that took the console and the robot with it. */}
           <div className="app__toggles">
+            {!writing && (
             <button
               type="button"
               className="app__toggle"
@@ -1064,6 +1082,7 @@ function Workbench({
             >
               <SidebarSimple weight={paletteOpen ? 'fill' : 'regular'} />
             </button>
+            )}
             <button
               type="button"
               className="app__toggle"
@@ -1096,8 +1115,6 @@ function Workbench({
               />
             </button>
           </div>
-            </>
-          )}
 
           <span className="app__divider" aria-hidden="true" />
 
@@ -1225,6 +1242,10 @@ function Workbench({
             execution={codeRun}
             onEditorReady={(api) => (codeHandle.current = api)}
             onReport={setCodeReport}
+            robotOpen={robotOpen}
+            drawerOpen={drawerOpen}
+            robotSize={robotSize}
+            drawerSize={drawerSize}
           />
         </main>
       ) : (
@@ -1418,7 +1439,7 @@ function Workbench({
       </main>
       )}
 
-      <Tour open={tourOpen} onClose={() => setTourOpen(false)} />
+      <Tour open={tourOpen} onClose={() => setTourOpen(false)} writing={writing} />
 
       <ConceptDrawer
         conceptId={openConcept}

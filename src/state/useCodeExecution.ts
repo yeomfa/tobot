@@ -28,6 +28,19 @@ const PATIENCE_MS = 5000;
  */
 export type ErrorText = (message: string, line: number | null) => string;
 
+/**
+ * The few sentences this hook needs, supplied rather than looked up.
+ *
+ * It owns a worker and a clock and has no language. `tooLong` used to be stored
+ * as a dictionary key for the renderer to resolve, which the console did and
+ * the robot did not — so a runaway loop made the robot say the literal words
+ * `code.tooLong`.
+ */
+export interface RunnerMessages {
+  describeError: ErrorText;
+  tooLong: string;
+}
+
 export interface CodeExecutionController {
   /** The same snapshot the interpreter produces, so the console and the robot
       can render a run without knowing which surface produced it. */
@@ -78,13 +91,13 @@ function entry(kind: OutputEntry['kind'], text: string): OutputEntry {
  * state shape the rest of the app already renders. What it does own is the
  * part a student cannot be left holding — killing a run that will not end.
  */
-export function useCodeExecution(describe?: ErrorText): CodeExecutionController {
+export function useCodeExecution(messages: RunnerMessages): CodeExecutionController {
   const [state, setState] = useState<ExecutionState>(IDLE);
   const worker = useRef<Worker | null>(null);
   const deadline = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const describeRef = useRef(describe);
-  describeRef.current = describe;
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   const clearDeadline = useCallback(() => {
     if (deadline.current) {
@@ -110,9 +123,7 @@ export function useCodeExecution(describe?: ErrorText): CodeExecutionController 
         ...current,
         status: 'error',
         pendingPrompt: null,
-        // The key rather than the sentence: the component that renders this
-        // owns the language, and this hook has no business knowing it.
-        output: [...current.output, entry('error', 'code.tooLong')],
+        output: [...current.output, entry('error', messagesRef.current.tooLong)],
       }));
     }, PATIENCE_MS);
   }, [clearDeadline, dispose]);
@@ -164,9 +175,7 @@ export function useCodeExecution(describe?: ErrorText): CodeExecutionController 
 
         if (message.type === 'error') {
           clearDeadline();
-          const said = describeRef.current
-            ? describeRef.current(message.text, message.line)
-            : message.text;
+          const said = messagesRef.current.describeError(message.text, message.line);
           setState((current) => ({
             ...current,
             status: 'error',

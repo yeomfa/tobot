@@ -286,6 +286,14 @@ export const es = {
   },
   /** First-run tour. Each stop names one region and says what it is for. */
   tour: {
+    codeWelcomeTitle: 'Escribir código',
+    codeWelcomeBody: 'Aquí escribes JavaScript de verdad y Tobot lo ejecuta. Lo mismo que hacías con bloques, ahora con tus palabras.',
+    codeEditorTitle: 'Tu programa',
+    codeEditorBody: 'Escribe aquí. Pasa el ratón por una función para saber qué hace, y pulsa Ctrl+Espacio para ver qué puedes usar, incluidas tus propias variables.',
+    codeToolsTitle: 'Herramientas del texto',
+    codeToolsBody: 'Buscar, ordenar la sangría, cambiar el tamaño de la letra, copiar o descargar tu código. Abajo te dice en qué línea estás y si hay algún aviso.',
+    codeRunTitle: 'Ejecutar y ver',
+    codeRunBody: 'El robot ejecuta tu programa, te pregunta cuando el código lo pide y te dice en qué línea falló. La salida aparece en la consola.',
     replay: 'Ver la guía otra vez',
     skip: 'Saltar',
     next: 'Siguiente',

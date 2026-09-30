@@ -162,14 +162,3 @@ export const VOCABULARY: VocabularyEntry[] = [
 export function findEntry(name: string): VocabularyEntry | null {
   return VOCABULARY.find((entry) => entry.name === name) ?? null;
 }
-
-/**
- * The names the hover card can recognise, longest first.
- *
- * Longest first because `console.log` and `Math.floor` contain a dot, and the
- * word under the cursor is matched against this list: sorting the other way
- * would let a bare `Math` shadow `Math.floor` and explain the wrong thing.
- */
-export const VOCABULARY_NAMES: string[] = VOCABULARY.map((entry) => entry.name).sort(
-  (a, b) => b.length - a.length,
-);

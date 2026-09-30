@@ -11,7 +11,9 @@
   /* The same two-part shape as the block workbench: work on the left, robot on
      the right. `minmax(0, 1fr)` and not `1fr`, or the editor's own scroller
      pushes the column wider than the window. */
-  grid-template-columns: minmax(0, 1fr) var(--panel-min-width);
+  /* The rail's own width, the same variable the block workbench drives from
+     `useResizable`, so dragging either one feels like dragging the other. */
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-3);
   min-height: 0;
   height: 100%;
@@ -23,7 +25,8 @@
   display: grid;
   /* Editor takes what is left; the transcript keeps a constant height so it
      does not grow and shrink under the reader as lines arrive. */
-  grid-template-rows: auto minmax(0, 1fr) auto 200px;
+  /* The console's height is the drawer's, and `auto` when it is closed. */
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   gap: var(--space-3);
   min-width: 0;
   min-height: 0;
@@ -32,11 +35,14 @@
 .codework__stop {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
+  width: 100%;
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
   font-weight: 650;
   color: var(--text-inverse);
+  background: var(--danger);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
@@ -44,18 +50,6 @@
 .codework__stop svg {
   width: 15px;
   height: 15px;
-}
-
-.codework__stop {
-  justify-content: center;
-  width: 100%;
-  background: var(--danger);
-}
-
-.codework__status {
-  font-size: var(--text-xs);
-  text-align: center;
-  color: var(--text-muted);
 }
 
 .codework__editor {
@@ -72,6 +66,8 @@
 /* Shorter than the editor on purpose: the transcript is read in glances while
    the program runs, and the program is what is being worked on. */
 .codework__console {
+  position: relative;
+  height: var(--drawer-size, 300px);
   min-height: 0;
   overflow: hidden;
   background: var(--bg-surface);
@@ -80,6 +76,8 @@
 }
 
 .codework__robot {
+  position: relative;
+  width: var(--robot-size, 330px);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -124,9 +122,18 @@
   border-radius: var(--radius-md);
 }
 
-@media (max-width: 900px) {
+/* The same breakpoint the block workbench uses, and the overflow it needs:
+   stacked into one column inside `.app__main--code { overflow: hidden }`, the
+   robot and the run button were clipped off the bottom with no way to reach
+   them. */
+@media (max-width: 960px) {
   .codework {
     grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .codework__robot {
+    width: auto;
   }
 }
 
@@ -192,11 +199,6 @@
   padding: 0 var(--space-1);
   font-size: var(--text-xs);
   color: var(--text-muted);
-}
-
-.codework__status [data-warning] {
-  font-weight: 650;
-  color: var(--danger);
 }
 
 .codework__running {
@@ -305,4 +307,17 @@
 
 .codework__warning:hover {
   text-decoration: underline;
+}
+
+
+/* The same size the block workbench gives it.
+
+   `Robot.css` caps the body at 148px, a number chosen for a rail it shares
+   with the inspector and the transport, where it must not push the console out
+   of view. This rail has neither, so the cap left the robot marooned in an
+   empty column — and the two screens showed the same character at two sizes.
+   `RunPanel.css` already made this exact override; this is that number. */
+.codework__robot .robot__body {
+  width: min(88%, 240px);
+  max-height: min(250px, 30vh);
 }

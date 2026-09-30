@@ -11,6 +11,8 @@ import './Tour.css';
 interface TourProps {
   open: boolean;
   onClose: () => void;
+  /** Which workbench is on screen, and therefore which tour is true. */
+  writing: boolean;
 }
 
 /** A stop on the tour: the element to point at and the copy to show. */
@@ -21,7 +23,7 @@ interface Stop {
   bodyKey: string;
 }
 
-const STOPS: Stop[] = [
+const BLOCK_STOPS: Stop[] = [
   { target: null, titleKey: 'welcomeTitle', bodyKey: 'welcomeBody' },
   { target: '.app__palette', titleKey: 'paletteTitle', bodyKey: 'paletteBody' },
   { target: '.app__canvas', titleKey: 'canvasTitle', bodyKey: 'canvasBody' },
@@ -35,6 +37,25 @@ const STOPS: Stop[] = [
   // is where a student actually drives a run from.
   { target: '.run-panel__controls', titleKey: 'runTitle', bodyKey: 'runBody' },
   { target: '.app__toggles', titleKey: 'panelsTitle', bodyKey: 'panelsBody' },
+  { target: null, titleKey: 'endTitle', bodyKey: 'endBody' },
+];
+
+/**
+ * The same guide, for the other workbench.
+ *
+ * Every stop above points at something a code document does not have — the
+ * palette, the canvas, the drawer tabs. `setRect(null)` kept it from crashing,
+ * so instead of breaking it quietly narrated eight panels that were not on
+ * screen. A guide that describes the wrong program is worse than none.
+ *
+ * Four stops, because there is genuinely less to learn here: where you write,
+ * what the editor knows, how to run it, and where the answer comes out.
+ */
+const CODE_STOPS: Stop[] = [
+  { target: null, titleKey: 'codeWelcomeTitle', bodyKey: 'codeWelcomeBody' },
+  { target: '.codework__editor', titleKey: 'codeEditorTitle', bodyKey: 'codeEditorBody' },
+  { target: '.codework__tools', titleKey: 'codeToolsTitle', bodyKey: 'codeToolsBody' },
+  { target: '.codework__robot', titleKey: 'codeRunTitle', bodyKey: 'codeRunBody' },
   { target: null, titleKey: 'endTitle', bodyKey: 'endBody' },
 ];
 
@@ -52,14 +73,17 @@ interface Rect {
  * scrim, so the student reads each description against the actual interface
  * rather than a screenshot of it.
  */
-export const Tour = memo(function Tour({ open, onClose }: TourProps) {
+export const Tour = memo(function Tour({ open, onClose, writing }: TourProps) {
   const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardSize, setCardSize] = useState({ width: 340, height: 240 });
 
-  const stop = STOPS[index];
+  /* Chosen per render rather than captured, so switching documents with the
+     guide open shows the guide for what is actually on screen. */
+  const stops = writing ? CODE_STOPS : BLOCK_STOPS;
+  const stop = stops[index];
 
   // Measured in a layout effect so the cutout paints with the card, not a
   // frame later.
@@ -107,16 +131,16 @@ export const Tour = memo(function Tour({ open, onClose }: TourProps) {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') onClose();
-      if (event.key === 'ArrowRight') setIndex((i) => Math.min(i + 1, STOPS.length - 1));
+      if (event.key === 'ArrowRight') setIndex((i) => Math.min(i + 1, stops.length - 1));
       if (event.key === 'ArrowLeft') setIndex((i) => Math.max(i - 1, 0));
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, stops.length]);
 
   if (!open) return null;
 
-  const isLast = index === STOPS.length - 1;
+  const isLast = index === stops.length - 1;
 
   /**
    * Places the card beside the highlight, clamped to the viewport on both
@@ -176,7 +200,7 @@ export const Tour = memo(function Tour({ open, onClose }: TourProps) {
             same thing in less ink, and the card is meant to stay out of the
             way of the interface it is describing. */}
         <p className="tour__count">
-          {index + 1} / {STOPS.length}
+          {index + 1} / {stops.length}
         </p>
 
         <h2 className="tour__title">{t(`tour.${stop.titleKey}`)}</h2>

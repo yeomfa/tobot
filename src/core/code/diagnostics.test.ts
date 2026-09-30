@@ -88,3 +88,29 @@ describe('spotting an assignment where a comparison was meant', () => {
     expect(findProblems('for (let i = 0; i < 3; i++) {}')).toEqual([]);
   });
 });
+
+/**
+ * Marks on correct code are worse than missing marks.
+ *
+ * A student who is told their working program is wrong learns to stop reading
+ * the marks, and then the one real warning goes unread too.
+ */
+describe('not marking code that is right', () => {
+  it('leaves an equals sign inside a string alone', () => {
+    expect(findProblems('if (respuesta === "si=no") {}')).toEqual([]);
+  });
+
+  it('does not read a callback arrow as an assignment', () => {
+    expect(findProblems('if (nombres.some((n) => n === "ana")) {}')).toEqual([]);
+  });
+
+  // Mid-edit, with a bracket deleted, the walk used to run to the end of the
+  // file and blame the first assignment it met down there.
+  it('stops at the body rather than walking the rest of the file', () => {
+    expect(findProblems('if (a === 1 {\n  const total = 2;\n}')).toEqual([]);
+  });
+
+  it('still marks the real thing when a string is nearby', () => {
+    expect(findProblems('if (nota = 5) { console.log("a=b"); }')).toHaveLength(1);
+  });
+});

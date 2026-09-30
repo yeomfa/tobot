@@ -1,5 +1,15 @@
-import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap, snippetCompletion } from '@codemirror/autocomplete';
-import type { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
+import {
+  autocompletion,
+  closeBrackets,
+  closeBracketsKeymap,
+  completeFromList,
+  snippetCompletion,
+} from '@codemirror/autocomplete';
+import type {
+  CompletionContext,
+  CompletionResult,
+  CompletionSource,
+} from '@codemirror/autocomplete';
 import {
   defaultKeymap,
   history,
@@ -11,12 +21,23 @@ import {
   undo,
   undoDepth,
 } from '@codemirror/commands';
-import { javascript } from '@codemirror/lang-javascript';
+import {
+  javascript,
+  javascriptLanguage,
+  localCompletionSource,
+  snippets,
+} from '@codemirror/lang-javascript';
 import { linter, lintGutter } from '@codemirror/lint';
 import { openSearchPanel, search, searchKeymap } from '@codemirror/search';
 import type { Diagnostic } from '@codemirror/lint';
-import { bracketMatching, HighlightStyle, indentOnInput, syntaxHighlighting } from '@codemirror/language';
-import { Compartment, EditorState } from '@codemirror/state';
+import {
+  bracketMatching,
+  HighlightStyle,
+  indentOnInput,
+  syntaxHighlighting,
+  syntaxTree,
+} from '@codemirror/language';
+import { Compartment, EditorState, Transaction } from '@codemirror/state';
 import type { Extension } from '@codemirror/state';
 import {
   drawSelection,
@@ -80,6 +101,25 @@ const theme = EditorView.theme({
   },
   '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: '1.7' },
 });
+
+/**
+ * Whether this position is inside a comment or a string.
+ *
+ * Asked of the parser rather than of the characters, because the parser is
+ * already mounted and it is the only thing that actually knows. Both the
+ * completion list and the hover card were offering themselves inside comments:
+ * writing `// pide el nombre con prompt` opened the function list, and while
+ * that list is open Enter accepts a completion instead of breaking the line —
+ * so a student writing a comment got `console.log()` spliced into the middle
+ * of their sentence.
+ */
+function inProse(state: EditorState, position: number): boolean {
+  const node = syntaxTree(state).resolveInner(position, -1);
+  for (let here: typeof node | null = node; here; here = here.parent) {
+    if (/Comment|String/.test(here.name)) return true;
+  }
+  return false;
+}
 
 /** The word under the cursor, dots included, so `Math.floor` reads as one. */
 function wordAt(text: string, offset: number): { from: number; to: number; word: string } | null {
@@ -247,7 +287,19 @@ export const CodeEditor = memo(function CodeEditor({
   useEffect(() => {
     if (!host.current) return;
 
-    const complete = (context: CompletionContext): CompletionResult | null => {
+    /*
+      Tobot's own functions, offered *alongside* what the language already
+      knows rather than instead of it.
+
+      This used to be handed to `autocompletion({ override })`, and `override`
+      replaces every source — including `localCompletionSource`, which is
+      precisely "the names this program declares". It shipped in the box and
+      one word switched it off, so a student who wrote `const total = 0` was
+      never offered `total` again.
+    */
+    const vocabularySource = (context: CompletionContext): CompletionResult | null => {
+      if (inProse(context.state, context.pos)) return null;
+
       const before = context.matchBefore(/[\w.$]*/);
       if (!before || (before.from === before.to && !context.explicit)) return null;
 
@@ -264,7 +316,32 @@ export const CodeEditor = memo(function CodeEditor({
       };
     };
 
+    /* The language's own two sources, guarded the same way. A student writing
+       a comment should be offered nothing at all, whoever the offer comes
+       from. */
+    const inCode =
+      (source: CompletionSource): CompletionSource =>
+      (context) =>
+        inProse(context.state, context.pos) ? null : source(context);
+
+    /* One registration per source, not one registration holding an array. The
+       `autocomplete` language-data value is a single source *or* a list of
+       ready-made completions, so handing it a list of functions made CodeMirror
+       read `.label` off each function and throw — which took the whole list
+       down, including the names this was meant to add. */
+    const languageCompletion = [
+      javascriptLanguage.data.of({ autocomplete: vocabularySource }),
+      javascriptLanguage.data.of({ autocomplete: inCode(localCompletionSource) }),
+      // `if`, `for`, `function`: a student writing their first loop should be
+      // offered its shape, not only its name.
+      javascriptLanguage.data.of({ autocomplete: inCode(completeFromList(snippets)) }),
+    ];
+
     const explain = hoverTooltip((editor, position) => {
+      // Hovering `prompt` inside `// no olvides await antes de prompt` used to
+      // open the full signature card, as though the word were a call.
+      if (inProse(editor.state, position)) return null;
+
       const text = editor.state.doc.toString();
       const found = wordAt(text, position);
       if (!found) return null;
@@ -303,7 +380,8 @@ export const CodeEditor = memo(function CodeEditor({
         closeBrackets(),
         javascript(),
         syntaxHighlighting(highlightStyle),
-        autocompletion({ override: [complete], activateOnTyping: true }),
+        languageCompletion,
+        autocompletion({ activateOnTyping: true }),
         explain,
         check,
         lintGutter(),
@@ -315,7 +393,6 @@ export const CodeEditor = memo(function CodeEditor({
           ...closeBracketsKeymap,
           ...defaultKeymap,
           ...historyKeymap,
-          ...completionKeymap,
           ...searchKeymap,
           indentWithTab,
         ]),
@@ -346,6 +423,18 @@ export const CodeEditor = memo(function CodeEditor({
 
     const editor = new EditorView({ state, parent: host.current });
     view.current = editor;
+
+    /* Reported once now, not only on the first edit. The bar read "Línea 1,
+       columna 1 · Sin avisos" over a document the gutter was already marking. */
+    const first = findProblems(editor.state.doc.toString());
+    onReportRef.current?.({
+      line: 1,
+      column: 1,
+      canUndo: false,
+      canRedo: false,
+      problems: first.length,
+      firstProblemLine: first[0] ? editor.state.doc.lineAt(first[0].from).number : null,
+    });
 
     onReady?.({
       undo: () => undo(editor),
@@ -416,7 +505,13 @@ export const CodeEditor = memo(function CodeEditor({
   useEffect(() => {
     const editor = view.current;
     if (!editor || editor.state.doc.toString() === value) return;
-    editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: value } });
+    editor.dispatch({
+      changes: { from: 0, to: editor.state.doc.length, insert: value },
+      /* Opening another document is not an edit of this one. Without this the
+         header's undo walked backwards out of the file on screen and into the
+         text of the last one. */
+      annotations: Transaction.addToHistory.of(false),
+    });
   }, [value]);
 
   return <div className="codeeditor" ref={host} />;

@@ -85,16 +85,43 @@ function findAssignmentInCondition(text: string): CodeProblem[] {
     const from = opener.lastIndex;
     if (!isCommented(text, match.index) && !isQuoted(text, match.index)) {
       let depth = 1;
+      let quote: string | null = null;
+
       for (let i = from; i < text.length && depth > 0; i += 1) {
         const character = text[i];
+
+        /* The condition's own strings. `if (respuesta === "si=no")` was being
+           marked, which is a mark on correct code — and a mark a student cannot
+           act on teaches them to stop reading marks. */
+        if (quote) {
+          if (character === '\\') i += 1;
+          else if (character === quote) quote = null;
+          continue;
+        }
+        if (character === '"' || character === "'" || character === '`') {
+          quote = character;
+          continue;
+        }
+
         if (character === '(') depth += 1;
         else if (character === ')') depth -= 1;
-        else if (character === '=') {
+        else if (character === '{' && depth === 1) {
+          /* The body's brace, reached without the condition ever closing. The
+             code is mid-edit — a deleted `)` — and scanning on would walk the
+             rest of the file and blame the first `=` it found down there. */
+          break;
+        } else if (character === '=') {
           const before = text[i - 1] ?? '';
           const after = text[i + 1] ?? '';
-          // Everything that is a comparison rather than an assignment.
+          // Everything that is a comparison rather than an assignment — plus
+          // the arrow of a callback, which is neither and was read as one.
           const comparison =
-            after === '=' || before === '=' || before === '!' || before === '<' || before === '>';
+            after === '=' ||
+            after === '>' ||
+            before === '=' ||
+            before === '!' ||
+            before === '<' ||
+            before === '>';
           if (!comparison) {
             problems.push({ from: i, to: i + 1, messageKey: 'code.assignInCondition' });
             break;

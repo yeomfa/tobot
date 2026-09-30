@@ -7,7 +7,6 @@ import {
   TextAlignLeftIcon as Wrap,
   TextAaIcon as TextSize,
   TextIndentIcon as Indent,
-  TrashIcon as Trash,
 } from '@phosphor-icons/react';
 import { lazy, Suspense, useCallback, useRef, useState } from 'react';
 
@@ -15,7 +14,9 @@ import { VOCABULARY } from '../core/code/vocabulary';
 import type { CodeExecutionController } from '../state/useCodeExecution';
 import { useTranslation } from '../i18n/context';
 import type { CodeEditorHandle, CodeEditorReport } from './CodeEditor';
+import type { Resizable } from '../state/useResizable';
 import { Console } from './Console';
+import { ResizeHandle } from './ResizeHandle';
 import { Robot } from './Robot';
 import type { RobotMood } from './Robot';
 import './CodeWorkspace.css';
@@ -35,6 +36,13 @@ interface CodeWorkspaceProps {
   /** Handed up so the header's undo and redo drive the editor's own history. */
   onEditorReady?: (handle: CodeEditorHandle) => void;
   onReport?: (report: CodeEditorReport) => void;
+  /* The same rails the block workbench has, driven by the same hooks. They are
+     built in `Workspace` regardless of document kind, so nothing new is created
+     here — this screen just stopped ignoring them. */
+  robotOpen: boolean;
+  drawerOpen: boolean;
+  robotSize: Resizable;
+  drawerSize: Resizable;
 }
 
 /**
@@ -57,6 +65,10 @@ export function CodeWorkspace({
   execution,
   onEditorReady,
   onReport,
+  robotOpen,
+  drawerOpen,
+  robotSize,
+  drawerSize,
 }: CodeWorkspaceProps) {
   const { d, t } = useTranslation();
   const [reply, setReply] = useState('');
@@ -65,6 +77,9 @@ export function CodeWorkspace({
   const [copied, setCopied] = useState(false);
   const [where, setWhere] = useState<CodeEditorReport | null>(null);
   const handle = useRef<CodeEditorHandle | null>(null);
+  /* State and not just the ref: the toolbar has to re-render when the editor
+     finally arrives. Until then its buttons were enabled and did nothing. */
+  const [editorReady, setEditorReady] = useState(false);
 
   const { state } = execution;
   const asking = state.status === 'awaitingInput';
@@ -72,6 +87,7 @@ export function CodeWorkspace({
   const ready = useCallback(
     (api: CodeEditorHandle) => {
       handle.current = api;
+      setEditorReady(true);
       onEditorReady?.(api);
     },
     [onEditorReady],
@@ -85,23 +101,48 @@ export function CodeWorkspace({
     [onReport],
   );
 
-  /* The robot says the last thing that happened, which is the question while
-     one is open and otherwise whatever was printed most recently. */
-  const latest = state.output[state.output.length - 1];
-  const message = asking ? state.pendingPrompt : (latest?.text ?? null);
+  /*
+    What the robot says, decided the same way `RunPanel` decides it.
 
-  /* The robot has a face for each of these, and using them is most of what
-     makes a run feel like something is happening rather than nothing. */
+    The last *spoken* line, not the last entry of any kind — taking whatever
+    came last meant that right after answering a question the robot repeated
+    the student's own answer back at them. And a silent robot on arrival made
+    the screen look broken before anything had run, so idle has a greeting here
+    exactly as it does in the block workbench.
+  */
+  const lastSpoken = [...state.output].reverse().find((entry) => entry.kind === 'say');
+  const lastFault = [...state.output].reverse().find((entry) => entry.kind === 'error');
+
+  const message = (() => {
+    if (state.status === 'error') return lastFault?.text ?? d.robot.error;
+    if (asking) return state.pendingPrompt;
+    if (state.status === 'idle') return d.robot.greeting;
+    if (state.status === 'finished') return lastSpoken?.text ?? d.robot.done;
+    return lastSpoken?.text ?? d.robot.thinking;
+  })();
+
+  /* `speaking` was unreachable, so the robot's mouth never moved on this
+     screen while a program was printing. */
   const mood: RobotMood =
     state.status === 'error'
       ? 'error'
       : asking
         ? 'asking'
-        : state.status === 'running'
-          ? 'thinking'
-          : state.status === 'finished'
-            ? 'done'
+        : state.status === 'finished'
+          ? 'done'
+          : state.status === 'running'
+            ? (state.output[state.output.length - 1]?.kind === 'say' ? 'speaking' : 'thinking')
             : 'idle';
+
+  /* The strip under the robot, which the block workbench has and this did not:
+     a program that finished, failed or is waiting said so nowhere. */
+  const statusText = (() => {
+    if (state.status === 'error') return d.robot.error;
+    if (state.status === 'finished') return d.runtime.finished;
+    if (asking) return d.runtime.waitingInput;
+    if (state.status === 'running') return d.runtime.running;
+    return d.robot.idle;
+  })();
 
   const send = (event: React.FormEvent): void => {
     event.preventDefault();
@@ -144,6 +185,7 @@ export function CodeWorkspace({
             type="button"
             className="codework__tool"
             onClick={() => handle.current?.find()}
+            disabled={!editorReady}
             title={`${d.code.find} · ⌘F`}
             aria-label={d.code.find}
           >
@@ -188,6 +230,7 @@ export function CodeWorkspace({
             type="button"
             className="codework__tool"
             onClick={() => handle.current?.tidy()}
+            disabled={!editorReady}
             title={d.code.tidy}
             aria-label={d.code.tidy}
           >
@@ -259,7 +302,9 @@ export function CodeWorkspace({
           )}
         </div>
 
+        {drawerOpen && (
         <div className="codework__console">
+          <ResizeHandle resizable={drawerSize} edge="top" label={d.panels.resize} />
           <Console
             output={state.output}
             variables={state.variables}
@@ -269,9 +314,12 @@ export function CodeWorkspace({
             onClear={execution.clear}
           />
         </div>
+        )}
       </div>
 
-      <aside className="codework__robot">
+      {robotOpen && (
+      <aside className="codework__robot" aria-label={d.a11y.robotStage}>
+        <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
         <Robot mood={mood} message={message} />
 
         {/*
@@ -297,18 +345,13 @@ export function CodeWorkspace({
               <Play weight="fill" /> {d.code.run}
             </button>
           )}
-          <button
-            type="button"
-            className="codework__tool"
-            onClick={execution.clear}
-            disabled={state.output.length === 0}
-            title={d.code.clearConsole}
-            aria-label={d.code.clearConsole}
-          >
-            <Trash weight="bold" />
-          </button>
+          {/* Clearing lives on the console, which is the thing it empties — and
+              it lived in both places, one of which terminated a running program
+              without saying so. */}
         </div>
-        {state.status === 'running' && <p className="codework__running">{d.code.running}</p>}
+        <p className="codework__running" role="status">
+          {statusText}
+        </p>
 
         {asking && (
           <form className="codework__answer" onSubmit={send}>
@@ -344,6 +387,7 @@ export function CodeWorkspace({
           <p>{d.code.referenceHint}</p>
         </div>
       </aside>
+      )}
     </div>
   );
 }

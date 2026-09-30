@@ -22,6 +22,10 @@ pnpm build      # production build into dist/
 The design rests on one decision: **the algorithm is an AST, and every view is a
 projection of it.** Nothing in the app parses text.
 
+That holds for block algorithms, which is what almost all of this document is
+about. There is a second kind of document — see [Writing code](#writing-code) —
+that is text and is deliberately outside it.
+
 ```
                   ┌───────────────────┐
                   │   Algorithm AST   │   core/ast
@@ -66,6 +70,8 @@ Consequences worth knowing:
 | `src/state` | Editor state with undo, persistence, execution driver |
 | `src/i18n` | Spanish (source of truth) and English dictionaries |
 | `src/content` | Concept explanations, references, worked examples |
+| `src/core/code` | The vocabulary, checks and worker behind code documents |
+| `src/core/classroom` | Marking a submission against a teacher's cases |
 
 ## Layout
 
@@ -87,6 +93,63 @@ compile error rather than a runtime fallback.
 The interface language also drives the pseudocode keywords (`SI … ENTONCES`
 versus `IF … THEN`) and the natural language view, which is the point: the shape
 of the algorithm stays identical while only the words change.
+
+## Writing code
+
+A second kind of document. An algorithm carries a `kind`: `blocks` is
+everything above and stays the default, while a `code` document holds its
+program as text in `source` and leaves `body` empty. One type rather than two,
+because a name, a place in the library, a row in the database and an export
+file are the same for both.
+
+The editor is CodeMirror 6, loaded as its own chunk the first time a code
+document is opened. It colours from the same `--code-*` tokens the read-only
+view uses, offers Tobot's own functions alongside the names the program
+declares, and explains a function under the pointer. A student reaches it
+either by starting one from the library or by opening a block algorithm with
+**Abrir en JavaScript**, which seeds it from the JavaScript emitter — so the
+first code they read is their own algorithm.
+
+Programs run in a Web Worker. Not for tidiness: in blocks a runaway loop is
+caught by the validator before it runs, in text nothing catches it, and only a
+worker can be killed without taking the tab with it. `console.log` reaches the
+console and `prompt`/`ask` reach the robot, both reported in the same
+`ExecutionState` shape the interpreter produces — which is why the console and
+the robot are the same components on both workbenches.
+
+Asking is therefore a promise, so the emitter writes `await prompt(...)` and
+the editor flags its absence. Without the keyword a program computes with the
+promise and prints `NaN`, silently.
+
+## Classrooms
+
+A teacher creates a room and hands out a short code; students join with it.
+The teacher sets assignments — a starting algorithm plus cases, each a list of
+answers and the lines the program should print — and decides what each is
+worth.
+
+Marking happens in the teacher's browser. There is no server, and the browser
+key is public, so a mark computed on the student's machine would be a claim
+rather than a fact; the policies let only the room's teacher write a score, and
+a trigger checks it again. Marks are partial: points times passed over total.
+
+All of the rules live in `supabase/schema.sql` rather than in React. Three of
+them are worth knowing before changing anything there:
+
+- Every membership test goes through a `security definer` function. A policy on
+  `classroom_members` that queries `classroom_members` makes Postgres recurse
+  and every query on the table fails.
+- Joining is a function, not an insert: a student holding a code cannot read the
+  room it names, and it answers the same way for a code that does not exist as
+  for one that is not theirs.
+- The leaderboard is its own function too, because a student may read their own
+  submissions and nobody else's — so it cannot be assembled from rows the
+  caller is allowed to see.
+
+**Run `supabase/schema.sql` in full after pulling.** It is written to be
+re-runnable — `create table if not exists`, `drop policy if exists` before each
+policy, `create or replace` for every function — and each of the three times it
+has grown, a deploy without it has broken something in production.
 
 ## Persistence
 
