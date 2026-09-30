@@ -39,7 +39,8 @@ export interface Assignment {
   kind: 'blocks' | 'code';
   body: Algorithm['body'];
   source?: string;
-  cases: Case[];
+  /** How many cases it has. The cases themselves are the teacher's. */
+  caseCount: number;
   createdAt: string;
 }
 
@@ -95,6 +96,26 @@ function fullName(first: unknown, last: unknown): string {
   return `${typeof first === 'string' ? first : ''} ${typeof last === 'string' ? last : ''}`.trim();
 }
 
+/**
+ * Thrown when the classroom tables are not there yet.
+ *
+ * Distinct from "you are in no classrooms", which looks identical from the
+ * client and is not remotely the same thing: without it, a teacher whose
+ * project had not been migrated was shown the cheerful create screen, and
+ * joining then told a student their teacher's code did not exist.
+ */
+export class ClassroomsNotSetUp extends Error {
+  constructor() {
+    super('the classroom tables are not in this project yet');
+    this.name = 'ClassroomsNotSetUp';
+  }
+}
+
+/** PostgREST's answer when the table itself is missing from its schema cache. */
+function isMissingTable(code: string | undefined, message: string): boolean {
+  return code === 'PGRST205' || code === '42P01' || /could not find the table/i.test(message);
+}
+
 export async function myClassrooms(): Promise<Classroom[]> {
   const supabase = await getSupabase();
   if (!supabase) return [];
@@ -110,6 +131,7 @@ export async function myClassrooms(): Promise<Classroom[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
+    if (isMissingTable(error.code, error.message)) throw new ClassroomsNotSetUp();
     console.error('[tobot] could not list classrooms:', error.message);
     return [];
   }
@@ -245,7 +267,28 @@ export async function assignmentsOf(classroomId: string): Promise<Assignment[]> 
     return [];
   }
 
-  return (data ?? []).map((row) => ({
+  const rows = data ?? [];
+
+  /* How many cases each has, without the cases themselves. A student is not
+     allowed to read them — that is the whole point of the separate table — but
+     both sides need to know whether an assignment can be marked at all, and a
+     count gives nothing away. Counting is free for a student: the policy
+     returns no rows, so every count is zero and the screen says so. */
+  const counts = new Map<string, number>();
+  if (rows.length > 0) {
+    const { data: caseRows } = await supabase
+      .from('assignment_cases')
+      .select('assignment_id, cases')
+      .in(
+        'assignment_id',
+        rows.map((row) => String(row.id)),
+      );
+    for (const row of caseRows ?? []) {
+      counts.set(String(row.assignment_id), reviveCases(row.cases).length);
+    }
+  }
+
+  return rows.map((row) => ({
     id: String(row.id),
     classroomId: String(row.classroom_id),
     title: typeof row.title === 'string' ? row.title : '',
@@ -255,9 +298,31 @@ export async function assignmentsOf(classroomId: string): Promise<Assignment[]> 
     // browser is walked, not trusted.
     body: sanitizeStatements(row.body),
     source: typeof row.source === 'string' ? row.source : undefined,
-    cases: reviveCases(row.cases),
+    caseCount: counts.get(String(row.id)) ?? 0,
     createdAt: String(row.created_at),
   }));
+}
+
+/**
+ * The cases for one assignment, which only its teacher can read.
+ *
+ * Asked for at marking time rather than carried around with the assignment, so
+ * there is no moment where a student's session is holding them.
+ */
+export async function casesFor(assignmentId: string): Promise<Case[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('assignment_cases')
+    .select('cases')
+    .eq('assignment_id', assignmentId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[tobot] could not read the cases:', error.message);
+    return [];
+  }
+  return data ? reviveCases(data.cases) : [];
 }
 
 export async function createAssignment(
@@ -266,16 +331,27 @@ export async function createAssignment(
 ): Promise<void> {
   const supabase = await getSupabase();
   if (!supabase) return;
-  const { error } = await supabase.from('assignments').insert({
-    classroom_id: classroomId,
-    title: draft.title,
-    points: draft.points,
-    kind: draft.algorithm.kind ?? 'blocks',
-    body: draft.algorithm.body,
-    source: draft.algorithm.kind === 'code' ? (draft.algorithm.source ?? '') : null,
-    cases: draft.cases,
-  });
+  const { data, error } = await supabase
+    .from('assignments')
+    .insert({
+      classroom_id: classroomId,
+      title: draft.title,
+      points: draft.points,
+      kind: draft.algorithm.kind ?? 'blocks',
+      body: draft.algorithm.body,
+      source: draft.algorithm.kind === 'code' ? (draft.algorithm.source ?? '') : null,
+    })
+    .select('id')
+    .single();
   if (error) throw new Error(error.message);
+
+  /* The cases go to their own table, which only the teacher may read. A
+     failure here leaves an assignment nobody can mark rather than one whose
+     answers everyone can see, which is the right way round to fail. */
+  const { error: caseError } = await supabase
+    .from('assignment_cases')
+    .upsert({ assignment_id: String(data.id), cases: draft.cases }, { onConflict: 'assignment_id' });
+  if (caseError) throw new Error(caseError.message);
 }
 
 export async function removeAssignment(id: string): Promise<void> {
@@ -344,9 +420,43 @@ export async function handIn(assignmentId: string, algorithm: Algorithm): Promis
   if (error) throw new Error(error.message);
 }
 
+/**
+ * The signed-in student's own submission, asked for by name.
+ *
+ * It used to take the first row of "every submission for this assignment" and
+ * call it mine. For a student the policy narrows that to one row, so it worked
+ * by accident; for a teacher the same query returns the whole class, and the
+ * first row was whichever student Postgres happened to return — handed back as
+ * the teacher's own work. Leaning on a policy to mean something the query does
+ * not say is how that happens.
+ */
 export async function mySubmission(assignmentId: string): Promise<Submission | null> {
-  const list = await submissionsOf(assignmentId);
-  return list[0] ?? null;
+  const supabase = await getSupabase();
+  if (!supabase) return null;
+  const { data: session } = await supabase.auth.getUser();
+  const me = session.user?.id;
+  if (!me) return null;
+
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .eq('assignment_id', assignmentId)
+    .eq('user_id', me)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return {
+    id: String(data.id),
+    assignmentId: String(data.assignment_id),
+    userId: String(data.user_id),
+    kind: data.kind === 'code' ? 'code' : 'blocks',
+    body: sanitizeStatements(data.body),
+    source: typeof data.source === 'string' ? data.source : undefined,
+    score: typeof data.score === 'number' ? data.score : null,
+    passed: typeof data.passed === 'number' ? data.passed : null,
+    total: typeof data.total === 'number' ? data.total : null,
+    submittedAt: String(data.submitted_at),
+  };
 }
 
 /**
@@ -368,6 +478,33 @@ export async function recordMark(submissionId: string, mark: Mark): Promise<void
       checked_at: new Date().toISOString(),
     })
     .eq('id', submissionId);
+  if (error) throw new Error(error.message);
+}
+
+/** Leaving a room, which the policy allows and nothing offered. */
+export async function leaveClassroom(classroomId: string): Promise<void> {
+  const supabase = await getSupabase();
+  if (!supabase) return;
+  const { data: session } = await supabase.auth.getUser();
+  const me = session.user?.id;
+  if (!me) return;
+  const { error } = await supabase
+    .from('classroom_members')
+    .delete()
+    .eq('classroom_id', classroomId)
+    .eq('user_id', me);
+  if (error) throw new Error(error.message);
+}
+
+/** The same row, removed by the teacher instead of by its owner. */
+export async function removeMember(classroomId: string, userId: string): Promise<void> {
+  const supabase = await getSupabase();
+  if (!supabase) return;
+  const { error } = await supabase
+    .from('classroom_members')
+    .delete()
+    .eq('classroom_id', classroomId)
+    .eq('user_id', userId);
   if (error) throw new Error(error.message);
 }
 

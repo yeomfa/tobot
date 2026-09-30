@@ -506,3 +506,104 @@ $$;
 
 revoke all on function public.classroom_ranking(uuid) from public;
 grant execute on function public.classroom_ranking(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- The answer key, moved out of the student's reach.
+--
+-- `cases` began as a column on `assignments`, and members may read an
+-- assignment — so the inputs *and the exact expected output* were being handed
+-- to every student's browser. A student could read them from the network tab
+-- and print the answers without writing the program.
+--
+-- That defeated the reason marking happens in the teacher's browser at all: a
+-- mark computed on the student's machine would be a claim rather than a fact,
+-- and then the rubric was posted to the client anyway.
+--
+-- A table of its own rather than column privileges, which are granted per role
+-- and would have locked the teacher out along with everyone else.
+-- ---------------------------------------------------------------------------
+create table if not exists public.assignment_cases (
+  assignment_id uuid primary key references public.assignments (id) on delete cascade,
+  -- [{ "answers": ["4", "3"], "expect": ["El área es: 12"] }]
+  cases         jsonb not null default '[]'::jsonb,
+  updated_at    timestamptz not null default now()
+);
+
+alter table public.assignment_cases enable row level security;
+
+-- No read policy for students, and that absence is the feature.
+drop policy if exists "the teacher keeps the cases" on public.assignment_cases;
+create policy "the teacher keeps the cases"
+  on public.assignment_cases for all
+  using (
+    public.is_teacher((select classroom_id from public.assignments where id = assignment_id))
+  )
+  with check (
+    public.is_teacher((select classroom_id from public.assignments where id = assignment_id))
+  );
+
+-- Carry across whatever the old column holds, once, and then take the column
+-- away so there is only one answer to where the cases live. Guarded, because
+-- this file is meant to be re-runnable and the column is gone after the first
+-- pass.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'assignments' and column_name = 'cases'
+  ) then
+    insert into public.assignment_cases (assignment_id, cases)
+    select id, cases from public.assignments
+    on conflict (assignment_id) do nothing;
+
+    alter table public.assignments drop column cases;
+  end if;
+end
+$$;
+
+-- ---------------------------------------------------------------------------
+-- A mark describes the work that was marked.
+--
+-- Handing in again replaced the program and left the score untouched, and the
+-- student cannot clear it themselves because the guard below forbids it. So a
+-- student could score 10, hand in something broken, and keep the 10 — with the
+-- leaderboard still counting it. The mark belongs to the submission it was
+-- given for, so new work arrives unmarked.
+-- ---------------------------------------------------------------------------
+create or replace function public.guard_submission_score()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  room uuid;
+begin
+  if tg_op = 'INSERT' then
+    if new.score is not null or new.passed is not null
+       or new.total is not null or new.checked_at is not null then
+      raise exception 'a submission is handed in unmarked';
+    end if;
+    return new;
+  end if;
+
+  /* Work replaced: the old mark no longer describes what is there. Cleared
+     here rather than by the client, because the client is the one party with a
+     reason to leave a good score attached to worse work. */
+  if new.body is distinct from old.body or new.source is distinct from old.source then
+    new.score := null;
+    new.passed := null;
+    new.total := null;
+    new.checked_at := null;
+    return new;
+  end if;
+
+  if new.score is distinct from old.score
+     or new.passed is distinct from old.passed
+     or new.total is distinct from old.total
+     or new.checked_at is distinct from old.checked_at then
+    select classroom_id into room from public.assignments where id = new.assignment_id;
+    if not public.is_teacher(room) then
+      raise exception 'only the teacher of this classroom may record a score';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;

@@ -73,7 +73,7 @@ interface HomeProps {
   /** What is open in the editor, which is what a teacher sets as work. */
   currentAlgorithm: Algorithm;
   /** Opens an assignment, remembering which one so it can be handed in. */
-  onOpenAssignment: (algorithm: Algorithm, assignmentId: string) => void;
+  onOpenAssignment: (algorithm: Algorithm, assignmentId: string | null) => void;
   onOpenConcept: (id: ConceptId) => void;
   /** Name of the algorithm open in the editor, for the way back. */
   currentName: string;
@@ -426,7 +426,9 @@ export const Home = memo(function Home({
         ? d.banners.challengesTitle
         : section === 'examples'
           ? d.banners.examplesTitle
-          : d.banners.conceptsTitle;
+          : section === 'classroom'
+            ? d.classroom.section
+            : d.banners.conceptsTitle;
 
   const bannerBody =
     section === 'algorithms'
@@ -435,7 +437,11 @@ export const Home = memo(function Home({
         ? d.banners.challengesBody
         : section === 'examples'
           ? d.banners.examplesBody
-          : d.banners.conceptsBody;
+          : section === 'classroom'
+            ? /* Written for this section and never shown, because the banner
+                 had four arms and five sections. */
+              d.classroom.lead
+            : d.banners.conceptsBody;
 
   const reload = async (): Promise<void> => {
     setSaved(await createAlgorithmStore().list());

@@ -310,32 +310,12 @@
   color: var(--accent-strong);
 }
 
-.classroom__people {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-}
 
 .classroom__people svg {
   width: 15px;
   height: 15px;
 }
 
-.classroom__members {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  list-style: none;
-}
-
-.classroom__members li {
-  padding: 2px var(--space-2);
-  font-size: var(--text-xs);
-  color: var(--text-secondary);
-  background: var(--bg-inset);
-  border-radius: var(--radius-full);
-}
 
 @media (max-width: 900px) {
   .classroom__body {
@@ -345,4 +325,55 @@
   .classroom__case {
     grid-template-columns: 1fr;
   }
+}
+
+/* Announced but not shown: a label a screen reader needs and the layout does
+   not, and the copy confirmation, which was a changing `title` nothing reads. */
+.classroom__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* What a student opens this screen for: did I hand it in, and what did it get. */
+.classroom__mine {
+  display: inline-block;
+  margin-top: var(--space-1);
+  padding: 1px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  border-radius: var(--radius-full);
+}
+
+.classroom__mine[data-state='out'] {
+  color: var(--text-muted);
+  background: var(--bg-inset);
+}
+
+.classroom__mine[data-state='in'] {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+/* The rest of the app defines one; this had only `:hover`, so a keyboard user
+   could not see where they were. */
+.classroom__quiet:focus-visible,
+.classroom__code button:focus-visible,
+.classroom__picker:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.classroom__people {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
 }

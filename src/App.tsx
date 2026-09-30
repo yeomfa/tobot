@@ -885,6 +885,10 @@ function Workbench({
 
   /** Starts a blank algorithm and leaves the library open behind it. */
   const createNew = useCallback(() => {
+    // As with `openAlgorithm`: the hand-in button belonged to a document that
+    // is no longer on screen, and would have submitted this blank one for it.
+    setOpenAssignment(null);
+    setHandedIn(false);
     load(createEmptyAlgorithm(d.app.untitled));
     setScreen('editor');
   }, [load, d.app.untitled, setScreen]);
@@ -893,6 +897,8 @@ function Workbench({
      editor asks a beginner to invent both a problem and its first line, and
      the one thing worth saying here is which two functions get them moving. */
   const createCode = useCallback(() => {
+    setOpenAssignment(null);
+    setHandedIn(false);
     const blank = createEmptyAlgorithm(d.code.blank);
     load({ ...blank, kind: 'code', source: d.code.starter });
     setScreen('editor');
@@ -915,7 +921,7 @@ function Workbench({
   );
 
   const openAssignmentWork = useCallback(
-    (next: Parameters<typeof load>[0], assignmentId: string) => {
+    (next: Parameters<typeof load>[0], assignmentId: string | null) => {
       load(next);
       setOpenAssignment(assignmentId);
       setHandedIn(false);
@@ -928,6 +934,11 @@ function Workbench({
     if (!openAssignment) return;
     await handIn(openAssignment, algorithm);
     setHandedIn(true);
+    /* A confirmation rather than a lock. Improving the work and sending it
+       again is what a student does next, and the database now clears the old
+       mark when they do — so a button that could only be pressed once was
+       refusing the thing it was built for. */
+    window.setTimeout(() => setHandedIn(false), 2000);
   }, [openAssignment, algorithm]);
 
   /** The header's Run reveals the robot if it was hidden, then starts. */
