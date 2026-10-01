@@ -104,7 +104,16 @@ const categories = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged) this.decorations = this.paint(update.view);
+      /* The tree too, not only the document. Lezer parses incrementally and
+         finishes *after* the keystroke, so painting only on a document change
+         coloured against a half-built tree and never came back to correct it. */
+      if (
+        update.docChanged ||
+        update.viewportChanged ||
+        syntaxTree(update.startState) !== syntaxTree(update.state)
+      ) {
+        this.decorations = this.paint(update.view);
+      }
     }
 
     paint(view: EditorView): DecorationSet {

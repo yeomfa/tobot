@@ -519,7 +519,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
               onChange={(event) => setRoomName(event.target.value)}
               placeholder={d.classroom.namePlaceholder}
             />
-            <button type="button" onClick={create} disabled={busy || !roomName.trim()}>
+            <button type="button" className="classroom__primary" onClick={create} disabled={busy || !roomName.trim()}>
               {d.classroom.createAction}
             </button>
           </div>
@@ -541,7 +541,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
               maxLength={8}
               className="classroom__code-input"
             />
-            <button type="button" onClick={join} disabled={busy || !code.trim()}>
+            <button type="button" className="classroom__primary" onClick={join} disabled={busy || !code.trim()}>
               {d.classroom.joinAction}
             </button>
           </div>
@@ -727,7 +727,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
                 >
                   {d.classroom.addCase}
                 </button>
-                <button type="button" onClick={saveAssignment} disabled={busy || !title.trim()}>
+                <button type="button" className="classroom__primary" onClick={saveAssignment} disabled={busy || !title.trim()}>
                   {d.classroom.save}
                 </button>
                 <button type="button" className="classroom__quiet" onClick={() => setComposing(false)}>
@@ -746,7 +746,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
                 return (
                   <li key={assignment.id}>
                     <div>
-                      <strong>{assignment.title}</strong>
+                      <strong className="classroom__title">{assignment.title}</strong>
                       <span className="classroom__meta">
                         {plural(assignment.points, d.classroom.pointsWorthOne, d.classroom.pointsWorth)}
                         {teaching &&
@@ -839,7 +839,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
 
           {teaching && work.length > 0 && (
             <div className="classroom__row">
-              <button type="button" onClick={gradeAll} disabled={busy}>
+              <button type="button" className="classroom__primary" onClick={gradeAll} disabled={busy}>
                 <Marked weight="bold" aria-hidden="true" /> {progress ? d.classroom.grading : d.classroom.grade}
               </button>
               <span className="classroom__meta" role="status">

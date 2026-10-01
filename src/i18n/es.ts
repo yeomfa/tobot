@@ -255,6 +255,7 @@ export const es = {
   /** Validation messages shown on the block itself. Each one names the fix,
    * not just the fault: a student should know what to do next. */
   problems: {
+    unknownFunction: 'No existe ninguna función llamada «{name}». Revisa el nombre o créala.',
     undefinedVariable: 'La variable «{name}» no existe todavía. Créala antes de esta instrucción.',
     assignBeforeDeclare: 'No puedes cambiar «{name}» porque aún no la has creado.',
     noVariableChosen: 'Falta elegir una variable aquí.',

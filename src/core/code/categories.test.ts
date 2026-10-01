@@ -46,3 +46,12 @@ describe('which topic a piece of code belongs to', () => {
     expect(categoryClass('loops')).toBe('cm-cat-loops');
   });
 });
+
+// A plain object lookup reached `Object.prototype`, so these returned functions.
+describe('names that collide with the language itself', () => {
+  it('does not mistake an inherited property for a category', () => {
+    expect(categoryFor('VariableName', 'constructor')).toBeNull();
+    expect(categoryFor('VariableName', 'toString')).toBeNull();
+    expect(categoryFor('VariableName', 'hasOwnProperty')).toBeNull();
+  });
+});

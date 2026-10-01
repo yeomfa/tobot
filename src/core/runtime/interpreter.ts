@@ -34,6 +34,20 @@ import {
  * step of every pending task. That is what makes an asynchronous run
  * reproducible, and reproducible is what lets stepping backwards work at all.
  */
+/**
+ * A question waiting for its answer, and whose question it is.
+ *
+ * `taskId` is set when an async task asked it. Without it the answer was
+ * written into the *main* program's scope — the task's had already been
+ * swapped back out by the time the student replied — so the task never saw it,
+ * and a same-named variable in the main program was overwritten instead.
+ */
+interface PendingAsk {
+  statement: Extract<Statement, { kind: 'ask' }>;
+  prompt: string;
+  taskId?: number;
+}
+
 interface Task {
   id: number;
   name: string;
@@ -61,7 +75,7 @@ interface Snapshot {
   status: ExecutionState['status'];
   error: RuntimeError | null;
   stepCount: number;
-  pendingAsk: { statement: Extract<Statement, { kind: 'ask' }>; prompt: string } | null;
+  pendingAsk: PendingAsk | null;
 }
 
 interface Frame {
@@ -126,7 +140,15 @@ export class Interpreter {
   private status: ExecutionState['status'] = 'idle';
   private error: RuntimeError | null = null;
   private stepCount = 0;
-  private pendingAsk: { statement: Extract<Statement, { kind: 'ask' }>; prompt: string } | null = null;
+  private pendingAsk: PendingAsk | null = null;
+  /**
+   * The task whose step is running right now, or null for the main program.
+   *
+   * Needed only to tell a question asked by a task from one asked by the
+   * program, because by the time the answer arrives the task's scopes have long
+   * been swapped back out.
+   */
+  private runningTask: Task | null = null;
   private readonly program: Statement[];
 
   /**
@@ -542,9 +564,11 @@ export class Interpreter {
       }
       this.stack = task.stack;
       this.scopes = task.scopes;
+      this.runningTask = task;
       try {
         this.advance();
       } finally {
+        this.runningTask = null;
         task.stack = this.stack;
         task.scopes = this.scopes;
       }
@@ -661,7 +685,7 @@ export class Interpreter {
 
       case 'ask': {
         const prompt = this.display(this.evaluate(statement.prompt));
-        this.pendingAsk = { statement, prompt };
+        this.pendingAsk = { statement, prompt, taskId: this.runningTask?.id };
         this.status = 'awaitingInput';
         this.output.push({ id: nextOutputId(), kind: 'ask', text: prompt, nodeId: statement.id });
         return;
@@ -831,6 +855,20 @@ export class Interpreter {
     this.pendingAsk = null;
     this.changedNames.clear();
 
+    /* Answer into whoever asked. A task's stack and scopes are swapped in for
+       the write and the unwind, then put back — the same arrangement
+       `advanceTasks` makes for the task's own steps. */
+    const task =
+      pending.taskId === undefined
+        ? null
+        : (this.tasks.find((candidate) => candidate.id === pending.taskId) ?? null);
+    const ownStack = this.stack;
+    const ownScopes = this.scopes;
+    if (task) {
+      this.stack = task.stack;
+      this.scopes = task.scopes;
+    }
+
     try {
       const value = this.coerce(raw, pending.statement.expect);
       (this.scopeOf(pending.statement.target) ?? this.currentScope()).set(pending.statement.target, { value, kind: pending.statement.expect });
@@ -844,10 +882,27 @@ export class Interpreter {
       this.status = 'running';
       this.stepCount += 1;
       this.unwind();
-      if (this.stack.length === 0) this.status = 'finished';
     } catch (thrown) {
       return this.fail(thrown, pending.statement.id);
+    } finally {
+      // Back to the program's own stack, even if the answer failed to convert.
+      if (task) {
+        task.stack = this.stack;
+        task.scopes = this.scopes;
+        this.stack = ownStack;
+        this.scopes = ownScopes;
+      }
     }
+
+    // A task that the answer let run to its end is done.
+    if (task && task.stack.length === 0) {
+      this.tasks = this.tasks.filter((one) => one.id !== task.id);
+    }
+    /* Checked only once the program's own stack is back in place, and with the
+       same test `step()` uses. The stack alone ended a program the moment its
+       last question was answered, even with async tasks still running — so
+       their remaining output was silently never produced. */
+    if (this.stack.length === 0 && this.tasks.length === 0) this.status = 'finished';
 
     return this.getState();
   }

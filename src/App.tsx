@@ -922,12 +922,15 @@ function Workbench({
 
   const openAssignmentWork = useCallback(
     (next: Parameters<typeof load>[0], assignmentId: string | null) => {
+      // As `openAlgorithm` does: a selection is node ids from the tree being
+      // closed, and carried over it let Ctrl+C copy blocks no longer on screen.
+      selection.clear();
       load(next);
       setOpenAssignment(assignmentId);
       setHandedIn(false);
       setScreen('editor');
     },
-    [load, setScreen],
+    [load, setScreen, selection],
   );
 
   const submitWork = useCallback(async () => {

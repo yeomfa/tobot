@@ -243,6 +243,7 @@ export const en: Dictionary = {
     resize: 'Drag to resize',
   },
   problems: {
+    unknownFunction: 'There is no function called "{name}". Check the name, or create it.',
     undefinedVariable: 'The variable "{name}" does not exist yet. Create it before this statement.',
     assignBeforeDeclare: 'You cannot change "{name}" because you have not created it yet.',
     noVariableChosen: 'A variable still needs to be chosen here.',

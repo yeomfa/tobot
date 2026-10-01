@@ -1,17 +1,28 @@
 import type { Algorithm, Expression, Statement } from '../ast/types';
 import { needsParentheses } from './precedence';
+import { functionsThatWait } from './waiting';
 import type { EmittedLine, Emitter } from './types';
 
 function quote(text: string): string {
   return JSON.stringify(text);
 }
 
-/** `nombre(a, b)` — shared by the call statement and the call expression. */
-function callToJs(name: string, args: Expression[]): string {
-  return `${name || 'sinNombre'}(${args.map((arg) => expressionToJs(arg)).join(', ')})`;
+/** Nobody waits, which is what every caller outside an emission wants. */
+const NONE: ReadonlySet<string> = new Set();
+
+/**
+ * `nombre(a, b)` — shared by the call statement and the call expression.
+ *
+ * Awaited when the function waits for an answer: it is emitted `async`, and a
+ * call to an async function without `await` hands back a promise, which the
+ * program would then go on to compute with.
+ */
+function callToJs(name: string, args: Expression[], waits: ReadonlySet<string>): string {
+  const call = `${name || 'sinNombre'}(${args.map((arg) => expressionToJs(arg, waits)).join(', ')})`;
+  return waits.has(name) ? `await ${call}` : call;
 }
 
-export function expressionToJs(expression: Expression): string {
+export function expressionToJs(expression: Expression, waits: ReadonlySet<string> = NONE): string {
   switch (expression.kind) {
     case 'literal':
       if (expression.valueKind === 'text') return quote(String(expression.value));
@@ -21,20 +32,20 @@ export function expressionToJs(expression: Expression): string {
     case 'group':
       /* Always bracketed, even where precedence would not require it: the
          student asked for this grouping, so the code shows it. */
-      return `(${expressionToJs(expression.inner)})`;
+      return `(${expressionToJs(expression.inner, waits)})`;
     case 'unary':
-      return `${expression.operator}${wrapUnaryOperand(expression.operand)}`;
+      return `${expression.operator}${wrapUnaryOperand(expression.operand, waits)}`;
     case 'list':
-      return `[${expression.items.map(expressionToJs).join(', ')}]`;
+      return `[${expression.items.map((item) => expressionToJs(item, waits)).join(', ')}]`;
     case 'index':
-      return `${expressionToJs(expression.list)}[${expressionToJs(expression.index)}]`;
+      return `${expressionToJs(expression.list, waits)}[${expressionToJs(expression.index, waits)}]`;
     case 'length':
-      return `${expressionToJs(expression.list)}.length`;
+      return `${expressionToJs(expression.list, waits)}.length`;
     case 'call':
-      return callToJs(expression.name, expression.args);
+      return callToJs(expression.name, expression.args, waits);
     case 'binary': {
-      const left = expressionToJs(expression.left);
-      const right = expressionToJs(expression.right);
+      const left = expressionToJs(expression.left, waits);
+      const right = expressionToJs(expression.right, waits);
       const leftText = needsParentheses(expression.operator, expression.left, false)
         ? `(${left})`
         : left;
@@ -46,8 +57,8 @@ export function expressionToJs(expression: Expression): string {
   }
 }
 
-function wrapUnaryOperand(operand: Expression): string {
-  const text = expressionToJs(operand);
+function wrapUnaryOperand(operand: Expression, waits: ReadonlySet<string>): string {
+  const text = expressionToJs(operand, waits);
   return operand.kind === 'binary' ? `(${text})` : text;
 }
 
@@ -73,11 +84,21 @@ function bind(scope: Scope, name: string): string {
   return 'let ';
 }
 
-function emitStatements(statements: Statement[], indent: number, scope: Scope): EmittedLine[] {
-  return statements.flatMap((statement) => emitStatement(statement, indent, scope));
+function emitStatements(
+  statements: Statement[],
+  indent: number,
+  scope: Scope,
+  waits: ReadonlySet<string>,
+): EmittedLine[] {
+  return statements.flatMap((statement) => emitStatement(statement, indent, scope, waits));
 }
 
-function emitStatement(statement: Statement, indent: number, scope: Scope): EmittedLine[] {
+function emitStatement(
+  statement: Statement,
+  indent: number,
+  scope: Scope,
+  waits: ReadonlySet<string>,
+): EmittedLine[] {
   const id = statement.id;
   const line = (text: string, depth = indent): EmittedLine => ({ nodeId: id, indent: depth, text });
   const closing = (text: string, depth = indent): EmittedLine => ({
@@ -93,23 +114,23 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
 
     case 'declare':
       return [
-        line(`${bind(scope, statement.name)}${statement.name} = ${expressionToJs(statement.value)};`),
+        line(`${bind(scope, statement.name)}${statement.name} = ${expressionToJs(statement.value, waits)};`),
       ];
 
     case 'assign': {
       // With an index it writes one element; the optional field is invisible to
       // the compiler, so every emitter has to remember it by hand.
       const target = statement.index
-        ? `${statement.name}[${expressionToJs(statement.index)}]`
+        ? `${statement.name}[${expressionToJs(statement.index, waits)}]`
         : statement.name;
-      return [line(`${target} = ${expressionToJs(statement.value)};`)];
+      return [line(`${target} = ${expressionToJs(statement.value, waits)};`)];
     }
 
     case 'say':
-      return [line(`console.log(${expressionToJs(statement.value)});`)];
+      return [line(`console.log(${expressionToJs(statement.value, waits)});`)];
 
     case 'ask': {
-      const promptText = expressionToJs(statement.prompt);
+      const promptText = expressionToJs(statement.prompt, waits);
       /*
         `await`, because asking waits.
 
@@ -126,25 +147,25 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
     }
 
     case 'if': {
-      const lines: EmittedLine[] = [line(`if (${expressionToJs(statement.condition)}) {`)];
-      lines.push(...emitStatements(statement.then, indent + 1, scope));
+      const lines: EmittedLine[] = [line(`if (${expressionToJs(statement.condition, waits)}) {`)];
+      lines.push(...emitStatements(statement.then, indent + 1, scope, waits));
       /* `else if` on one line rather than a nested block, which is both what
          JavaScript writes and what the blocks now show. */
       for (const arm of statement.elseIfs ?? []) {
-        lines.push(closing(`} else if (${expressionToJs(arm.condition)}) {`));
-        lines.push(...emitStatements(arm.body, indent + 1, scope));
+        lines.push(closing(`} else if (${expressionToJs(arm.condition, waits)}) {`));
+        lines.push(...emitStatements(arm.body, indent + 1, scope, waits));
       }
       if (statement.otherwise) {
         lines.push(closing('} else {'));
-        lines.push(...emitStatements(statement.otherwise, indent + 1, scope));
+        lines.push(...emitStatements(statement.otherwise, indent + 1, scope, waits));
       }
       lines.push(closing('}'));
       return lines;
     }
 
     case 'while': {
-      const lines: EmittedLine[] = [line(`while (${expressionToJs(statement.condition)}) {`)];
-      lines.push(...emitStatements(statement.body, indent + 1, scope));
+      const lines: EmittedLine[] = [line(`while (${expressionToJs(statement.condition, waits)}) {`)];
+      lines.push(...emitStatements(statement.body, indent + 1, scope, waits));
       lines.push(closing('}'));
       return lines;
     }
@@ -153,9 +174,9 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
       // A dedicated counter name avoids colliding with student variables.
       const counter = `paso_${statement.id.slice(2, 6)}`;
       const lines: EmittedLine[] = [
-        line(`for (let ${counter} = 0; ${counter} < ${expressionToJs(statement.times)}; ${counter}++) {`),
+        line(`for (let ${counter} = 0; ${counter} < ${expressionToJs(statement.times, waits)}; ${counter}++) {`),
       ];
-      lines.push(...emitStatements(statement.body, indent + 1, scope));
+      lines.push(...emitStatements(statement.body, indent + 1, scope, waits));
       lines.push(closing('}'));
       return lines;
     }
@@ -165,8 +186,8 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
          `declare` of the same name still gets its own `let` — the same rule
          the counted loop above follows. */
       const lines: EmittedLine[] = [
-        line(`for (const ${statement.variable} of ${expressionToJs(statement.list)}) {`),
-        ...emitStatements(statement.body, indent + 1, scope),
+        line(`for (const ${statement.variable} of ${expressionToJs(statement.list, waits)}) {`),
+        ...emitStatements(statement.body, indent + 1, scope, waits),
         closing('}'),
       ];
       return lines;
@@ -175,24 +196,29 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
     case 'function': {
       /* `async` only where the student asked for it, so an ordinary function
          reads exactly like the one they will write in class. */
-      const keyword = statement.isAsync ? 'async function' : 'function';
+      /* `async` where the student asked for it, and also where the function
+         waits for an answer: an `await` inside a plain `function` is a
+         SyntaxError, which is what "Abrir en JavaScript" used to hand over for
+         any algorithm with a question inside a helper. */
+      const keyword =
+        statement.isAsync || waits.has(statement.name) ? 'async function' : 'function';
       return [
         line(`${keyword} ${statement.name || 'sinNombre'}(${statement.params.map((param) => param.name).filter(Boolean).join(', ')}) {`),
-        ...emitStatements(statement.body, indent + 1, scope),
+        ...emitStatements(statement.body, indent + 1, scope, waits),
         closing('}'),
       ];
     }
 
     case 'return':
-      return [line(statement.value ? `return ${expressionToJs(statement.value)};` : 'return;')];
+      return [line(statement.value ? `return ${expressionToJs(statement.value, waits)};` : 'return;')];
 
     case 'call':
-      return [line(`${callToJs(statement.name, statement.args)};`)];
+      return [line(`${callToJs(statement.name, statement.args, waits)};`)];
 
     case 'listOp': {
       const { name, operation } = statement;
-      const value = statement.value ? expressionToJs(statement.value) : "''";
-      const at = statement.index ? expressionToJs(statement.index) : null;
+      const value = statement.value ? expressionToJs(statement.value, waits) : "''";
+      const at = statement.index ? expressionToJs(statement.index, waits) : null;
       switch (operation) {
         case 'append':
           return [line(`${name}.push(${value});`)];
@@ -220,7 +246,7 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
 
     case 'forEach': {
       const { variable, from, to, step } = statement;
-      const stepText = expressionToJs(step);
+      const stepText = expressionToJs(step, waits);
       // A negative literal step counts down, so the comparison must flip.
       const goesDown = step.kind === 'literal' && Number(step.value) < 0;
       const comparison = goesDown ? '>=' : '<=';
@@ -230,10 +256,10 @@ function emitStatement(statement: Statement, indent: number, scope: Scope): Emit
       // one: a later `declare` of the same name still needs its own `let`.
       const lines: EmittedLine[] = [
         line(
-          `for (let ${variable} = ${expressionToJs(from)}; ${variable} ${comparison} ${expressionToJs(to)}; ${increment}) {`,
+          `for (let ${variable} = ${expressionToJs(from, waits)}; ${variable} ${comparison} ${expressionToJs(to, waits)}; ${increment}) {`,
         ),
       ];
-      lines.push(...emitStatements(statement.body, indent + 1, scope));
+      lines.push(...emitStatements(statement.body, indent + 1, scope, waits));
       lines.push(closing('}'));
       return lines;
     }
@@ -245,5 +271,6 @@ export const javascriptEmitter: Emitter = {
   label: 'JavaScript',
   syntax: 'javascript',
   extension: 'js',
-  emit: (algorithm: Algorithm): EmittedLine[] => emitStatements(algorithm.body, 0, new Set()),
+  emit: (algorithm: Algorithm): EmittedLine[] =>
+    emitStatements(algorithm.body, 0, new Set(), functionsThatWait(algorithm.body)),
 };

@@ -61,5 +61,10 @@ export function categoryClass(category: Category): string {
 
 /** What to paint a node of this name, or nothing if it has no topic. */
 export function categoryFor(nodeName: string, text: string): Category | null {
-  return KEYWORD_CATEGORY[nodeName] ?? NAME_CATEGORY[text] ?? null;
+  /* Own properties only. A plain lookup reached `Object.prototype`, so a
+     student who named something `constructor` or `toString` got a function
+     back where a category was expected. */
+  if (Object.hasOwn(KEYWORD_CATEGORY, nodeName)) return KEYWORD_CATEGORY[nodeName] ?? null;
+  if (Object.hasOwn(NAME_CATEGORY, text)) return NAME_CATEGORY[text] ?? null;
+  return null;
 }

@@ -23,6 +23,19 @@ body {
   color: var(--text-primary);
   background: var(--bg-app);
   -webkit-font-smoothing: antialiased;
+  /*
+    No programming ligatures, anywhere.
+
+    JetBrains Mono draws `//` as a single long stroke and turns `<=`, `!==`,
+    `=>` and `>=` into `≤`, `≢`, `⇒` and `≥`. A student learning to type those
+    operators was being shown characters that are not on their keyboard — and
+    one who typed two slashes saw one, and reasonably concluded they had typed
+    one. The font implements them as contextual alternates, so this switches
+    off exactly those and leaves the interface font's ordinary ligatures alone.
+    Inherited by every surface that sets the monospace family, which is 34
+    declarations that would otherwise each need saying it.
+  */
+  font-variant-ligatures: no-contextual;
   text-rendering: optimizeLegibility;
 }
 

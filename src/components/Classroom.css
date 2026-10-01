@@ -110,9 +110,17 @@
   text-transform: uppercase;
 }
 
-.classroom__row button,
-.classroom__add,
-.classroom__panel button:not(.classroom__quiet) {
+/*
+  The main verb of a panel, opted into by class.
+
+  It used to be applied by negation — every button in a panel that was *not*
+  quiet — and a negation outranks whatever comes after it. So the danger
+  confirmation came out accent rather than red (0,2,1 beats 0,1,0), and "Agregar
+  caso" and "Cancelar" came out looking like "Guardar". A style that has to be
+  asked for cannot win a fight nobody started.
+*/
+.classroom__primary,
+.classroom__add {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -124,18 +132,18 @@
   border-radius: var(--radius-md);
 }
 
-.classroom__row button svg,
+.classroom__primary svg,
 .classroom__add svg {
   width: 15px;
   height: 15px;
 }
 
-.classroom__row button:hover:not(:disabled),
+.classroom__primary:hover:not(:disabled),
 .classroom__add:hover {
   background: var(--accent-strong);
 }
 
-.classroom__row button:disabled {
+.classroom__primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -244,8 +252,17 @@
   list-style: none;
 }
 
-.classroom__list li {
+/*
+  A child selector, and a row that wraps.
+
+  As a descendant selector this styled every `li` underneath too — the roster's
+  rows and the case list — and as a non-wrapping row it put the roster squeezed
+  *beside* its assignment instead of under it. Wrapping lets the roster take a
+  line of its own.
+*/
+.classroom__list > li {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -254,7 +271,11 @@
   border-radius: var(--radius-md);
 }
 
-.classroom__list strong {
+.classroom__roster {
+  flex-basis: 100%;
+}
+
+.classroom__title {
   display: block;
   font-size: var(--text-sm);
   color: var(--text-primary);
@@ -438,8 +459,10 @@
 }
 
 .classroom__roster-state[data-state='pending'] {
-  color: var(--hue-conditional);
-  background: var(--hue-conditional-soft);
+  /* `--warning`, not a category hue: those are reserved for telling a loop
+     from a condition, and spending one on "waiting to be marked" blurs both. */
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 .classroom__roster-state[data-state='marked'] {
