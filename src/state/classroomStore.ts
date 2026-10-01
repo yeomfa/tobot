@@ -35,6 +35,8 @@ export interface Assignment {
   id: string;
   classroomId: string;
   title: string;
+  /** What the work asks for, in the teacher's words. Empty when they wrote none. */
+  instructions: string;
   points: number;
   kind: 'blocks' | 'code';
   body: Algorithm['body'];
@@ -65,6 +67,27 @@ export interface RankRow {
   name: string;
   points: number;
   handedIn: number;
+}
+
+/**
+ * An assignment as a thing the editor can open.
+ *
+ * The id is derived from the assignment rather than minted fresh. A new id on
+ * every open meant the autosave wrote a *new library row each time*, so a
+ * student who opened the same exercise five times had five copies of it saved.
+ * Derived, the work on one assignment is one document, updated.
+ */
+export function assignmentAsAlgorithm(assignment: Assignment): Algorithm {
+  const now = new Date().toISOString();
+  return {
+    id: `alg_${assignment.id.replace(/-/g, '').slice(0, 12)}`,
+    name: assignment.title,
+    kind: assignment.kind,
+    source: assignment.source,
+    body: assignment.body,
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 /*
@@ -295,6 +318,7 @@ export async function assignmentsOf(classroomId: string): Promise<Assignment[]> 
     id: String(row.id),
     classroomId: String(row.classroom_id),
     title: typeof row.title === 'string' ? row.title : '',
+    instructions: typeof row.instructions === 'string' ? row.instructions : '',
     points: typeof row.points === 'number' ? row.points : 0,
     kind: row.kind === 'code' ? 'code' : 'blocks',
     // The same standard the algorithm store holds: a tree from someone else's
@@ -328,33 +352,58 @@ export async function casesFor(assignmentId: string): Promise<Case[]> {
   return data ? reviveCases(data.cases) : [];
 }
 
-export async function createAssignment(
+/**
+ * Publishing an assignment, or saving changes to one already published.
+ *
+ * One function for both, because they are one form: the authoring mode opens
+ * on a blank draft or on an existing assignment, and saving is the same act
+ * either way. Editing keeps the row's id, so what students handed in stays
+ * attached to it.
+ */
+export async function saveAssignment(
   classroomId: string,
-  draft: { title: string; points: number; algorithm: Algorithm; cases: Case[] },
-): Promise<void> {
+  draft: {
+    title: string;
+    instructions: string;
+    points: number;
+    algorithm: Algorithm;
+    cases: Case[];
+  },
+  existingId?: string,
+): Promise<string | null> {
   const supabase = await getSupabase();
-  if (!supabase) return;
-  const { data, error } = await supabase
-    .from('assignments')
-    .insert({
-      classroom_id: classroomId,
-      title: draft.title,
-      points: draft.points,
-      kind: draft.algorithm.kind ?? 'blocks',
-      body: draft.algorithm.body,
-      source: draft.algorithm.kind === 'code' ? (draft.algorithm.source ?? '') : null,
-    })
-    .select('id')
-    .single();
-  if (error) throw new Error(error.message);
+  if (!supabase) return null;
+  const row = {
+    title: draft.title,
+    instructions: draft.instructions,
+    points: draft.points,
+    kind: draft.algorithm.kind ?? 'blocks',
+    body: draft.algorithm.body,
+    source: draft.algorithm.kind === 'code' ? (draft.algorithm.source ?? '') : null,
+  };
+
+  let id = existingId;
+  if (id) {
+    const { error } = await supabase.from('assignments').update(row).eq('id', id);
+    if (error) throw new Error(error.message);
+  } else {
+    const { data, error } = await supabase
+      .from('assignments')
+      .insert({ ...row, classroom_id: classroomId })
+      .select('id')
+      .single();
+    if (error) throw new Error(error.message);
+    id = String(data.id);
+  }
 
   /* The cases go to their own table, which only the teacher may read. A
      failure here leaves an assignment nobody can mark rather than one whose
      answers everyone can see, which is the right way round to fail. */
   const { error: caseError } = await supabase
     .from('assignment_cases')
-    .upsert({ assignment_id: String(data.id), cases: draft.cases }, { onConflict: 'assignment_id' });
+    .upsert({ assignment_id: id, cases: draft.cases }, { onConflict: 'assignment_id' });
   if (caseError) throw new Error(caseError.message);
+  return id;
 }
 
 export async function removeAssignment(id: string): Promise<void> {

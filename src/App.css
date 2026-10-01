@@ -612,6 +612,57 @@
 /* Handing work back to a classroom. Shaped like Run — both are "I am done,
    take this" — but quieter, because running is what happens many times and
    handing in is what happens once. */
+/* What the workbench is doing, when it is not the student's own document. In
+   the title's place, so it is the first thing read on the bar. */
+.app__desk {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.app__desk-label {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.app__desk-tag {
+  flex-shrink: 0;
+  padding: 1px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.app__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.app__back svg {
+  width: 15px;
+  height: 15px;
+}
+
+.app__back:hover {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+}
+
 .app__hand-in {
   display: inline-flex;
   align-items: center;

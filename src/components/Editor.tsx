@@ -23,6 +23,15 @@ interface EditorProps {
    * the tree, and a converted value carries no trace of what it used to be.
    */
   retypeLosses: ReadonlySet<NodeId>;
+  /**
+   * Someone else's work, shown but not changed.
+   *
+   * `inert` on the list rather than on the canvas: an inert element is skipped
+   * by hit-testing, so the wheel falls through to the canvas behind it and the
+   * program still scrolls, while every input, handle and drop zone inside
+   * stops answering — without a flag threaded through every block.
+   */
+  readOnly?: boolean;
 }
 
 /**
@@ -36,6 +45,7 @@ export const Editor = memo(function Editor({
   activeNodeId,
   erroredNodeId,
   retypeLosses,
+  readOnly = false,
 }: EditorProps) {
   const { d } = useTranslation();
   const count = algorithm.body.length;
@@ -104,7 +114,7 @@ export const Editor = memo(function Editor({
           </div>
         )}
 
-        <ul className="editor__list">
+        <ul className="editor__list" inert={readOnly || undefined}>
           <DropZone
             location={{ parentId: null, slot: null, index: 0 }}
             callbacks={callbacks}

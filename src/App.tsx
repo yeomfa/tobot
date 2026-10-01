@@ -19,9 +19,17 @@ import {
   DesktopIcon as Desktop,
   ExportIcon as Export,
   UploadSimpleIcon as UploadSimple,
+  ArrowLeftIcon as ArrowLeft,
+  PaperPlaneTiltIcon as Publish,
 } from '@phosphor-icons/react';
 
-import type { NodeId, Statement } from './core/ast/types';
+import type { Algorithm, NodeId, Statement } from './core/ast/types';
+import { createId } from './core/ast/factory';
+import { blankCase } from './core/activity';
+import type { AuthorDraft, Brief as BriefText } from './core/activity';
+import type { Case, CaseResult } from './core/classroom/grade';
+import { gradeBlocks } from './core/classroom/grade';
+import { gradeCode } from './core/classroom/gradeCode';
 import type { Location as SlotLocation } from './core/ast/operations';
 import { findLocation, findStatement } from './core/ast/operations';
 import { problemsByNode, validate } from './core/ast/validate';
@@ -73,7 +81,15 @@ import type { Preferences } from './state/storage';
 import { useAlgorithm } from './state/useAlgorithm';
 import { useExecution } from './state/useExecution';
 import { useCodeExecution } from './state/useCodeExecution';
-import { handIn } from './state/classroomStore';
+import {
+  assignmentAsAlgorithm,
+  casesFor,
+  handIn,
+  recordMark,
+  saveAssignment,
+} from './state/classroomStore';
+import type { Assignment, Submission } from './state/classroomStore';
+import { Brief } from './components/Brief';
 import { useSession } from './state/useSession';
 import { isSupabaseConfigured } from './state/supabase';
 import { useResizable } from './state/useResizable';
@@ -378,6 +394,48 @@ function Workspace({
   );
 }
 
+/**
+ * What the workbench is for at the moment.
+ *
+ * One workbench, several jobs, rather than a second editor per job: the blocks,
+ * the code editor, the robot and the run controls are the same whichever one
+ * it is. What changes is whose work is on screen, whether it may be changed,
+ * whether it is saved, and what the header offers.
+ *
+ * - `own` — the student's own document. Nearly always.
+ * - `doing` — set work, with its brief beside it. Still the student's own
+ *   copy, still saved; handed in when it came from a classroom.
+ * - `review` — a teacher reading one student's submission. Not saved, not
+ *   editable, but runnable and markable where it stands.
+ * - `author` — a teacher writing an assignment. Editable, not saved to their
+ *   library: it is saved to the classroom when it is published.
+ *
+ * The last two carry `returnTo`, the teacher's own document, so leaving puts
+ * back exactly what was there before.
+ */
+type Desk =
+  | { mode: 'own' }
+  | { mode: 'doing'; brief: BriefText; assignmentId: string | null }
+  | {
+      mode: 'review';
+      assignment: Assignment;
+      submission: Submission;
+      student: string;
+      cases: Case[];
+      results: CaseResult[] | null;
+      score: number | null;
+      returnTo: Algorithm;
+    }
+  | {
+      mode: 'author';
+      classroomId: string;
+      editingId: string | null;
+      draft: AuthorDraft;
+      returnTo: Algorithm;
+    };
+
+const OWN: Desk = { mode: 'own' };
+
 interface WorkbenchProps {
   /** Signed-in student's email, or `null` when working locally. */
   email: string | null;
@@ -432,7 +490,7 @@ function Workbench({
   panels,
   onPanelsChange,
 }: WorkbenchProps) {
-  const { d, t, language } = useTranslation();
+  const { d, t, fill, language } = useTranslation();
 
   /**
    * A newcomer starts with the welcome example; anyone returning starts blank
@@ -445,7 +503,7 @@ function Workbench({
     [],
   );
   const controller = useAlgorithm(initial, d.app.untitled);
-  const { algorithm, load } = controller;
+  const { algorithm, load, setPersisting } = controller;
 
   useEffect(() => {
     let cancelled = false;
@@ -481,9 +539,18 @@ function Workbench({
   /* The code editor owns its own undo stack, so the header's buttons have to
      reach into it rather than into the reducer's — which holds statements, and
      is empty for a document made of text. */
+  const [desk, setDesk] = useState<Desk>(OWN);
+  /* Kept apart from the desk, which changes on every keystroke of a draft:
+     these are about the one request in flight. */
+  const [deskBusy, setDeskBusy] = useState(false);
+  const [deskFault, setDeskFault] = useState<string | null>(null);
   /* The assignment the open algorithm came from, so it can be handed back.
      Null for anything opened any other way, which is nearly everything. */
-  const [openAssignment, setOpenAssignment] = useState<string | null>(null);
+  const openAssignment = desk.mode === 'doing' ? desk.assignmentId : null;
+  /** Someone else's work: shown, run and marked, never changed. */
+  const locked = desk.mode === 'review';
+  /** Not the student's own document, so nothing about it is saved as theirs. */
+  const away = desk.mode === 'review' || desk.mode === 'author';
   const [handedIn, setHandedIn] = useState(false);
   const codeHandle = useRef<CodeEditorHandle | null>(null);
   const [codeReport, setCodeReport] = useState<CodeEditorReport | null>(null);
@@ -750,6 +817,8 @@ function Workbench({
       }
 
       const key = event.key.toLowerCase();
+      /* Copying is reading, and stays; everything else changes the program. */
+      if (locked && key !== 'c') return;
       if (key === 'z') {
         /* A code document's history belongs to the editor, which handles this
            itself through its own keymap. Reaching into the block undo stack
@@ -777,7 +846,7 @@ function Workbench({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [controller, selection, copySelection, cutSelection, pasteFromClipboard, writing]);
+  }, [controller, selection, copySelection, cutSelection, pasteFromClipboard, writing, locked]);
 
   const showConcept = useCallback((conceptId: string) => {
     setOpenConcept(conceptId as ConceptId);
@@ -884,32 +953,43 @@ function Workbench({
   );
 
   /** Starts a blank algorithm and leaves the library open behind it. */
+  /**
+   * Back to the student's own work, from whatever the workbench was doing.
+   *
+   * Every way of opening something passes through here. Opening a document
+   * from the library while reviewing would otherwise have left the switch off,
+   * and the next thing the teacher wrote would never have been saved.
+   */
+  const settle = useCallback(() => {
+    void setPersisting(true);
+    setDesk(OWN);
+    setDeskFault(null);
+    setHandedIn(false);
+  }, [setPersisting]);
+
   const createNew = useCallback(() => {
     // As with `openAlgorithm`: the hand-in button belonged to a document that
     // is no longer on screen, and would have submitted this blank one for it.
-    setOpenAssignment(null);
-    setHandedIn(false);
+    settle();
     load(createEmptyAlgorithm(d.app.untitled));
     setScreen('editor');
-  }, [load, d.app.untitled, setScreen]);
+  }, [load, d.app.untitled, setScreen, settle]);
 
   /* A code document starts with a comment rather than an empty page: a blank
      editor asks a beginner to invent both a problem and its first line, and
      the one thing worth saying here is which two functions get them moving. */
   const createCode = useCallback(() => {
-    setOpenAssignment(null);
-    setHandedIn(false);
+    settle();
     const blank = createEmptyAlgorithm(d.code.blank);
     load({ ...blank, kind: 'code', source: d.code.starter });
     setScreen('editor');
-  }, [load, d.code.blank, d.code.starter, setScreen]);
+  }, [load, d.code.blank, d.code.starter, setScreen, settle]);
 
   /** Opening anything from the landing view moves to the editor with it. */
   const openAlgorithm = useCallback(
     (next: Parameters<typeof load>[0]) => {
       // Opening anything else leaves the assignment behind with it.
-      setOpenAssignment(null);
-      setHandedIn(false);
+      settle();
       /* And leaves the selection, which is a set of node ids from the tree
          being closed. Carried over, Ctrl+C in the next document copied blocks
          that were no longer on screen. */
@@ -917,21 +997,221 @@ function Workbench({
       load(next);
       setScreen('editor');
     },
-    [load, setScreen, selection],
+    [load, setScreen, selection, settle],
   );
 
-  const openAssignmentWork = useCallback(
-    (next: Parameters<typeof load>[0], assignmentId: string | null) => {
+  /** Set work: a built-in challenge, or an assignment to hand in. */
+  const openActivity = useCallback(
+    (next: Algorithm, brief: BriefText, assignmentId: string | null) => {
+      settle();
       // As `openAlgorithm` does: a selection is node ids from the tree being
       // closed, and carried over it let Ctrl+C copy blocks no longer on screen.
       selection.clear();
       load(next);
-      setOpenAssignment(assignmentId);
-      setHandedIn(false);
+      setDesk({ mode: 'doing', brief, assignmentId });
+      setRobotOpen(true);
       setScreen('editor');
     },
-    [load, setScreen, selection],
+    [load, setScreen, selection, settle, setRobotOpen],
   );
+
+  /** The teacher's own document, wherever the workbench has wandered since. */
+  const homeDocument = desk.mode === 'review' || desk.mode === 'author' ? desk.returnTo : algorithm;
+
+  /**
+   * Opening one student's submission, to read, run and mark.
+   *
+   * The teacher's own document is saved first and saving is switched off, so
+   * the submission is never copied into their library — loading is itself a
+   * change, and would otherwise have been saved half a second later.
+   */
+  const enterReview = useCallback(
+    async (assignment: Assignment, submission: Submission, student: string) => {
+      const returnTo = homeDocument;
+      await setPersisting(false);
+      const cases = await casesFor(assignment.id);
+      selection.clear();
+      load({
+        id: `review_${submission.id}`,
+        name: `${assignment.title} · ${student}`,
+        kind: submission.kind,
+        body: submission.body,
+        source: submission.source,
+        createdAt: submission.submittedAt,
+        updatedAt: submission.submittedAt,
+      });
+      setDeskFault(null);
+      setDesk({
+        mode: 'review',
+        assignment,
+        submission,
+        student,
+        cases,
+        results: null,
+        score: submission.score,
+        returnTo,
+      });
+      setRobotOpen(true);
+      setScreen('editor');
+    },
+    [homeDocument, setPersisting, selection, load, setRobotOpen, setScreen],
+  );
+
+  /** Writing a new assignment, or opening one to change it. */
+  const enterAuthor = useCallback(
+    async (classroomId: string, assignment: Assignment | null) => {
+      const returnTo = homeDocument;
+      await setPersisting(false);
+      const cases = assignment ? await casesFor(assignment.id) : [];
+      selection.clear();
+      const starter = assignment
+        ? assignmentAsAlgorithm(assignment)
+        : createEmptyAlgorithm(d.app.untitled);
+      load({ ...starter, id: `draft_${assignment?.id ?? createId()}` });
+      setDeskFault(null);
+      setDesk({
+        mode: 'author',
+        classroomId,
+        editingId: assignment?.id ?? null,
+        draft: {
+          title: assignment?.title ?? '',
+          instructions: assignment?.instructions ?? '',
+          points: assignment?.points ?? 10,
+          cases:
+            cases.length > 0
+              ? cases.map((one) => ({ ...one, key: createId() }))
+              : [blankCase()],
+        },
+        returnTo,
+      });
+      setRobotOpen(true);
+      setScreen('editor');
+    },
+    [homeDocument, setPersisting, selection, load, d.app.untitled, setRobotOpen, setScreen],
+  );
+
+  /** Out of review or authoring, with the teacher's own document put back. */
+  const backToRoom = useCallback(() => {
+    if (desk.mode === 'review' || desk.mode === 'author') {
+      selection.clear();
+      load(desk.returnTo);
+    }
+    settle();
+    navigate(sectionPath('classroom'));
+  }, [desk, selection, load, settle, navigate]);
+
+  /** Marking the submission on screen, against the assignment's cases. */
+  const markReview = useCallback(async () => {
+    if (desk.mode !== 'review') return;
+    setDeskBusy(true);
+    setDeskFault(null);
+    try {
+      const mark = isCode(algorithm)
+        ? await gradeCode(algorithm.source ?? '', desk.cases, desk.assignment.points)
+        : gradeBlocks(algorithm.body, desk.cases, desk.assignment.points);
+      await recordMark(desk.submission.id, mark);
+      setDesk({ ...desk, results: mark.results, score: mark.score });
+    } catch (thrown) {
+      console.error('[tobot] could not mark the submission:', thrown);
+      setDeskFault(d.classroom.failed);
+    } finally {
+      setDeskBusy(false);
+    }
+  }, [desk, algorithm, d.classroom.failed]);
+
+  /**
+   * Publishing what is on screen as the assignment.
+   *
+   * The program in the workbench is the starter; the brief is everything else.
+   * Cases with nothing expected are dropped: they cannot fail, so they would
+   * only hand out free marks.
+   */
+  const publish = useCallback(async () => {
+    if (desk.mode !== 'author') return;
+    const title = desk.draft.title.trim();
+    if (!title) {
+      setDeskFault(d.brief.needsTitle);
+      return;
+    }
+    setDeskBusy(true);
+    setDeskFault(null);
+    try {
+      await saveAssignment(
+        desk.classroomId,
+        {
+          title,
+          instructions: desk.draft.instructions.trim(),
+          points: desk.draft.points,
+          algorithm: { ...algorithm, name: title },
+          cases: desk.draft.cases
+            .filter((one) => one.expect.length > 0)
+            .map(({ answers, expect }) => ({ answers, expect })),
+        },
+        desk.editingId ?? undefined,
+      );
+      backToRoom();
+    } catch (thrown) {
+      console.error('[tobot] could not publish the assignment:', thrown);
+      setDeskFault(d.classroom.failed);
+    } finally {
+      setDeskBusy(false);
+    }
+  }, [desk, algorithm, backToRoom, d.brief.needsTitle, d.classroom.failed]);
+
+  /*
+    Whether the starter can still change kind. Only while it is empty, or still
+    the code document's greeting: switching replaces the program, and a teacher
+    who had written one would lose it to a misclick.
+  */
+  const starterIsBlank = isCode(algorithm)
+    ? (algorithm.source ?? '').trim() === '' || algorithm.source === d.code.starter
+    : algorithm.body.length === 0;
+  const switchStarter = useCallback(
+    (kind: 'blocks' | 'code') => {
+      const blank = createEmptyAlgorithm(algorithm.name);
+      load(
+        kind === 'code'
+          ? { ...blank, id: algorithm.id, kind: 'code', source: d.code.starter }
+          : { ...blank, id: algorithm.id },
+      );
+    },
+    [algorithm.id, algorithm.name, load, d.code.starter],
+  );
+
+  /** The brief, in whichever form the desk calls for, or nothing at all. */
+  const brief =
+    desk.mode === 'doing' ? (
+      <Brief
+        mode="read"
+        title={desk.brief.title}
+        instructions={desk.brief.instructions}
+        points={desk.brief.points}
+      />
+    ) : desk.mode === 'review' ? (
+      <Brief
+        mode="review"
+        title={desk.assignment.title}
+        instructions={desk.assignment.instructions}
+        points={desk.assignment.points}
+        student={desk.student}
+        cases={desk.cases}
+        results={desk.results}
+        score={desk.score}
+        marking={deskBusy}
+        fault={deskFault}
+        onMark={() => void markReview()}
+      />
+    ) : desk.mode === 'author' ? (
+      <Brief
+        mode="author"
+        draft={desk.draft}
+        editing={desk.editingId !== null}
+        fault={deskFault}
+        onChange={(draft) => setDesk({ ...desk, draft })}
+        kind={isCode(algorithm) ? 'code' : 'blocks'}
+        onKind={starterIsBlank ? switchStarter : null}
+      />
+    ) : null;
 
   const submitWork = useCallback(async () => {
     if (!openAssignment) return;
@@ -1001,44 +1281,62 @@ function Workbench({
           input is stretched over. It carries the placeholder when the name is
           empty, so a blank title still has somewhere to be typed.
         */}
-        <span className="app__doc-title-wrap" ref={titleWrap} data-clipped={titleClipped}>
-          <span className="app__doc-title-mirror" aria-hidden="true">
-            {algorithm.name || d.app.untitled}
+        {away ? (
+          /* Not a name to edit and not a document being saved: a statement of
+             what this screen is for, so a teacher never mistakes a student's
+             work, or a draft for the class, for their own. */
+          <span className="app__desk" data-mode={desk.mode}>
+            <span className="app__desk-label">
+              {desk.mode === 'review'
+                ? fill(d.brief.reviewing, { student: desk.student })
+                : desk.mode === 'author' && desk.editingId
+                  ? d.brief.editing
+                  : d.brief.authoring}
+            </span>
+            {locked && <span className="app__desk-tag">{d.brief.readOnly}</span>}
           </span>
-          <input
-            className="app__doc-title"
-            /* An input carries a default `size` of 20 characters, which the
-               grid honours as a minimum and which pinned short names to a
-               fixed width. Set to 1, the mirror alone decides. */
-            size={1}
-            value={algorithm.name}
-            onChange={(event) => controller.setName(event.target.value)}
-            aria-label={d.actions.rename}
-            placeholder={d.app.untitled}
-            /* Readable on hover too, for a name long enough to be clipped —
-               otherwise checking which document this is means clicking into
-               it, and clicking into a name is how names get edited by
-               accident. */
-            title={algorithm.name || undefined}
-            /*
-              A click lands the caret mid-word and leaves the field scrolled
-              to that point, so a clipped name opens showing its middle — the
-              start lost, the end still out of view. Scrolling back to zero
-              means the name reads from the beginning the moment it is wide
-              enough to read at all.
+        ) : (
+          <>
+          <span className="app__doc-title-wrap" ref={titleWrap} data-clipped={titleClipped}>
+            <span className="app__doc-title-mirror" aria-hidden="true">
+              {algorithm.name || d.app.untitled}
+            </span>
+            <input
+              className="app__doc-title"
+              /* An input carries a default `size` of 20 characters, which the
+                 grid honours as a minimum and which pinned short names to a
+                 fixed width. Set to 1, the mirror alone decides. */
+              size={1}
+              value={algorithm.name}
+              onChange={(event) => controller.setName(event.target.value)}
+              aria-label={d.actions.rename}
+              placeholder={d.app.untitled}
+              /* Readable on hover too, for a name long enough to be clipped —
+                 otherwise checking which document this is means clicking into
+                 it, and clicking into a name is how names get edited by
+                 accident. */
+              title={algorithm.name || undefined}
+              /*
+                A click lands the caret mid-word and leaves the field scrolled
+                to that point, so a clipped name opens showing its middle — the
+                start lost, the end still out of view. Scrolling back to zero
+                means the name reads from the beginning the moment it is wide
+                enough to read at all.
 
-              Only on the way in: once someone is typing, moving their view is
-              the last thing they want.
-            */
-            onFocus={(event) => {
-              event.currentTarget.scrollLeft = 0;
-            }}
-          />
-        </span>
+                Only on the way in: once someone is typing, moving their view is
+                the last thing they want.
+              */
+              onFocus={(event) => {
+                event.currentTarget.scrollLeft = 0;
+              }}
+            />
+          </span>
 
-        {/* Beside the name it belongs to, rather than in the actions cluster:
-            it is a fact about this document, not something to press. */}
-        <SaveStatus state={controller.saveState} />
+          {/* Beside the name it belongs to, rather than in the actions cluster:
+              it is a fact about this document, not something to press. */}
+          <SaveStatus state={controller.saveState} />
+          </>
+        )}
 
         <div className="app__header-actions">
           {/* Inside the editor this always means "go home"; the landing view
@@ -1060,7 +1358,7 @@ function Workbench({
               type="button"
               className="app__icon-button"
               onClick={writing ? () => codeHandle.current?.undo() : controller.undo}
-              disabled={writing ? !codeReport?.canUndo : !controller.canUndo}
+              disabled={locked || (writing ? !codeReport?.canUndo : !controller.canUndo)}
               title={`${d.actions.undo} · ⌘Z`}
               aria-label={d.actions.undo}
             >
@@ -1070,7 +1368,7 @@ function Workbench({
               type="button"
               className="app__icon-button"
               onClick={writing ? () => codeHandle.current?.redo() : controller.redo}
-              disabled={writing ? !codeReport?.canRedo : !controller.canRedo}
+              disabled={locked || (writing ? !codeReport?.canRedo : !controller.canRedo)}
               title={`${d.actions.redo} · ⇧⌘Z`}
               aria-label={d.actions.redo}
             >
@@ -1218,6 +1516,27 @@ function Workbench({
             </button>
           )}
 
+          {/* The ways out of review and authoring, here rather than in the
+              brief: the rail can be closed, and a mode whose only exit is
+              inside a closed panel is a trap. */}
+          {away && (
+            <button type="button" className="app__back" onClick={backToRoom}>
+              <ArrowLeft weight="bold" />
+              {desk.mode === 'author' ? d.classroom.cancel : d.brief.backToRoom}
+            </button>
+          )}
+          {desk.mode === 'author' && (
+            <button
+              type="button"
+              className="app__hand-in"
+              onClick={() => void publish()}
+              disabled={deskBusy}
+            >
+              <Publish weight="bold" />
+              {desk.editingId ? d.brief.saveChanges : d.brief.publish}
+            </button>
+          )}
+
           <button type="button" className="app__run" onClick={startRun}>
             <Play weight="fill" /> {d.actions.run}
           </button>
@@ -1236,8 +1555,11 @@ function Workbench({
             onOpen={openAlgorithm}
             onCreate={createNew}
             onCreateCode={createCode}
-            currentAlgorithm={algorithm}
-            onOpenAssignment={openAssignmentWork}
+            onOpenActivity={openActivity}
+            onReview={(assignment, submission, student) =>
+              void enterReview(assignment, submission, student)
+            }
+            onAuthor={(classroomId, assignment) => void enterAuthor(classroomId, assignment)}
             onOpenConcept={setOpenConcept}
               currentName={algorithm.name}
             onBackToEditor={() => setScreen('editor')}
@@ -1261,11 +1583,13 @@ function Workbench({
             drawerOpen={drawerOpen}
             robotSize={robotSize}
             drawerSize={drawerSize}
+            readOnly={locked}
+            brief={brief}
           />
         </main>
       ) : (
       <main className="app__main">
-        {paletteOpen && (
+        {paletteOpen && !locked && (
           <aside className="app__palette">
             <Palette onAdd={appendStatement} body={algorithm.body} />
             <ResizeHandle resizable={paletteSize} edge="right" label={d.panels.resize} />
@@ -1300,40 +1624,52 @@ function Workbench({
               {/* Right-clicking a block reaches its own actions. The icons on
                   the block do the same, but they are small, three of them, and
                   only there while the pointer is over the row. */}
-              <CanvasMenu
-                body={algorithm.body}
-                /* Deleting acts on the selection, which right-clicking has
-                   just made sure includes the block under the pointer. */
-                onRemove={() => {
-                  controller.removeMany(selection.ids);
-                  selection.clear();
-                }}
-                onExplain={showConcept}
-                selectedCount={selection.ids.length}
-                onSelect={(id) => {
-                  /* Right-clicking inside an existing selection keeps it —
-                     otherwise selecting three blocks and right-clicking one of
-                     them would silently drop the other two before the menu's
-                     actions ran on them. */
-                  if (!selection.has(id)) selection.select(id, false);
-                }}
-                clipboard={{
-                  copy: () => void copySelection(),
-                  cut: () => void cutSelection(),
-                  paste: () => void pasteFromClipboard(),
-                  hasSelection: selection.ids.length > 0,
-                }}
-              >
-                <Editor
-                  algorithm={algorithm}
-                  callbacks={callbacks}
-                  activeNodeId={activeNodeId}
-                  erroredNodeId={erroredNodeId}
-                  retypeLosses={retypeLosses}
-                />
-              </CanvasMenu>
+              {locked ? (
+              <Editor
+                algorithm={algorithm}
+                callbacks={callbacks}
+                activeNodeId={activeNodeId}
+                erroredNodeId={erroredNodeId}
+                retypeLosses={retypeLosses}
+                readOnly
+              />
+              ) : (
+                <CanvasMenu
+                  body={algorithm.body}
+                  /* Deleting acts on the selection, which right-clicking has
+                     just made sure includes the block under the pointer. */
+                  onRemove={() => {
+                    controller.removeMany(selection.ids);
+                    selection.clear();
+                  }}
+                  onExplain={showConcept}
+                  selectedCount={selection.ids.length}
+                  onSelect={(id) => {
+                    /* Right-clicking inside an existing selection keeps it —
+                       otherwise selecting three blocks and right-clicking one of
+                       them would silently drop the other two before the menu's
+                       actions ran on them. */
+                    if (!selection.has(id)) selection.select(id, false);
+                  }}
+                  clipboard={{
+                    copy: () => void copySelection(),
+                    cut: () => void cutSelection(),
+                    paste: () => void pasteFromClipboard(),
+                    hasSelection: selection.ids.length > 0,
+                  }}
+                >
+                  <Editor
+                    algorithm={algorithm}
+                    callbacks={callbacks}
+                    activeNodeId={activeNodeId}
+                    erroredNodeId={erroredNodeId}
+                    retypeLosses={retypeLosses}
+                  />
+                </CanvasMenu>
+              )}
               {/* On the canvas rather than in a panel, so closing the palette
                   no longer leaves the editor with no way to add anything. */}
+              {!locked && (
               <CanvasToolbar
                 onAdd={appendStatement}
                 selectedCount={selection.ids.length}
@@ -1352,6 +1688,7 @@ function Workbench({
                 */
                 paletteVisible={paletteOpen && !isNarrow}
               />
+              )}
             </div>
             <div
               className="app__canvas-pane"
@@ -1439,6 +1776,7 @@ function Workbench({
         {robotOpen && (
           <aside className="app__robot">
             <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
+            {brief}
             {/* Above the robot, not instead of it: the robot is what runs the
                 program, and inspecting should not cost the student the thing
                 they are about to press. */}

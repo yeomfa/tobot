@@ -39,6 +39,9 @@ import { algorithmFromChallenge, challenges } from '../content/challenges';
 import { algorithmFromExample, examples } from '../content/library';
 import { createId } from '../core/ast/factory';
 import type { Algorithm } from '../core/ast/types';
+import type { Brief } from '../core/activity';
+import { assignmentAsAlgorithm } from '../state/classroomStore';
+import type { Assignment, Submission } from '../state/classroomStore';
 import { languageNames, LANGUAGES } from '../i18n';
 import type { Language } from '../i18n';
 import { useTranslation } from '../i18n/context';
@@ -71,10 +74,15 @@ interface HomeProps {
   onCreate: () => void;
   /** Starts a code document rather than a block one. */
   onCreateCode: () => void;
-  /** What is open in the editor, which is what a teacher sets as work. */
-  currentAlgorithm: Algorithm;
-  /** Opens an assignment, remembering which one so it can be handed in. */
-  onOpenAssignment: (algorithm: Algorithm, assignmentId: string | null) => void;
+  /**
+   * Opens a piece of set work with its brief beside it: a built-in challenge,
+   * or an assignment, remembered so it can be handed in.
+   */
+  onOpenActivity: (algorithm: Algorithm, brief: Brief, assignmentId: string | null) => void;
+  /** A teacher opens one student's submission to read and mark. */
+  onReview: (assignment: Assignment, submission: Submission, student: string) => void;
+  /** A teacher writes or changes an assignment in the workbench. */
+  onAuthor: (classroomId: string, assignment: Assignment | null) => void;
   onOpenConcept: (id: ConceptId) => void;
   /** Name of the algorithm open in the editor, for the way back. */
   currentName: string;
@@ -215,8 +223,9 @@ export const Home = memo(function Home({
   onOpen,
   onCreate,
   onCreateCode,
-  currentAlgorithm,
-  onOpenAssignment,
+  onOpenActivity,
+  onReview,
+  onAuthor,
   onOpenConcept,
   currentName,
   onBackToEditor,
@@ -855,7 +864,13 @@ export const Home = memo(function Home({
                       type="button"
                       className="home__card home__card--tall"
                       data-topic={challenge.topic}
-                      onClick={() => onOpen(algorithmFromChallenge(challenge, language))}
+                      onClick={() =>
+                        onOpenActivity(
+                          algorithmFromChallenge(challenge, language),
+                          { title: challenge.title[language], instructions: challenge.goal[language] },
+                          null,
+                        )
+                      }
                     >
                       {/*
                         Difficulty as filled dots rather than a bare digit. The
@@ -928,8 +943,19 @@ export const Home = memo(function Home({
             {section === 'classroom' && (
               <Classroom
                 signedIn={Boolean(email)}
-                current={currentAlgorithm}
-                onOpen={onOpenAssignment}
+                onOpen={(assignment) =>
+                  onOpenActivity(
+                    assignmentAsAlgorithm(assignment),
+                    {
+                      title: assignment.title,
+                      instructions: assignment.instructions,
+                      points: assignment.points,
+                    },
+                    assignment.id,
+                  )
+                }
+                onReview={onReview}
+                onAuthor={onAuthor}
               />
             )}
 

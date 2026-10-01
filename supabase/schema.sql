@@ -607,3 +607,14 @@ begin
   return new;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- What an assignment asks for, in the teacher's own words.
+--
+-- Until now an assignment was a title and a starting program, and the student
+-- had to guess the rest — or be told it out loud, which a student working at
+-- home was not. Plain text: it is shown with its line breaks and nothing else,
+-- so nothing a teacher types can change the page it is shown on.
+-- ---------------------------------------------------------------------------
+alter table public.assignments
+  add column if not exists instructions text not null default '';

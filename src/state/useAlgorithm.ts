@@ -129,6 +129,8 @@ function reducer(state: EditorState, action: Action): EditorState {
 
 export interface AlgorithmController {
   algorithm: Algorithm;
+  /** Stops saving (after one last save) or resumes it. */
+  setPersisting: (on: boolean) => Promise<void>;
   /**
    * The body as it was before the most recent edit, or null with no history.
    *
@@ -200,6 +202,18 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latest = useRef(state.algorithm);
   latest.current = state.algorithm;
+  /*
+    Whether what is on screen is the student's own, and so worth saving.
+
+    Off while a teacher reviews a submission or authors an assignment: that work
+    belongs to someone else, or to a classroom, and the save on load would
+    otherwise have copied it into the teacher's library within half a second of
+    opening it — without a single edit, because loading is itself a change.
+
+    A ref and not state, because the save on unmount reads it too, and that one
+    runs after the render that would have carried new state.
+  */
+  const persisting = useRef(true);
 
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const clearSaved = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -210,6 +224,7 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
 
   // Debounced persistence, so typing does not hit storage on every keystroke.
   useEffect(() => {
+    if (!persisting.current) return;
     if (!isWorthSaving(state.algorithm, blankName)) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
 
@@ -249,7 +264,7 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
   // the outcome here: the component showing it is already going away.
   useEffect(() => {
     return () => {
-      if (isWorthSaving(latest.current, blankName)) {
+      if (persisting.current && isWorthSaving(latest.current, blankName)) {
         store.save(latest.current).catch((thrown: unknown) => {
           console.error('[tobot] could not save algorithm on exit:', thrown);
         });
@@ -261,8 +276,29 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
     dispatch({ type: 'edit', transform });
   }, []);
 
+  /**
+   * Stops or resumes saving, and saves what is there first.
+   *
+   * Turning it off flushes the current document straight away, so the student's
+   * own work is safe before it is replaced by something that is not theirs to
+   * save — rather than relying on a debounce that the switch is about to cancel.
+   */
+  const setPersisting = useCallback(
+    async (on: boolean) => {
+      if (!on && persisting.current && isWorthSaving(latest.current, blankName)) {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        await store.save(latest.current).catch((thrown: unknown) => {
+          console.error('[tobot] could not save before switching mode:', thrown);
+        });
+      }
+      persisting.current = on;
+    },
+    [store, blankName],
+  );
+
   return {
     algorithm: state.algorithm,
+    setPersisting,
     previousBody: state.past[state.past.length - 1] ?? null,
     saveState,
     canUndo: state.past.length > 0,

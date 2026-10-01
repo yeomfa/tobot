@@ -10,6 +10,7 @@ import {
   TextIndentIcon as Indent,
 } from '@phosphor-icons/react';
 import { lazy, Suspense, useCallback, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { VOCABULARY } from '../core/code/vocabulary';
 import type { CodeExecutionController } from '../state/useCodeExecution';
@@ -49,6 +50,10 @@ interface CodeWorkspaceProps {
   drawerOpen: boolean;
   robotSize: Resizable;
   drawerSize: Resizable;
+  /** Someone else's work, open to be read and run but not changed. */
+  readOnly?: boolean;
+  /** What the work asks for, at the top of the rail. */
+  brief?: ReactNode;
 }
 
 /**
@@ -76,6 +81,8 @@ export function CodeWorkspace({
   drawerOpen,
   robotSize,
   drawerSize,
+  readOnly = false,
+  brief,
 }: CodeWorkspaceProps) {
   const { d, t } = useTranslation();
   const [reply, setReply] = useState('');
@@ -257,7 +264,7 @@ export function CodeWorkspace({
             type="button"
             className="codework__tool"
             onClick={() => handle.current?.tidy()}
-            disabled={!editorReady}
+            disabled={!editorReady || readOnly}
             title={d.code.tidy}
             aria-label={d.code.tidy}
           >
@@ -337,6 +344,7 @@ export function CodeWorkspace({
               fontSize={fontSize}
               onReady={ready}
               onReport={report}
+              readOnly={readOnly}
             />
           </Suspense>
         </div>
@@ -385,6 +393,7 @@ export function CodeWorkspace({
       {robotOpen && (
       <aside className="codework__robot" aria-label={d.a11y.robotStage}>
         <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
+        {brief}
         <Robot mood={mood} message={message} />
 
         {/*
@@ -439,6 +448,7 @@ export function CodeWorkspace({
           them. Here it is a list of names — pressing one writes it, hovering
           one explains it — so the same question has the same kind of answer.
         */}
+        {!readOnly && (
         <div className="codework__reference">
           <h2>{d.code.reference}</h2>
           <ul>
@@ -458,6 +468,7 @@ export function CodeWorkspace({
           </ul>
           <p>{d.code.referenceHint}</p>
         </div>
+        )}
       </aside>
       )}
     </div>

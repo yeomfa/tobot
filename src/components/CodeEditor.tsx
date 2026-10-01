@@ -329,6 +329,13 @@ interface CodeEditorProps {
    * this then.
    */
   extensions?: Extension[];
+  /** Shown, run and read, but not changed: a teacher looking at a student's work. */
+  readOnly?: boolean;
+}
+
+/** The layered compartment's contents: what the caller asked for, plus the lock. */
+function layer(extensions: Extension[] | undefined, readOnly: boolean): Extension[] {
+  return [...(extensions ?? []), readOnly ? EditorState.readOnly.of(true) : []];
 }
 
 /**
@@ -350,6 +357,7 @@ export const CodeEditor = memo(function CodeEditor({
   onRun,
   onConcept,
   extensions,
+  readOnly = false,
 }: CodeEditorProps) {
   const { d, language } = useTranslation();
   const host = useRef<HTMLDivElement>(null);
@@ -543,7 +551,7 @@ export const CodeEditor = memo(function CodeEditor({
             });
           }
         }),
-        layered.current.of(extensions ?? []),
+        layered.current.of(layer(extensions, readOnly)),
       ],
     });
 
@@ -618,8 +626,8 @@ export const CodeEditor = memo(function CodeEditor({
   // Swapping the layered extensions in place: the whole reason they have a
   // compartment of their own.
   useEffect(() => {
-    view.current?.dispatch({ effects: layered.current.reconfigure(extensions ?? []) });
-  }, [extensions]);
+    view.current?.dispatch({ effects: layered.current.reconfigure(layer(extensions, readOnly)) });
+  }, [extensions, readOnly]);
 
   useEffect(() => {
     view.current?.dispatch({

@@ -1,6 +1,7 @@
 import {
   CheckCircleIcon as Marked,
   CopyIcon as CopyMark,
+  PencilSimpleIcon as Pencil,
   PlusIcon as Plus,
   SignOutIcon as SignOut,
   TrashIcon as Trash,
@@ -8,19 +9,15 @@ import {
 } from '@phosphor-icons/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { createId } from '../core/ast/factory';
-import type { Algorithm } from '../core/ast/types';
-import type { Case, CaseResult } from '../core/classroom/grade';
+import type { Case } from '../core/classroom/grade';
 import { gradeBlocks } from '../core/classroom/grade';
 import { gradeCode } from '../core/classroom/gradeCode';
-import { emitters, renderLines } from '../core/emitters';
 import { usePlural, useTranslation } from '../i18n/context';
 import type { Assignment, Classroom as Room, Member, RankRow, Submission } from '../state/classroomStore';
 import {
   assignmentsOf,
   casesFor,
   ClassroomsNotSetUp,
-  createAssignment,
   createClassroom,
   joinClassroom,
   leaveClassroom,
@@ -40,40 +37,13 @@ import './Classroom.css';
 interface ClassroomProps {
   /** Whether there is an account; without one there is no room to be in. */
   signedIn: boolean;
-  /** What is open in the editor, which is what a teacher sets as work. */
-  current: Algorithm;
-  /** Opens an assignment's starting point in the editor. */
-  /* `null` when the opener has nothing to hand in — a teacher is not a
-     member of their own room, so the policy refuses their submission. */
-  onOpen: (algorithm: Algorithm, assignmentId: string | null) => void;
+  /** A student opens an assignment to work on it, and hand it in. */
+  onOpen: (assignment: Assignment) => void;
+  /** A teacher opens one student's submission in the workbench, read-only. */
+  onReview: (assignment: Assignment, submission: Submission, student: string) => void;
+  /** A teacher writes a new assignment, or changes one, in the workbench. */
+  onAuthor: (classroomId: string, assignment: Assignment | null) => void;
 }
-
-/**
- * An assignment as a thing the editor can open.
- *
- * The id is derived from the assignment rather than minted fresh. A new id on
- * every open meant the autosave wrote a *new library row each time*, so a
- * student who opened the same exercise five times had five copies of it saved.
- * Derived, the work on one assignment is one document, updated.
- */
-function asAlgorithm(assignment: Assignment): Algorithm {
-  return {
-    id: `alg_${assignment.id.replace(/-/g, '').slice(0, 12)}`,
-    name: assignment.title,
-    kind: assignment.kind,
-    source: assignment.source,
-    body: assignment.body,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-/** A case row keeps its identity while it is being edited. */
-interface DraftCase extends Case {
-  key: string;
-}
-
-const blankCase = (): DraftCase => ({ key: createId(), answers: [], expect: [] });
 
 /**
  * The last room this session looked at, so returning does not start from
@@ -82,26 +52,32 @@ const blankCase = (): DraftCase => ({ key: createId(), answers: [], expect: [] }
  * blink.
  */
 let lastRooms: Room[] | null = null;
+/* Which room, and whose roster, were open. Reviewing or authoring leaves this
+   screen for the workbench, and coming back to the first room with every
+   roster folded is losing your place twice. */
+let lastActiveId: string | null = null;
+let lastOpenWork: string | null = null;
 
 interface RosterProps {
   assignment: Assignment;
   submissions: Submission[];
   members: Member[];
-  detail: Record<string, CaseResult[]>;
-  reading: string | null;
-  onRead: (submissionId: string) => void;
+  onReview: (submission: Submission, student: string) => void;
 }
 
 /**
- * One assignment's class: who handed in, what they scored, and why.
+ * One assignment's class: who handed in, what they scored, and a way in.
  *
  * The list a teacher actually chases is the one that includes the people who
  * handed in *nothing*, so it is built from the room's members rather than from
  * the submissions — those who have not are the rows with no work behind them,
  * and they sort to the top.
+ *
+ * It shows nothing of the work itself. The work is read where it was written,
+ * in the workbench, where it can be run, stepped through and marked.
  */
-function RosterList({ assignment, submissions, members, detail, reading, onRead }: RosterProps) {
-  const { d, fill, language, formatDate } = useTranslation();
+function RosterList({ assignment, submissions, members, onReview }: RosterProps) {
+  const { d, fill, formatDate } = useTranslation();
   const byUser = new Map(submissions.map((one) => [one.userId, one]));
 
   const rows = members
@@ -118,80 +94,41 @@ function RosterList({ assignment, submissions, members, detail, reading, onRead 
   return (
     <ul className="classroom__roster-list">
       {rows.map(({ member, submission }) => {
-        const results = submission ? detail[submission.id] : undefined;
-        const open = submission !== null && reading === submission.id;
-
+        const name = member.name || d.classroom.unnamed;
         return (
-          <li key={member.userId}>
-            <div className="classroom__roster-row">
-              <span className="classroom__roster-name">{member.name || d.classroom.unnamed}</span>
-              <span className="classroom__roster-state" data-state={!submission ? 'out' : submission.score === null ? 'pending' : 'marked'}>
-                {!submission
-                  ? d.classroom.notHandedInYet
-                  : submission.score === null
-                    ? d.classroom.notMarked
-                    : `${submission.score} / ${assignment.points}`}
+          <li key={member.userId} className="classroom__roster-row">
+            <span className="classroom__roster-name">{name}</span>
+            <span
+              className="classroom__roster-state"
+              data-state={!submission ? 'out' : submission.score === null ? 'pending' : 'marked'}
+            >
+              {!submission
+                ? d.classroom.notHandedInYet
+                : submission.score === null
+                  ? d.classroom.notMarked
+                  : `${submission.score} / ${assignment.points}`}
+            </span>
+            {submission && submission.total !== null && (
+              <span className="classroom__meta">
+                {fill(d.classroom.casesPassed, {
+                  passed: submission.passed ?? 0,
+                  total: submission.total,
+                })}
               </span>
-              {submission && submission.total !== null && (
-                <span className="classroom__meta">
-                  {fill(d.classroom.casesPassed, {
-                    passed: submission.passed ?? 0,
-                    total: submission.total,
-                  })}
-                </span>
-              )}
-              {submission && (
-                <span className="classroom__meta">
-                  {fill(d.classroom.handedInAt, { date: formatDate(submission.submittedAt) })}
-                </span>
-              )}
-              {submission && (
-                <button type="button" className="classroom__quiet" onClick={() => onRead(submission.id)}>
-                  {open ? d.classroom.hideProgram : d.classroom.seeProgram}
-                </button>
-              )}
-            </div>
-
-            {open && submission && (
-              <div className="classroom__work">
-                <pre>
-                  {submission.kind === 'code'
-                    ? (submission.source ?? '')
-                    : renderLines(
-                        emitters.pseudocode.emit(
-                          {
-                            id: submission.id,
-                            name: assignment.title,
-                            body: submission.body,
-                            createdAt: submission.submittedAt,
-                            updatedAt: submission.submittedAt,
-                          },
-                          { locale: language },
-                        ),
-                      )}
-                </pre>
-
-                {/* The part that was computed and discarded: what each case
-                    actually printed, beside what it should have. */}
-                {results ? (
-                  <ol className="classroom__cases">
-                    {results.map((result, index) => (
-                      <li key={index} data-passed={result.passed || undefined}>
-                        <strong>{fill(d.classroom.caseLabel, { n: index + 1 })}</strong>
-                        <span className="classroom__meta">{result.passed ? '✓' : '✗'}</span>
-                        {!result.passed && (
-                          <>
-                            <span className="classroom__meta">{d.classroom.got}</span>
-                            <code>{result.got.join(' / ') || '—'}</code>
-                          </>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="classroom__hint">{d.classroom.detailOnlyNow}</p>
-                )}
-              </div>
+            )}
+            {submission && (
+              <span className="classroom__meta">
+                {fill(d.classroom.handedInAt, { date: formatDate(submission.submittedAt) })}
+              </span>
+            )}
+            {submission && (
+              <button
+                type="button"
+                className="classroom__quiet classroom__roster-open"
+                onClick={() => onReview(submission, name)}
+              >
+                {d.classroom.reviewOne}
+              </button>
             )}
           </li>
         );
@@ -224,7 +161,7 @@ function RoomSkeleton() {
  * What differs is who may act, and that is decided by the database. Hiding a
  * button a policy would refuse is courtesy, not security.
  */
-export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
+export function Classroom({ signedIn, onOpen, onReview, onAuthor }: ClassroomProps) {
   const { d, fill } = useTranslation();
   const plural = usePlural();
 
@@ -232,7 +169,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
   const [loaded, setLoaded] = useState(lastRooms !== null);
   const hasLoaded = useRef(lastRooms !== null);
   const [notSetUp, setNotSetUp] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(lastActiveId);
 
   const [members, setMembers] = useState<Member[]>([]);
   const [work, setWork] = useState<Assignment[]>([]);
@@ -247,11 +184,6 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
   const [fault, setFault] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
 
-  const [composing, setComposing] = useState(false);
-  const [title, setTitle] = useState('');
-  const [points, setPoints] = useState(10);
-  const [cases, setCases] = useState<DraftCase[]>([blankCase()]);
-
   /* Switching rooms used to leave the previous room's assignments, ranking
      and members on screen until three round-trips finished. */
   const [switching, setSwitching] = useState(false);
@@ -259,21 +191,12 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
      opened rather than with the room: a teacher looks at one assignment at a
      time, and fetching every roster up front is a request per assignment for
      work nobody asked to see. */
-  const [openWork, setOpenWork] = useState<string | null>(null);
+  const [openWork, setOpenWork] = useState<string | null>(lastOpenWork);
   const [roster, setRoster] = useState<Submission[]>([]);
   const [rosterBusy, setRosterBusy] = useState(false);
-  const [reading, setReading] = useState<string | null>(null);
-  /*
-    Why each case failed, from the last marking run.
-
-    `gradeAll` has had this in its hands all along — `Mark.results` carries what
-    the program actually printed, with a comment saying it exists so a teacher
-    can see why a case failed — and threw it away one line after computing it.
-    Held for the session rather than stored: it covers the moment a teacher
-    cares, which is right after marking, and the panel says so rather than
-    pretending it is permanent.
-  */
-  const [detail, setDetail] = useState<Record<string, CaseResult[]>>({});
+  /* Bumped after marking, so an open roster shows the marks just recorded
+     rather than the ones it was fetched with. */
+  const [rosterRevision, setRosterRevision] = useState(0);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [gradedCount, setGradedCount] = useState<number | null>(null);
 
@@ -288,6 +211,29 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [confirming]);
 
+  useEffect(() => {
+    lastActiveId = activeId;
+  }, [activeId]);
+  useEffect(() => {
+    lastOpenWork = openWork;
+  }, [openWork]);
+
+  useEffect(() => {
+    if (!openWork) return;
+    let cancelled = false;
+    setRosterBusy(true);
+    void submissionsOf(openWork)
+      .then((list) => {
+        if (!cancelled) setRoster(list);
+      })
+      .finally(() => {
+        if (!cancelled) setRosterBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [openWork, rosterRevision]);
+
   const active = rooms.find((room) => room.id === activeId) ?? null;
   /* Only once the swap is slow enough to notice; a cached room never flashes. */
   const slowSwitch = useSlowWait(switching);
@@ -297,7 +243,11 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
       const list = await myClassrooms();
       lastRooms = list;
       setRooms(list);
-      setActiveId((chosen) => chosen ?? list[0]?.id ?? null);
+      /* A remembered room that is gone — left, or deleted by its teacher —
+         falls back to the first, rather than to a screen about nothing. */
+      setActiveId((chosen) =>
+        chosen && list.some((room) => room.id === chosen) ? chosen : (list[0]?.id ?? null),
+      );
       setNotSetUp(false);
     } catch (thrown) {
       if (thrown instanceof ClassroomsNotSetUp) setNotSetUp(true);
@@ -398,24 +348,6 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
     });
   };
 
-  const saveAssignment = (): void => {
-    void attempt(async () => {
-      if (!activeId) return;
-      await createAssignment(activeId, {
-        title: title.trim(),
-        points,
-        algorithm: current,
-        cases: cases
-          .filter((one) => one.expect.length > 0)
-          .map(({ answers, expect }) => ({ answers, expect })),
-      });
-      setComposing(false);
-      setTitle('');
-      setCases([blankCase()]);
-      await loadRoom(activeId, true);
-    });
-  };
-
   /**
    * Marking, which happens here, in the teacher's own browser.
    *
@@ -448,7 +380,6 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
               ? await gradeCode(job.submission.source ?? '', job.cases, job.points)
               : gradeBlocks(job.submission.body, job.cases, job.points);
           await recordMark(job.submission.id, mark);
-          setDetail((all) => ({ ...all, [job.submission.id]: mark.results }));
           marked += 1;
           setProgress({ done: marked, total: queued.length });
         }
@@ -457,26 +388,14 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
            visible rather than silent. */
         setProgress(null);
         setGradedCount(marked);
+        setRosterRevision((n) => n + 1);
         await loadRoom(activeId, true);
       }
     });
   };
 
   const openRoster = (assignmentId: string): void => {
-    if (openWork === assignmentId) {
-      setOpenWork(null);
-      return;
-    }
-    setOpenWork(assignmentId);
-    setReading(null);
-    setRosterBusy(true);
-    void (async () => {
-      try {
-        setRoster(await submissionsOf(assignmentId));
-      } finally {
-        setRosterBusy(false);
-      }
-    })();
+    setOpenWork(openWork === assignmentId ? null : assignmentId);
   };
 
   const copyCode = (): void => {
@@ -638,106 +557,14 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
         <section className="classroom__panel">
           <div className="classroom__panel-head">
             <h3>{d.classroom.assignments}</h3>
-            {teaching && !composing && (
-              <button type="button" className="classroom__add" onClick={() => setComposing(true)}>
+            {teaching && activeId && (
+              <button type="button" className="classroom__add" onClick={() => onAuthor(activeId, null)}>
                 <Plus weight="bold" aria-hidden="true" /> {d.classroom.newAssignment}
               </button>
             )}
           </div>
 
-          {composing && (
-            <div className="classroom__compose">
-              <label>
-                <span>{d.classroom.assignmentTitle}</span>
-                <input type="text" value={title} onChange={(event) => setTitle(event.target.value)} />
-              </label>
-              <label>
-                <span>{d.classroom.points}</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={points}
-                  onChange={(event) => {
-                    /* An emptied field is `NaN`, which the column refuses, and
-                       a typed `-5` passes the `min` hint. Both used to reach
-                       the database and fail there. */
-                    const next = Number(event.target.value);
-                    setPoints(Number.isFinite(next) && next >= 0 ? next : 0);
-                  }}
-                />
-              </label>
-              <p className="classroom__hint">{d.classroom.fromAlgorithm}</p>
-
-              <h4>{d.classroom.cases}</h4>
-              <p className="classroom__hint">{d.classroom.casesHint}</p>
-              {cases.map((one, index) => (
-                <div className="classroom__case" key={one.key}>
-                  <label>
-                    <span>{d.classroom.caseAnswers}</span>
-                    <textarea
-                      rows={2}
-                      value={one.answers.join('\n')}
-                      onChange={(event) =>
-                        setCases((all) =>
-                          all.map((item, at) =>
-                            at === index
-                              ? { ...item, answers: event.target.value.split('\n').filter(Boolean) }
-                              : item,
-                          ),
-                        )
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>{d.classroom.caseExpect}</span>
-                    <textarea
-                      rows={2}
-                      value={one.expect.join('\n')}
-                      onChange={(event) =>
-                        setCases((all) =>
-                          all.map((item, at) =>
-                            at === index
-                              ? { ...item, expect: event.target.value.split('\n').filter(Boolean) }
-                              : item,
-                          ),
-                        )
-                      }
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="classroom__quiet"
-                    disabled={cases.length === 1}
-                    onClick={() => setCases((all) => all.filter((_, at) => at !== index))}
-                  >
-                    {d.classroom.removeCase}
-                  </button>
-                </div>
-              ))}
-
-              {cases.every((one) => one.expect.length === 0) && (
-                <p className="classroom__hint">{d.classroom.noCases}</p>
-              )}
-
-              <div className="classroom__row">
-                <button
-                  type="button"
-                  className="classroom__quiet"
-                  onClick={() => setCases((all) => [...all, blankCase()])}
-                >
-                  {d.classroom.addCase}
-                </button>
-                <button type="button" className="classroom__primary" onClick={saveAssignment} disabled={busy || !title.trim()}>
-                  {d.classroom.save}
-                </button>
-                <button type="button" className="classroom__quiet" onClick={() => setComposing(false)}>
-                  {d.classroom.cancel}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {work.length === 0 && !composing ? (
+          {work.length === 0 ? (
             <p className="classroom__empty">{d.classroom.noAssignments}</p>
           ) : (
             <ul className="classroom__list">
@@ -768,13 +595,26 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
                       )}
                     </div>
                     <div className="classroom__actions">
-                      <button
-                        type="button"
-                        className="classroom__quiet"
-                        onClick={() => onOpen(asAlgorithm(assignment), teaching ? null : assignment.id)}
-                      >
-                        {d.classroom.open}
-                      </button>
+                      {/* A teacher has nothing to hand in — they are not a
+                          member of their own room — so what they open is the
+                          assignment itself, to change it. */}
+                      {teaching ? (
+                        <button
+                          type="button"
+                          className="classroom__quiet"
+                          onClick={() => activeId && onAuthor(activeId, assignment)}
+                        >
+                          <Pencil weight="bold" aria-hidden="true" /> {d.brief.edit}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="classroom__quiet"
+                          onClick={() => onOpen(assignment)}
+                        >
+                          {d.classroom.open}
+                        </button>
+                      )}
                       {teaching && (
                         <button
                           type="button"
@@ -824,9 +664,9 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
                             assignment={assignment}
                             submissions={roster}
                             members={members}
-                            detail={detail}
-                            reading={reading}
-                            onRead={(id) => setReading(reading === id ? null : id)}
+                            onReview={(submission, student) =>
+                              onReview(assignment, submission, student)
+                            }
                           />
                         )}
                       </div>
