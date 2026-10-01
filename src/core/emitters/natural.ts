@@ -1,5 +1,6 @@
 import type { Algorithm, BinaryOperator, Expression, Statement } from '../ast/types';
 import type { Language } from '../../i18n/types';
+import { worldFunction } from '../world/registry';
 import type { EmittedLine, Emitter, EmitterContext } from './types';
 
 /**
@@ -255,6 +256,28 @@ function expressionToNatural(expression: Expression, phrases: Phrases): string {
   }
 }
 
+/**
+ * The same phrases, with world calls read as what they do.
+ *
+ * "Haz la tarea «encender» con «motor»" is accurate and nobody would say it;
+ * an electrician says "enciende el motor". Only when the program has a world,
+ * where these names cannot be the student's own.
+ */
+function withWorld(phrases: Phrases, language: Language): Phrases {
+  const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+  return {
+    ...phrases,
+    call: (name, args) => {
+      const fn = worldFunction(name);
+      return fn ? `${capital(fn.phrase[language](args))}.` : phrases.call(name, args);
+    },
+    callValue: (name, args) => {
+      const fn = worldFunction(name);
+      return fn ? fn.phrase[language](args) : phrases.callValue(name, args);
+    },
+  };
+}
+
 function emitStatements(statements: Statement[], indent: number, prefix: string, phrases: Phrases): EmittedLine[] {
   return statements.flatMap((statement, index) =>
     emitStatement(statement, indent, prefix ? `${prefix}.${index + 1}` : String(index + 1), phrases),
@@ -388,5 +411,10 @@ export const naturalEmitter: Emitter = {
   syntax: 'natural',
   extension: 'txt',
   emit: (algorithm: Algorithm, context: EmitterContext): EmittedLine[] =>
-    emitStatements(algorithm.body, 0, '', PHRASES[context.locale]),
+    emitStatements(
+      algorithm.body,
+      0,
+      '',
+      algorithm.world ? withWorld(PHRASES[context.locale], context.locale) : PHRASES[context.locale],
+    ),
 };

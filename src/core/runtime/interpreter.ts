@@ -1,4 +1,7 @@
 import type { Expression, LiteralKind, Statement, ValueKind } from '../ast/types';
+import { worldFunction } from '../world/registry';
+import type { WorldState } from '../world/types';
+import { WorldFault } from '../world/types';
 import {
   displayValue,
   MAX_CALL_DEPTH,
@@ -76,6 +79,8 @@ interface Snapshot {
   error: RuntimeError | null;
   stepCount: number;
   pendingAsk: PendingAsk | null;
+  /** Immutable, so keeping it is free; stepping back restores the world too. */
+  world: WorldState | null;
 }
 
 interface Frame {
@@ -124,6 +129,26 @@ class ProgramError extends Error {
     this.messageKey = messageKey;
     this.vars = vars;
   }
+}
+
+/**
+ * The scenario's time is up.
+ *
+ * Thrown from wherever the last `esperar` happened — perhaps deep inside a
+ * function inside a loop — and caught where a step ends, which is the one
+ * place that can stop everything at once. Not a failure: a control loop that
+ * runs until the scenario ends has done exactly what it should.
+ */
+class WorldEnded extends Error {
+  constructor() {
+    super('the scenario has ended');
+    this.name = 'WorldEnded';
+  }
+}
+
+export interface InterpreterOptions {
+  /** The world this program acts on, as it stands before the first step. */
+  world?: WorldState | null;
 }
 
 let outputSequence = 0;
@@ -188,8 +213,13 @@ export class Interpreter {
    */
   private history: Snapshot[] = [];
 
-  constructor(program: Statement[]) {
+  /** The world as the run found it, and as it stands now. */
+  private readonly initialWorld: WorldState | null;
+  private world: WorldState | null = null;
+
+  constructor(program: Statement[], options: InterpreterOptions = {}) {
     this.program = program;
+    this.initialWorld = options.world ?? null;
     this.reset();
   }
 
@@ -208,6 +238,7 @@ export class Interpreter {
     this.stepCount = 0;
     this.pendingAsk = null;
     this.history = [];
+    this.world = this.initialWorld;
     this.status = this.program.length === 0 ? 'finished' : 'idle';
   }
 
@@ -229,6 +260,7 @@ export class Interpreter {
       error: this.error,
       stepCount: this.stepCount,
       pendingAsk: this.pendingAsk,
+      world: this.world,
     };
   }
 
@@ -257,6 +289,7 @@ export class Interpreter {
     this.error = previous.error;
     this.stepCount = previous.stepCount;
     this.pendingAsk = previous.pendingAsk;
+    this.world = previous.world;
     // Nothing changed *now*; the highlight belongs to the restored statement.
     this.changedNames.clear();
     return this.getState();
@@ -271,6 +304,7 @@ export class Interpreter {
       error: this.error,
       stepCount: this.stepCount,
       pendingPrompt: this.pendingAsk?.prompt ?? null,
+      world: this.world,
     };
   }
 
@@ -337,6 +371,16 @@ export class Interpreter {
   }
 
   private fail(thrown: unknown, nodeId: string | null): ExecutionState {
+    if (thrown instanceof WorldEnded) {
+      /* Everything stops where it stands, tasks included: there is no more
+         scenario for them to act on. */
+      this.stack = [];
+      this.tasks = [];
+      this.scopes = [];
+      this.pendingAsk = null;
+      this.status = 'finished';
+      return this.getState();
+    }
     const error: RuntimeError =
       thrown instanceof ProgramError
         ? { messageKey: thrown.messageKey, vars: thrown.vars, nodeId }
@@ -484,6 +528,33 @@ export class Interpreter {
   }
 
   /**
+   * Calls a world function, or returns `undefined` when the name is not one.
+   *
+   * The student's own functions are looked up first, as the code runner's
+   * scoping does it, so the two engines agree even about a clash — which the
+   * validator reports anyway. A world call takes no step of its own: it is
+   * one statement, like `decir`, and world time is not step time.
+   */
+  private callWorld(name: string, args: Expression[]): RuntimeValue | undefined {
+    if (!this.world) return undefined;
+    const fn = worldFunction(name);
+    if (!fn) return undefined;
+    const values = args.map((arg) => this.evaluate(arg));
+    let result: ReturnType<typeof fn.apply>;
+    try {
+      result = fn.apply(this.world, values);
+    } catch (thrown) {
+      if (thrown instanceof WorldFault) throw new ProgramError(thrown.messageKey, thrown.vars);
+      throw thrown;
+    }
+    this.world = result.state;
+    if (this.world.ended) throw new WorldEnded();
+    /* A function with nothing to give back still has to give an expression
+       something; the empty text is what a function without `devolver` gives. */
+    return result.value ?? '';
+  }
+
+  /**
    * Runs a function to completion and hands back what it returned.
    *
    * Used where a call appears inside an expression, which cannot pause
@@ -492,7 +563,11 @@ export class Interpreter {
    */
   private callForValue(name: string, args: Expression[]): RuntimeValue {
     const fn = this.functions.get(name);
-    if (!fn) throw new ProgramError('errors.unknownFunction', { name });
+    if (!fn) {
+      const value = this.callWorld(name, args);
+      if (value === undefined) throw new ProgramError('errors.unknownFunction', { name });
+      return value;
+    }
 
     const depth = this.stack.length;
     this.pushCall(fn, args);
@@ -609,7 +684,12 @@ export class Interpreter {
 
       case 'call': {
         const fn = this.functions.get(statement.name);
-        if (!fn) throw new ProgramError('errors.unknownFunction', { name: statement.name });
+        if (!fn) {
+          if (this.callWorld(statement.name, statement.args) === undefined) {
+            throw new ProgramError('errors.unknownFunction', { name: statement.name });
+          }
+          return;
+        }
         /*
           An asynchronous call starts work and moves on; a plain one is the
           program going somewhere and coming back. The difference is entirely

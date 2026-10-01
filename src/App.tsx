@@ -1237,7 +1237,10 @@ function Workbench({
      Validating on every render — twice, since the editor does it too — is a
      full walk of the tree for something that only changes when the tree
      does. */
-  const problems = useMemo(() => problemsByNode(validate(algorithm.body)), [algorithm.body]);
+  const problems = useMemo(
+    () => problemsByNode(validate(algorithm.body, { world: algorithm.world })),
+    [algorithm.body, algorithm.world],
+  );
 
   const activeNodeId = execution.state.currentNodeId;
   const erroredNodeId = execution.state.error?.nodeId ?? null;

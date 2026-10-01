@@ -104,6 +104,12 @@ export interface WorldFunction {
   /** The same idea on a microcontroller, shown when the student hovers it. */
   arduino: string;
   summary: Record<Language, string>;
+  /**
+   * The call read aloud, for the natural-language view: "enciende «motor»"
+   * rather than "haz la tarea «encender» con «motor»". Lower case, no full
+   * stop, so it serves as an order and as part of a condition alike.
+   */
+  phrase: Record<Language, (args: string[]) => string>;
   apply: (state: WorldState, args: unknown[]) => { state: WorldState; value?: boolean };
 }
 

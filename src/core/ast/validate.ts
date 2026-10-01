@@ -1,5 +1,18 @@
+import { worldFunction } from '../world/registry';
+import type { WorldDefinition } from '../world/types';
 import { isBlockStatement } from './types';
 import type { Expression, NodeId, Statement, ValueKind } from './types';
+
+/**
+ * What a program can call besides its own functions.
+ *
+ * Optional, so the checks stay what they were for every program without a
+ * world — and so this file depends on no domain: it is told what exists, and
+ * asks the registry only what a name means.
+ */
+export interface ValidationContext {
+  world?: WorldDefinition | null;
+}
 
 /**
  * Static checks that run as the student types.
@@ -129,14 +142,14 @@ function referencedNames(expression: Expression, into: Set<string>): void {
   }
 }
 
-/** Every function called anywhere in an expression, with its argument count. */
+/** Every function called anywhere in an expression, with its arguments. */
 function calledFunctions(
   expression: Expression,
-  into: { name: string; count: number }[],
+  into: { name: string; args: Expression[] }[],
 ): void {
   switch (expression.kind) {
     case 'call':
-      into.push({ name: expression.name, count: expression.args.length });
+      into.push({ name: expression.name, args: expression.args });
       for (const arg of expression.args) calledFunctions(arg, into);
       return;
     case 'binary':
@@ -168,7 +181,17 @@ function calledFunctions(
  * only be constant — the classic infinite loop. Reported as a warning because
  * the guard makes it survivable, and seeing it run is instructive.
  */
-function loopCanProgress(condition: Expression, body: Statement[]): boolean {
+function loopCanProgress(
+  condition: Expression,
+  body: Statement[],
+  movesTime: (list: Statement[]) => boolean,
+): boolean {
+  /* A loop that lets world time pass ends when the scenario does. That is the
+     shape of every control program — read, act, wait, again — and it is not
+     the classic mistake, however constant its condition looks. Exact rather
+     than hopeful: with no wait inside, time cannot move and the condition
+     cannot change, so `mientras no leer("fin")` alone is reported. */
+  if (movesTime(body)) return true;
   const read = new Set<string>();
   referencedNames(condition, read);
   if (read.size === 0) return false;
@@ -193,8 +216,11 @@ function loopCanProgress(condition: Expression, body: Statement[]): boolean {
   return false;
 }
 
-export function validate(program: Statement[]): Problem[] {
+export function validate(program: Statement[], context: ValidationContext = {}): Problem[] {
   const problems: Problem[] = [];
+  const world = context.world ?? null;
+  /** A world function, but only when there is a world to call it on. */
+  const worldCall = (name: string) => (world ? worldFunction(name) : null);
   /** Names declared so far, in execution order. */
   const declared = new Set<string>();
 
@@ -225,12 +251,99 @@ export function validate(program: Statement[]): Problem[] {
   };
   collect(program);
 
+  /**
+   * Whether running these statements lets world time pass: directly, or
+   * through a function of the student's that does. Memoised per function, and
+   * a function is assumed not to while it is being looked at, so recursion
+   * ends.
+   */
+  const waits = new Map<string, boolean>();
+  const bodies = new Map<string, Statement[]>();
+  const gatherBodies = (list: Statement[]): void => {
+    for (const statement of list) {
+      if (statement.kind === 'function' && statement.name) bodies.set(statement.name, statement.body);
+      if (statement.kind === 'if') {
+        gatherBodies(statement.then);
+        for (const arm of statement.elseIfs ?? []) gatherBodies(arm.body);
+        if (statement.otherwise) gatherBodies(statement.otherwise);
+      } else {
+        const nested = (statement as { body?: Statement[] }).body;
+        if (nested) gatherBodies(nested);
+      }
+    }
+  };
+  if (world) gatherBodies(program);
+  const callMovesTime = (name: string): boolean => {
+    const own = bodies.get(name);
+    if (own) {
+      if (!waits.has(name)) {
+        waits.set(name, false);
+        waits.set(name, movesTime(own));
+      }
+      return waits.get(name) ?? false;
+    }
+    return worldCall(name)?.effect === 'time';
+  };
+  const movesTime = (list: Statement[]): boolean => {
+    if (!world) return false;
+    for (const statement of list) {
+      if (statement.kind === 'call' && callMovesTime(statement.name)) return true;
+      if (statement.kind === 'function') continue;
+      if (statement.kind === 'if') {
+        if (movesTime(statement.then)) return true;
+        for (const arm of statement.elseIfs ?? []) if (movesTime(arm.body)) return true;
+        if (statement.otherwise && movesTime(statement.otherwise)) return true;
+        continue;
+      }
+      const nested = (statement as { body?: Statement[] }).body;
+      if (nested && movesTime(nested)) return true;
+    }
+    return false;
+  };
+
+  /**
+   * A call to the world: the right number of arguments, and — when the name is
+   * written out — a component that exists and may be used that way. Caught
+   * here, the misspelt lamp is a mark on the block before the program runs,
+   * rather than an error halfway through it.
+   */
+  const checkWorldCall = (name: string, args: Expression[], nodeId: NodeId): boolean => {
+    const fn = worldCall(name);
+    if (!fn || !world) return false;
+    if (args.length !== fn.params.length) {
+      problems.push({
+        nodeId,
+        severity: 'error',
+        messageKey: 'wrongArgumentCount',
+        vars: { name, expected: fn.params.length, got: args.length },
+      });
+      return true;
+    }
+    const first = args[0];
+    if (fn.params[0]?.kind === 'text' && first?.kind === 'literal' && first.valueKind === 'text') {
+      const target = world.components.find((one) => one.id === first.value);
+      if (!target) {
+        problems.push({
+          nodeId,
+          severity: 'error',
+          messageKey: 'worldUnknown',
+          vars: { name: String(first.value), known: world.components.map((one) => one.id).join(', ') },
+        });
+      } else if (fn.effect === 'write' && target.role !== 'output') {
+        problems.push({ nodeId, severity: 'error', messageKey: 'worldNotOutput', vars: { name: target.id } });
+      }
+    }
+    return true;
+  };
+
   /** Checks one call, wherever it appears. */
-  const checkCall = (name: string, count: number, nodeId: NodeId): void => {
+  const checkCall = (name: string, args: Expression[], nodeId: NodeId): void => {
+    const count = args.length;
     if (name === '') {
       problems.push({ nodeId, severity: 'error', messageKey: 'noFunctionChosen' });
       return;
     }
+    if (!functions.has(name) && checkWorldCall(name, args, nodeId)) return;
     if (!functions.has(name)) {
       problems.push({ nodeId, severity: 'error', messageKey: 'unknownFunction', vars: { name } });
       return;
@@ -247,9 +360,9 @@ export function validate(program: Statement[]): Problem[] {
   };
 
   const checkExpression = (expression: Expression, nodeId: NodeId): void => {
-    const calls: { name: string; count: number }[] = [];
+    const calls: { name: string; args: Expression[] }[] = [];
     calledFunctions(expression, calls);
-    for (const call of calls) checkCall(call.name, call.count, nodeId);
+    for (const call of calls) checkCall(call.name, call.args, nodeId);
 
     const names = new Set<string>();
     referencedNames(expression, names);
@@ -377,7 +490,7 @@ export function validate(program: Statement[]): Problem[] {
           checkExpression(statement.condition, statement.id);
           if (statement.body.length === 0) {
             problems.push({ nodeId: statement.id, severity: 'warning', messageKey: 'emptyLoop' });
-          } else if (!loopCanProgress(statement.condition, statement.body)) {
+          } else if (!loopCanProgress(statement.condition, statement.body, movesTime)) {
             problems.push({ nodeId: statement.id, severity: 'warning', messageKey: 'endlessLoop' });
           }
           walk(statement.body);
@@ -402,6 +515,17 @@ export function validate(program: Statement[]): Problem[] {
         */
         case 'function': {
           checkName(statement.name, statement.id, false);
+          /* Named like something the world already does. Code would let the
+             student's own win and the world function would quietly stop
+             working, so it is said here instead. */
+          if (worldCall(statement.name)) {
+            problems.push({
+              nodeId: statement.id,
+              severity: 'error',
+              messageKey: 'worldReserved',
+              vars: { name: statement.name },
+            });
+          }
           const outer = new Set(declared);
           declared.clear();
           for (const param of statement.params) {
@@ -428,7 +552,7 @@ export function validate(program: Statement[]): Problem[] {
 
         case 'call':
           for (const arg of statement.args) checkExpression(arg, statement.id);
-          checkCall(statement.name, statement.args.length, statement.id);
+          checkCall(statement.name, statement.args, statement.id);
           break;
 
         case 'return':

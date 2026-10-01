@@ -243,6 +243,9 @@ export const en: Dictionary = {
     resize: 'Drag to resize',
   },
   problems: {
+    worldUnknown: 'There is nothing called "{name}" in this scenario. What there is: {known}.',
+    worldNotOutput: '"{name}" is an input: the scenario controls it, and the program can only read it.',
+    worldReserved: '"{name}" is already one of the scenario\'s functions. Give yours another name.',
     unknownFunction: 'There is no function called "{name}". Check the name, or create it.',
     undefinedVariable: 'The variable "{name}" does not exist yet. Create it before this statement.',
     assignBeforeDeclare: 'You cannot change "{name}" because you have not created it yet.',
@@ -682,6 +685,9 @@ export const en: Dictionary = {
     speedFast: 'Fast',
   },
   errors: {
+    worldUnknown: 'There is nothing called "{name}" in this scenario. What there is: {known}.',
+    worldNotOutput: '"{name}" is an input: the scenario controls it, and the program can only read it.',
+    worldWait: '"wait" needs a number of seconds, zero or more, and was given "{value}".',
     undefinedVariable: 'The variable "{name}" does not exist yet. Create it before using it.',
     unknownFunction: 'There is no function called "{name}". Check the name, or create it.',
     tooDeep:

@@ -1,4 +1,5 @@
 import type { NodeId, ValueKind } from '../ast/types';
+import type { WorldState } from '../world/types';
 
 /**
  * A value at run time.
@@ -54,6 +55,8 @@ export interface ExecutionState {
   stepCount: number;
   /** Prompt text while `status === 'awaitingInput'`. */
   pendingPrompt: string | null;
+  /** The world the program acts on, when it has one. */
+  world?: WorldState | null;
 }
 
 /**

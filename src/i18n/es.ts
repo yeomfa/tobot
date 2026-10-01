@@ -255,6 +255,9 @@ export const es = {
   /** Validation messages shown on the block itself. Each one names the fix,
    * not just the fault: a student should know what to do next. */
   problems: {
+    worldUnknown: 'En este escenario no hay nada llamado «{name}». Lo que hay: {known}.',
+    worldNotOutput: '«{name}» es una entrada: el escenario la maneja y el programa solo puede leerla.',
+    worldReserved: '«{name}» ya es una función del escenario. Ponle otro nombre a la tuya.',
     unknownFunction: 'No existe ninguna función llamada «{name}». Revisa el nombre o créala.',
     undefinedVariable: 'La variable «{name}» no existe todavía. Créala antes de esta instrucción.',
     assignBeforeDeclare: 'No puedes cambiar «{name}» porque aún no la has creado.',
@@ -702,6 +705,9 @@ export const es = {
     speedFast: 'Rápida',
   },
   errors: {
+    worldUnknown: 'En este escenario no hay nada llamado «{name}». Lo que hay: {known}.',
+    worldNotOutput: '«{name}» es una entrada: el escenario la maneja y el programa solo puede leerla.',
+    worldWait: '«esperar» necesita una cantidad de segundos, cero o más, y recibió «{value}».',
     undefinedVariable: 'La variable «{name}» no existe todavía. Créala antes de usarla.',
     unknownFunction: 'No existe ninguna función llamada «{name}». Revisa el nombre o créala.',
     tooDeep:

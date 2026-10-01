@@ -1,5 +1,6 @@
 import type { Algorithm, BinaryOperator, Expression, Statement } from '../ast/types';
 import type { Language } from '../../i18n/types';
+import { worldFunction } from '../world/registry';
 import { needsParentheses } from './precedence';
 import type { EmittedLine, Emitter, EmitterContext } from './types';
 
@@ -47,6 +48,8 @@ export interface Keywords {
   endFunction: string;
   returns: string;
   call: string;
+  /** Set per emission: whether world calls exist, and so drop `kw.call`. */
+  worldCalls?: boolean;
   async: string;
   /** Type names, for a signature that says what it takes. */
   types: Record<'number' | 'text' | 'boolean' | 'list', string>;
@@ -304,7 +307,9 @@ function emitStatement(statement: Statement, indent: number, kw: Keywords): Emit
     case 'call':
       return [
         line(
-          `${kw.call} ${statement.name || '?'}(${statement.args.map((arg) => expr(arg)).join(', ')})`,
+          /* A world call is an instruction of the language, like ESCRIBIR,
+             not a task the student wrote, so it reads without LLAMAR. */
+          `${kw.worldCalls && worldFunction(statement.name) ? '' : `${kw.call} `}${statement.name || '?'}(${statement.args.map((arg) => expr(arg)).join(', ')})`,
         ),
       ];
 
@@ -366,7 +371,7 @@ export const pseudocodeEmitter: Emitter = {
   syntax: 'pseudocode',
   extension: 'txt',
   emit: (algorithm: Algorithm, context: EmitterContext): EmittedLine[] => {
-    const kw = pseudocodeKeywords[context.locale];
+    const kw = { ...pseudocodeKeywords[context.locale], worldCalls: Boolean(algorithm.world) };
     return [
       { nodeId: null, indent: 0, text: kw.start },
       ...emitStatements(algorithm.body, 1, kw),

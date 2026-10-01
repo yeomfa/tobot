@@ -68,7 +68,7 @@ export const Editor = memo(function Editor({
   );
 
   const problems = useMemo(() => {
-    const found = problemsByNode(validate(algorithm.body));
+    const found = problemsByNode(validate(algorithm.body, { world: algorithm.world }));
     /* Merged in rather than pushed through `validate`, which only ever sees
        the tree as it is now. A block can carry both: a type that disagrees
        with its value, and a conversion that threw something away. */
@@ -79,7 +79,7 @@ export const Editor = memo(function Editor({
       else found.set(nodeId, [entry]);
     }
     return found;
-  }, [algorithm.body, retypeLosses]);
+  }, [algorithm.body, algorithm.world, retypeLosses]);
 
   const canvas = useRef<HTMLDivElement>(null);
   useMagneticDrop(canvas);

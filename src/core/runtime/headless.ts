@@ -1,4 +1,5 @@
 import type { Statement } from '../ast/types';
+import type { WorldState } from '../world/types';
 import { Interpreter } from './interpreter';
 import type { ExecutionState } from './types';
 import { MAX_STEPS } from './types';
@@ -15,8 +16,12 @@ import { MAX_STEPS } from './types';
  * It is here now because the grader needs exactly the same thing, and two
  * copies of "how to drive the interpreter" would be two things to keep in step.
  */
-export function runToEnd(body: Statement[], answers: string[] = []): ExecutionState {
-  const machine = new Interpreter(body);
+export function runToEnd(
+  body: Statement[],
+  answers: string[] = [],
+  world: WorldState | null = null,
+): ExecutionState {
+  const machine = new Interpreter(body, { world });
   let state = machine.getState();
   const pending = [...answers];
   let guard = 0;

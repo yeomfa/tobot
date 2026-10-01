@@ -26,6 +26,7 @@ export const WORLD_FUNCTIONS: readonly WorldFunction[] = [
       es: 'Enciende una salida: una lámpara, un motor, una alarma.',
       en: 'Switches an output on: a lamp, a motor, an alarm.',
     },
+    phrase: { es: ([what]) => `enciende ${what}`, en: ([what]) => `switch ${what} on` },
     apply: (state, [id]) => ({ state: setOutput(state, id, true) }),
   },
   {
@@ -39,6 +40,7 @@ export const WORLD_FUNCTIONS: readonly WorldFunction[] = [
       es: 'Apaga una salida.',
       en: 'Switches an output off.',
     },
+    phrase: { es: ([what]) => `apaga ${what}`, en: ([what]) => `switch ${what} off` },
     apply: (state, [id]) => ({ state: setOutput(state, id, false) }),
   },
   {
@@ -52,6 +54,7 @@ export const WORLD_FUNCTIONS: readonly WorldFunction[] = [
       es: 'Dice si algo está activo: un pulsador apretado, un sensor que detecta, un motor en marcha.',
       en: 'Says whether something is active: a button held, a sensor detecting, a motor running.',
     },
+    phrase: { es: ([what]) => `${what} está activo`, en: ([what]) => `${what} is active` },
     apply: (state, [id]) => ({ state, value: state.values[component(state, id).id] }),
   },
   {
@@ -64,6 +67,10 @@ export const WORLD_FUNCTIONS: readonly WorldFunction[] = [
     summary: {
       es: 'Deja pasar el tiempo, en segundos. Mientras tanto, el escenario sigue su curso.',
       en: 'Lets time pass, in seconds. Meanwhile, the scenario carries on.',
+    },
+    phrase: {
+      es: ([seconds]) => `espera ${seconds} ${seconds === '1' ? 'segundo' : 'segundos'}`,
+      en: ([seconds]) => `wait ${seconds} ${seconds === '1' ? 'second' : 'seconds'}`,
     },
     apply: (state, [seconds]) => ({ state: advance(state, seconds) }),
   },

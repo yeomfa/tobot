@@ -1,3 +1,5 @@
+import type { WorldDefinition } from '../world/types';
+
 /**
  * The algorithm AST. Every view in the app (natural language, pseudocode,
  * JavaScript, flowchart, interpreter) is a projection of this tree, so adding a
@@ -392,6 +394,14 @@ export interface Algorithm {
   kind?: 'blocks' | 'code';
   /** The program, when `kind` is `code`. */
   source?: string;
+  /**
+   * The world this program acts on, when it has one.
+   *
+   * Absent for almost everything, and absent means exactly what Tobot was
+   * before: no scene, no world functions, nothing new in the palette. A world
+   * is opt-in per document so no existing program can behave differently.
+   */
+  world?: WorldDefinition;
 }
 
 /** Narrow test used wherever a screen has to pick a surface. */
