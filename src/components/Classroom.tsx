@@ -10,9 +10,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { createId } from '../core/ast/factory';
 import type { Algorithm } from '../core/ast/types';
-import type { Case } from '../core/classroom/grade';
+import type { Case, CaseResult } from '../core/classroom/grade';
 import { gradeBlocks } from '../core/classroom/grade';
 import { gradeCode } from '../core/classroom/gradeCode';
+import { emitters, renderLines } from '../core/emitters';
 import { usePlural, useTranslation } from '../i18n/context';
 import type { Assignment, Classroom as Room, Member, RankRow, Submission } from '../state/classroomStore';
 import {
@@ -82,6 +83,123 @@ const blankCase = (): DraftCase => ({ key: createId(), answers: [], expect: [] }
  */
 let lastRooms: Room[] | null = null;
 
+interface RosterProps {
+  assignment: Assignment;
+  submissions: Submission[];
+  members: Member[];
+  detail: Record<string, CaseResult[]>;
+  reading: string | null;
+  onRead: (submissionId: string) => void;
+}
+
+/**
+ * One assignment's class: who handed in, what they scored, and why.
+ *
+ * The list a teacher actually chases is the one that includes the people who
+ * handed in *nothing*, so it is built from the room's members rather than from
+ * the submissions — those who have not are the rows with no work behind them,
+ * and they sort to the top.
+ */
+function RosterList({ assignment, submissions, members, detail, reading, onRead }: RosterProps) {
+  const { d, fill, language, formatDate } = useTranslation();
+  const byUser = new Map(submissions.map((one) => [one.userId, one]));
+
+  const rows = members
+    .map((member) => ({ member, submission: byUser.get(member.userId) ?? null }))
+    .sort((a, b) => {
+      // Ungraded and unsubmitted first: those are the rows that need a teacher.
+      const weight = (row: typeof a): number =>
+        !row.submission ? 0 : row.submission.score === null ? 1 : 2;
+      return weight(a) - weight(b);
+    });
+
+  if (rows.length === 0) return <p className="classroom__empty">{d.classroom.noMembers}</p>;
+
+  return (
+    <ul className="classroom__roster-list">
+      {rows.map(({ member, submission }) => {
+        const results = submission ? detail[submission.id] : undefined;
+        const open = submission !== null && reading === submission.id;
+
+        return (
+          <li key={member.userId}>
+            <div className="classroom__roster-row">
+              <span className="classroom__roster-name">{member.name || d.classroom.unnamed}</span>
+              <span className="classroom__roster-state" data-state={!submission ? 'out' : submission.score === null ? 'pending' : 'marked'}>
+                {!submission
+                  ? d.classroom.notHandedInYet
+                  : submission.score === null
+                    ? d.classroom.notMarked
+                    : `${submission.score} / ${assignment.points}`}
+              </span>
+              {submission && submission.total !== null && (
+                <span className="classroom__meta">
+                  {fill(d.classroom.casesPassed, {
+                    passed: submission.passed ?? 0,
+                    total: submission.total,
+                  })}
+                </span>
+              )}
+              {submission && (
+                <span className="classroom__meta">
+                  {fill(d.classroom.handedInAt, { date: formatDate(submission.submittedAt) })}
+                </span>
+              )}
+              {submission && (
+                <button type="button" className="classroom__quiet" onClick={() => onRead(submission.id)}>
+                  {open ? d.classroom.hideProgram : d.classroom.seeProgram}
+                </button>
+              )}
+            </div>
+
+            {open && submission && (
+              <div className="classroom__work">
+                <pre>
+                  {submission.kind === 'code'
+                    ? (submission.source ?? '')
+                    : renderLines(
+                        emitters.pseudocode.emit(
+                          {
+                            id: submission.id,
+                            name: assignment.title,
+                            body: submission.body,
+                            createdAt: submission.submittedAt,
+                            updatedAt: submission.submittedAt,
+                          },
+                          { locale: language },
+                        ),
+                      )}
+                </pre>
+
+                {/* The part that was computed and discarded: what each case
+                    actually printed, beside what it should have. */}
+                {results ? (
+                  <ol className="classroom__cases">
+                    {results.map((result, index) => (
+                      <li key={index} data-passed={result.passed || undefined}>
+                        <strong>{fill(d.classroom.caseLabel, { n: index + 1 })}</strong>
+                        <span className="classroom__meta">{result.passed ? '✓' : '✗'}</span>
+                        {!result.passed && (
+                          <>
+                            <span className="classroom__meta">{d.classroom.got}</span>
+                            <code>{result.got.join(' / ') || '—'}</code>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="classroom__hint">{d.classroom.detailOnlyNow}</p>
+                )}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 /** The room's shape while it is being fetched: a header, work, a leaderboard. */
 function RoomSkeleton() {
   const { d } = useTranslation();
@@ -137,8 +255,38 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
   /* Switching rooms used to leave the previous room's assignments, ranking
      and members on screen until three round-trips finished. */
   const [switching, setSwitching] = useState(false);
+  /* Which assignment is open, and what its class handed in. Fetched when it is
+     opened rather than with the room: a teacher looks at one assignment at a
+     time, and fetching every roster up front is a request per assignment for
+     work nobody asked to see. */
+  const [openWork, setOpenWork] = useState<string | null>(null);
+  const [roster, setRoster] = useState<Submission[]>([]);
+  const [rosterBusy, setRosterBusy] = useState(false);
+  const [reading, setReading] = useState<string | null>(null);
+  /*
+    Why each case failed, from the last marking run.
+
+    `gradeAll` has had this in its hands all along — `Mark.results` carries what
+    the program actually printed, with a comment saying it exists so a teacher
+    can see why a case failed — and threw it away one line after computing it.
+    Held for the session rather than stored: it covers the moment a teacher
+    cares, which is right after marking, and the panel says so rather than
+    pretending it is permanent.
+  */
+  const [detail, setDetail] = useState<Record<string, CaseResult[]>>({});
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [gradedCount, setGradedCount] = useState<number | null>(null);
+
+  /* Armed is a state a reader can get into by accident, and the only ways out
+     were to go through with it or to leave the room. */
+  useEffect(() => {
+    if (!confirming) return;
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setConfirming(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [confirming]);
 
   const active = rooms.find((room) => room.id === activeId) ?? null;
   /* Only once the swap is slow enough to notice; a cached room never flashes. */
@@ -300,6 +448,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
               ? await gradeCode(job.submission.source ?? '', job.cases, job.points)
               : gradeBlocks(job.submission.body, job.cases, job.points);
           await recordMark(job.submission.id, mark);
+          setDetail((all) => ({ ...all, [job.submission.id]: mark.results }));
           marked += 1;
           setProgress({ done: marked, total: queued.length });
         }
@@ -311,6 +460,23 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
         await loadRoom(activeId, true);
       }
     });
+  };
+
+  const openRoster = (assignmentId: string): void => {
+    if (openWork === assignmentId) {
+      setOpenWork(null);
+      return;
+    }
+    setOpenWork(assignmentId);
+    setReading(null);
+    setRosterBusy(true);
+    void (async () => {
+      try {
+        setRoster(await submissionsOf(assignmentId));
+      } finally {
+        setRosterBusy(false);
+      }
+    })();
   };
 
   const copyCode = (): void => {
@@ -392,6 +558,10 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
       <header className="classroom__head">
         {rooms.length > 1 ? (
           <>
+            {/* A heading as well as the picker. Replacing the title with a
+                control left the screen with no heading at all, and the room's
+                name living inside a `select`. */}
+            <h2>{active?.name}</h2>
             <label className="classroom__sr" htmlFor="room-picker">
               {d.classroom.roomLabel}
             </label>
@@ -425,7 +595,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
               title={d.classroom.copyCode}
               aria-label={d.classroom.copyCode}
             >
-              <CopyMark weight="bold" />
+              <CopyMark weight="bold" aria-hidden="true" />
             </button>
             <span className="classroom__sr" role="status">
               {copied ? d.classroom.copied : ''}
@@ -453,7 +623,8 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
                 : setConfirming('leave')
             }
           >
-            <SignOut /> {confirming === 'leave' ? d.classroom.confirmLeave : d.classroom.leave}
+            <SignOut weight="bold" aria-hidden="true" />{' '}
+            {confirming === 'leave' ? d.actions.confirm : d.classroom.leave}
           </button>
         )}
       </header>
@@ -469,7 +640,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
             <h3>{d.classroom.assignments}</h3>
             {teaching && !composing && (
               <button type="button" className="classroom__add" onClick={() => setComposing(true)}>
-                <Plus weight="bold" /> {d.classroom.newAssignment}
+                <Plus weight="bold" aria-hidden="true" /> {d.classroom.newAssignment}
               </button>
             )}
           </div>
@@ -608,21 +779,58 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
                         <button
                           type="button"
                           className="classroom__quiet"
-                          title={d.classroom.deleteAssignment}
-                          onClick={() =>
-                            confirming === assignment.id
-                              ? void attempt(async () => {
-                                  await removeAssignment(assignment.id);
-                                  setConfirming(null);
-                                  if (activeId) await loadRoom(activeId, true);
-                                })
-                              : setConfirming(assignment.id)
-                          }
+                          data-active={openWork === assignment.id || undefined}
+                          onClick={() => openRoster(assignment.id)}
                         >
-                          {confirming === assignment.id ? d.classroom.confirmDelete : <Trash />}
+                          {openWork === assignment.id ? d.classroom.reviewClose : d.classroom.review}
                         </button>
                       )}
+                      {teaching &&
+                        (confirming === assignment.id ? (
+                          <button
+                            type="button"
+                            className="classroom__confirm"
+                            title={d.classroom.confirmDelete}
+                            aria-label={d.classroom.confirmDelete}
+                            onClick={() =>
+                              void attempt(async () => {
+                                await removeAssignment(assignment.id);
+                                setConfirming(null);
+                                if (activeId) await loadRoom(activeId, true);
+                              })
+                            }
+                          >
+                            {d.actions.confirm}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="classroom__quiet classroom__quiet--danger"
+                            title={d.classroom.deleteAssignment}
+                            aria-label={d.classroom.deleteAssignment}
+                            onClick={() => setConfirming(assignment.id)}
+                          >
+                            <Trash weight="bold" aria-hidden="true" />
+                          </button>
+                        ))}
                     </div>
+
+                    {openWork === assignment.id && (
+                      <div className="classroom__roster">
+                        {rosterBusy ? (
+                          <Loading count={2} lines={['40%', '70%']} />
+                        ) : (
+                          <RosterList
+                            assignment={assignment}
+                            submissions={roster}
+                            members={members}
+                            detail={detail}
+                            reading={reading}
+                            onRead={(id) => setReading(reading === id ? null : id)}
+                          />
+                        )}
+                      </div>
+                    )}
                   </li>
                 );
               })}
@@ -632,7 +840,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
           {teaching && work.length > 0 && (
             <div className="classroom__row">
               <button type="button" onClick={gradeAll} disabled={busy}>
-                <Marked weight="bold" /> {progress ? d.classroom.grading : d.classroom.grade}
+                <Marked weight="bold" aria-hidden="true" /> {progress ? d.classroom.grading : d.classroom.grade}
               </button>
               <span className="classroom__meta" role="status">
                 {progress
@@ -673,24 +881,34 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
                     <td>{row.handedIn}</td>
                     {teaching && (
                       <td>
-                        <button
-                          type="button"
-                          className="classroom__quiet"
-                          title={d.classroom.remove}
-                          aria-label={d.classroom.remove}
-                          onClick={() =>
-                            confirming === row.userId
-                              ? void attempt(async () => {
-                                  if (!activeId) return;
-                                  await removeMember(activeId, row.userId);
-                                  setConfirming(null);
-                                  await loadRoom(activeId, true);
-                                })
-                              : setConfirming(row.userId)
-                          }
-                        >
-                          {confirming === row.userId ? d.classroom.confirmRemove : <Trash />}
-                        </button>
+                        {confirming === row.userId ? (
+                          <button
+                            type="button"
+                            className="classroom__confirm"
+                            title={d.classroom.confirmRemove}
+                            aria-label={d.classroom.confirmRemove}
+                            onClick={() =>
+                              void attempt(async () => {
+                                if (!activeId) return;
+                                await removeMember(activeId, row.userId);
+                                setConfirming(null);
+                                await loadRoom(activeId, true);
+                              })
+                            }
+                          >
+                            {d.actions.confirm}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="classroom__quiet classroom__quiet--danger"
+                            title={d.classroom.remove}
+                            aria-label={d.classroom.remove}
+                            onClick={() => setConfirming(row.userId)}
+                          >
+                            <Trash weight="bold" aria-hidden="true" />
+                          </button>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -702,7 +920,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
           {/* The count only; the names are in the table above, and listing them
               twice on one screen was saying the same thing twice. */}
           <p className="classroom__people">
-            <People weight="bold" />{' '}
+            <People weight="bold" aria-hidden="true" />{' '}
             {members.length === 0
               ? d.classroom.noMembers
               : `${members.length} · ${d.classroom.members}`}

@@ -54,6 +54,9 @@ export interface Submission {
   score: number | null;
   passed: number | null;
   total: number | null;
+  /** When it was marked. Without it "sin calificar" cannot be told apart from
+      "marked, and then handed in again". */
+  checkedAt: string | null;
   submittedAt: string;
 }
 
@@ -385,6 +388,7 @@ export async function submissionsOf(assignmentId: string): Promise<Submission[]>
     score: typeof row.score === 'number' ? row.score : null,
     passed: typeof row.passed === 'number' ? row.passed : null,
     total: typeof row.total === 'number' ? row.total : null,
+    checkedAt: typeof row.checked_at === 'string' ? row.checked_at : null,
     submittedAt: String(row.submitted_at),
   }));
 }
@@ -455,6 +459,7 @@ export async function mySubmission(assignmentId: string): Promise<Submission | n
     score: typeof data.score === 'number' ? data.score : null,
     passed: typeof data.passed === 'number' ? data.passed : null,
     total: typeof data.total === 'number' ? data.total : null,
+    checkedAt: typeof data.checked_at === 'string' ? data.checked_at : null,
     submittedAt: String(data.submitted_at),
   };
 }
