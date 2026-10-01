@@ -49,6 +49,7 @@ import {
   type LibrarySection,
 } from '../routes';
 import { Classroom } from './Classroom';
+import { Loading } from './Skeleton';
 import { isCode } from '../core/ast/types';
 import { emitters } from '../core/emitters';
 import { createAlgorithmStore } from '../state/storage';
@@ -678,19 +679,9 @@ export const Home = memo(function Home({
                     has, the library shows what it has while it fetches again,
                     which is what stops it blinking. */}
                 {!loaded && slowFetch ? (
-                  /* Cards rather than a spinner: the list is about to be a
-                     grid of them, and showing its shape means nothing jumps
+                  /* Shaped like the cards that are coming, so nothing jumps
                      into place when the real ones arrive. */
-                  <div className="home__grid" aria-busy="true" aria-live="polite">
-                    <span className="home__sr">{d.library.loading}</span>
-                    {[0, 1, 2].map((slot) => (
-                      <div key={slot} className="home__card home__card--ghost" aria-hidden="true">
-                        <span className="home__ghost-line home__ghost-line--name" />
-                        <span className="home__ghost-line home__ghost-line--chip" />
-                        <span className="home__ghost-line home__ghost-line--meta" />
-                      </div>
-                    ))}
-                  </div>
+                  <Loading className="home__grid" lines={['60%', '84px', '45%']} tall />
                 ) : !loaded ? null : saved.length === 0 ? (
                   <p className="home__empty">{d.library.empty}</p>
                 ) : (

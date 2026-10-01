@@ -3,6 +3,7 @@ import {
   closeBrackets,
   closeBracketsKeymap,
   completeFromList,
+  insertCompletionText,
   snippetCompletion,
 } from '@codemirror/autocomplete';
 import type {
@@ -49,10 +50,15 @@ import {
   lineNumbers,
 } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
+import { Decoration, ViewPlugin } from '@codemirror/view';
+import type { DecorationSet, ViewUpdate } from '@codemirror/view';
+import { RangeSetBuilder } from '@codemirror/state';
 import { memo, useEffect, useRef } from 'react';
 
+import type { ConceptId } from '../content/concepts';
 import type { Language } from '../i18n/types';
 import { useTranslation } from '../i18n/context';
+import { categoryClass, categoryFor } from '../core/code/categories';
 import { findProblems } from '../core/code/diagnostics';
 import { findEntry, VOCABULARY } from '../core/code/vocabulary';
 import './CodeEditor.css';
@@ -75,6 +81,59 @@ const highlightStyle = HighlightStyle.define([
   { tag: [tags.variableName, tags.definition(tags.variableName)], color: 'var(--code-text)' },
   { tag: [tags.operator, tags.punctuation, tags.bracket], color: 'var(--code-muted)' },
 ]);
+
+/**
+ * Paints the code by topic, the way the palette paints the blocks.
+ *
+ * `statementMeta.ts` makes category the thing that drives colour everywhere —
+ * the palette, the blocks, the flowchart, the concept cards — so that a loop is
+ * recognisable by its hue before its keyword is read. Written code was the only
+ * surface that did not, which is why it looked like somebody else's editor.
+ *
+ * Decorations rather than a highlight style: Lezer's tags cannot tell a
+ * conditional keyword from a loop keyword — both are `controlKeyword` — but the
+ * tree knows the node's own name, and that is enough. Nothing in the document
+ * changes; this only adds classes to ranges that are already on screen.
+ */
+const categories = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+
+    constructor(view: EditorView) {
+      this.decorations = this.paint(view);
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) this.decorations = this.paint(update.view);
+    }
+
+    paint(view: EditorView): DecorationSet {
+      const builder = new RangeSetBuilder<Decoration>();
+
+      /* Only what is on screen. A thousand-line file would otherwise be walked
+         on every keystroke to colour text nobody is looking at. */
+      for (const { from, to } of view.visibleRanges) {
+        syntaxTree(view.state).iterate({
+          from,
+          to,
+          enter: (node) => {
+            // Leaves only: a parent spans its children, and marking both would
+            // paint the whole statement in its keyword's colour.
+            if (node.node.firstChild) return;
+            const text = view.state.doc.sliceString(node.from, node.to);
+            const category = categoryFor(node.name, text);
+            if (category) {
+              builder.add(node.from, node.to, Decoration.mark({ class: categoryClass(category) }));
+            }
+          },
+        });
+      }
+
+      return builder.finish();
+    }
+  },
+  { decorations: (plugin) => plugin.decorations },
+);
 
 const theme = EditorView.theme({
   '&': {
@@ -149,7 +208,13 @@ function entryFor(word: string): ReturnType<typeof findEntry> {
   return findEntry(cleaned);
 }
 
-function card(entry: NonNullable<ReturnType<typeof findEntry>>, language: Language, onlyHere: string): HTMLElement {
+function card(
+  entry: NonNullable<ReturnType<typeof findEntry>>,
+  language: Language,
+  onlyHere: string,
+  more: string,
+  onConcept?: (id: ConceptId) => void,
+): HTMLElement {
   const root = document.createElement('div');
   root.className = 'codehint';
 
@@ -177,6 +242,22 @@ function card(entry: NonNullable<ReturnType<typeof findEntry>>, language: Langua
     root.append(badge);
   }
 
+  /* The same door the block inspector offers. Explaining a function and then
+     stopping is a dead end on the one surface where a student is most likely
+     to want the idea behind it, not just the signature. */
+  if (entry.concept && onConcept) {
+    const link = document.createElement('button');
+    link.type = 'button';
+    link.className = 'codehint__more';
+    link.textContent = more;
+    link.addEventListener('mousedown', (event) => {
+      // `mousedown`, because the tooltip closes before a click completes.
+      event.preventDefault();
+      onConcept(entry.concept as ConceptId);
+    });
+    root.append(link);
+  }
+
   return root;
 }
 
@@ -198,6 +279,8 @@ export interface CodeEditorHandle {
   tidy: () => void;
   /** Puts the cursor on a line and scrolls it into view. */
   goToLine: (line: number) => void;
+  /** Writes a snippet where the cursor is. */
+  insert: (text: string) => void;
 }
 
 /** Where the cursor is, and how much is wrong, for the status line. */
@@ -221,6 +304,11 @@ interface CodeEditorProps {
   onReady?: (handle: CodeEditorHandle) => void;
   /** Called on every change of cursor, history depth or problem count. */
   onReport?: (report: CodeEditorReport) => void;
+  /** Ctrl+Enter: the shortcut every editor has and the one used most while
+      learning, because a beginner runs their program every two lines. */
+  onRun?: () => void;
+  /** Opens the concept drawer, as the block inspector does. */
+  onConcept?: (id: ConceptId) => void;
   /**
    * Behaviour layered on without this component knowing what it is.
    *
@@ -250,6 +338,8 @@ export const CodeEditor = memo(function CodeEditor({
   fontSize = 14,
   onReady,
   onReport,
+  onRun,
+  onConcept,
   extensions,
 }: CodeEditorProps) {
   const { d, language } = useTranslation();
@@ -265,6 +355,12 @@ export const CodeEditor = memo(function CodeEditor({
   onlyHereRef.current = d.code.onlyInTobot;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const onRunRef = useRef(onRun);
+  onRunRef.current = onRun;
+  const onConceptRef = useRef(onConcept);
+  onConceptRef.current = onConcept;
+  const moreRef = useRef(d.actions.learnMore);
+  moreRef.current = d.actions.learnMore;
   /* Keyed by what the rule reported, so a second rule is a second entry here
      and nothing else. The map is read inside the extension rather than closed
      over, so changing the interface language re-words the next check instead
@@ -310,7 +406,8 @@ export const CodeEditor = memo(function CodeEditor({
             label: entry.name,
             detail: entry.signature,
             type: 'function',
-            info: () => card(entry, languageRef.current, onlyHereRef.current),
+            info: () =>
+              card(entry, languageRef.current, onlyHereRef.current, moreRef.current, onConceptRef.current),
           }),
         ),
       };
@@ -352,7 +449,15 @@ export const CodeEditor = memo(function CodeEditor({
         pos: found.from,
         end: found.to,
         above: true,
-        create: () => ({ dom: card(entry, languageRef.current, onlyHereRef.current) }),
+        create: () => ({
+          dom: card(
+            entry,
+            languageRef.current,
+            onlyHereRef.current,
+            moreRef.current,
+            onConceptRef.current,
+          ),
+        }),
       };
     });
 
@@ -380,6 +485,7 @@ export const CodeEditor = memo(function CodeEditor({
         closeBrackets(),
         javascript(),
         syntaxHighlighting(highlightStyle),
+        categories,
         languageCompletion,
         autocompletion({ activateOnTyping: true }),
         explain,
@@ -390,6 +496,17 @@ export const CodeEditor = memo(function CodeEditor({
         wrapping.current.of(wrap ? EditorView.lineWrapping : []),
         sizing.current.of(EditorView.theme({ '&': { fontSize: `${fontSize}px` } })),
         keymap.of([
+          /* First in the array, because bindings are tried in order and
+             `defaultKeymap` already claims Mod-Enter for "insert a blank
+             line" — a command nobody reaches for and which silently ate the
+             shortcut this screen needs most. */
+          {
+            key: 'Mod-Enter',
+            run: () => {
+              onRunRef.current?.();
+              return true;
+            },
+          },
           ...closeBracketsKeymap,
           ...defaultKeymap,
           ...historyKeymap,
@@ -458,6 +575,16 @@ export const CodeEditor = memo(function CodeEditor({
         editor.focus();
       },
       focus: () => editor.focus(),
+      insert: (text: string) => {
+        /* Through the snippet machinery rather than a raw change, so `#{}` in a
+           vocabulary entry still lands the cursor inside the brackets — the
+           same behaviour as accepting the completion. */
+        const at = editor.state.selection.main;
+        editor.dispatch(
+          insertCompletionText(editor.state, text.replace(/#\{\}/g, ''), at.from, at.to),
+        );
+        editor.focus();
+      },
       goToLine: (line: number) => {
         // A line the program reported may no longer exist after an edit.
         const total = editor.state.doc.lines;

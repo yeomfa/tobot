@@ -117,6 +117,27 @@
   --code-comment: #5a6484;
   --code-active: rgba(232, 135, 58, 0.16);
 
+  /*
+    The palette's categories, for the code surface.
+
+    `statementMeta.ts` makes category assignment the thing that drives colour
+    across the palette, the blocks, the flowchart and the concept cards — "a
+    student should be able to recognise a loop by its hue before they can read
+    the keyword". Written code is the one surface that never honoured it, which
+    is exactly why it read as somebody else's editor.
+
+    Defined once rather than per theme, because the ground beneath them is dark
+    in both: the `--hue-*` set for light mode is tuned for a light surface and
+    would be unreadable here. These are the light-on-dark variants, which is
+    also where `--code-keyword` above came from — it is the loop hue already.
+  */
+  --code-hue-variable: #a5b0ff;
+  --code-hue-io: #5fd4ec;
+  --code-hue-conditional: #fbbf5a;
+  --code-hue-loop: #c4a3ff;
+  --code-hue-list: #f9a8d4;
+  --code-hue-function: #a3d55e;
+
   --shadow-xs: 0 1px 2px rgb(15 20 35 / 0.06);
   --shadow-sm: 0 1px 3px rgb(15 20 35 / 0.08), 0 1px 2px rgb(15 20 35 / 0.04);
   --shadow-md: 0 4px 12px rgb(15 20 35 / 0.08), 0 2px 4px rgb(15 20 35 / 0.04);

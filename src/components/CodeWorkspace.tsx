@@ -1,6 +1,7 @@
 import {
   CopyIcon as CopyMark,
   DownloadSimpleIcon as Download,
+  KeyboardIcon as Keys,
   MagnifyingGlassIcon as Find,
   PlayIcon as Play,
   StopIcon as Stop,
@@ -17,6 +18,7 @@ import type { CodeEditorHandle, CodeEditorReport } from './CodeEditor';
 import type { Resizable } from '../state/useResizable';
 import { Console } from './Console';
 import { ResizeHandle } from './ResizeHandle';
+import { Skeleton } from './Skeleton';
 import { Robot } from './Robot';
 import type { RobotMood } from './Robot';
 import './CodeWorkspace.css';
@@ -26,8 +28,10 @@ import './CodeWorkspace.css';
    never before. */
 const CodeEditor = lazy(async () => ({ default: (await import('./CodeEditor')).CodeEditor }));
 
-const MIN_SIZE = 12;
-const MAX_SIZE = 20;
+const MIN_SIZE = 11;
+const MAX_SIZE = 28;
+/* Beside the panel sizes, which use the same idiom. */
+const ZOOM_KEY = 'tobot.size.code';
 
 interface CodeWorkspaceProps {
   source: string;
@@ -36,6 +40,8 @@ interface CodeWorkspaceProps {
   /** Handed up so the header's undo and redo drive the editor's own history. */
   onEditorReady?: (handle: CodeEditorHandle) => void;
   onReport?: (report: CodeEditorReport) => void;
+  /** Opens the concept drawer from the editor's hover card. */
+  onConcept: (id: string) => void;
   /* The same rails the block workbench has, driven by the same hooks. They are
      built in `Workspace` regardless of document kind, so nothing new is created
      here — this screen just stopped ignoring them. */
@@ -65,6 +71,7 @@ export function CodeWorkspace({
   execution,
   onEditorReady,
   onReport,
+  onConcept,
   robotOpen,
   drawerOpen,
   robotSize,
@@ -73,8 +80,28 @@ export function CodeWorkspace({
   const { d, t } = useTranslation();
   const [reply, setReply] = useState('');
   const [wrap, setWrap] = useState(true);
-  const [fontSize, setFontSize] = useState(14);
+  /* Read back on mount. It reset to 14 every time the editor was closed, which
+     for a student who needs larger type means setting it again on every visit. */
+  const [fontSize, setFontSize] = useState(() => {
+    try {
+      const stored = Number(window.localStorage.getItem(ZOOM_KEY));
+      return Number.isFinite(stored) && stored >= MIN_SIZE && stored <= MAX_SIZE ? stored : 15;
+    } catch {
+      return 15;
+    }
+  });
+
+  const zoom = useCallback((next: number) => {
+    const size = Math.min(MAX_SIZE, Math.max(MIN_SIZE, next));
+    setFontSize(size);
+    try {
+      window.localStorage.setItem(ZOOM_KEY, String(size));
+    } catch {
+      // Private mode or a full quota; the size still applies for this visit.
+    }
+  }, []);
   const [copied, setCopied] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
   const [where, setWhere] = useState<CodeEditorReport | null>(null);
   const handle = useRef<CodeEditorHandle | null>(null);
   /* State and not just the ref: the toolbar has to re-render when the editor
@@ -208,7 +235,7 @@ export function CodeWorkspace({
           <button
             type="button"
             className="codework__tool"
-            onClick={() => setFontSize(Math.max(MIN_SIZE, fontSize - 1))}
+            onClick={() => zoom(fontSize - 1)}
             disabled={fontSize <= MIN_SIZE}
             title={d.code.textSmaller}
             aria-label={d.code.textSmaller}
@@ -218,7 +245,7 @@ export function CodeWorkspace({
           <button
             type="button"
             className="codework__tool"
-            onClick={() => setFontSize(Math.min(MAX_SIZE, fontSize + 1))}
+            onClick={() => zoom(fontSize + 1)}
             disabled={fontSize >= MAX_SIZE}
             title={d.code.textBigger}
             aria-label={d.code.textBigger}
@@ -235,6 +262,18 @@ export function CodeWorkspace({
             aria-label={d.code.tidy}
           >
             <Indent weight="bold" />
+          </button>
+
+          <button
+            type="button"
+            className="codework__tool"
+            data-active={showKeys || undefined}
+            onClick={() => setShowKeys(!showKeys)}
+            title={d.code.shortcuts}
+            aria-label={d.code.shortcuts}
+            aria-pressed={showKeys}
+          >
+            <Keys weight="bold" />
           </button>
 
           <span className="codework__tool-divider" aria-hidden="true" />
@@ -263,9 +302,35 @@ export function CodeWorkspace({
           </button>
         </div>
 
+        {/* None of these are guessable, and the two that matter most — running,
+            and asking what you can use — are the ones a student needs on their
+            first minute here. */}
+        {showKeys && (
+          <dl className="codework__keys">
+            <dt>Ctrl/⌘ + Enter</dt>
+            <dd>{d.code.shortcutRun}</dd>
+            <dt>Ctrl/⌘ + {d.code.space}</dt>
+            <dd>{d.code.shortcutComplete}</dd>
+            <dt>Ctrl/⌘ + F</dt>
+            <dd>{d.code.shortcutFind}</dd>
+            <dt>Ctrl/⌘ + Z</dt>
+            <dd>{d.code.shortcutUndo}</dd>
+          </dl>
+        )}
+
         <div className="codework__editor">
-          <Suspense fallback={<div className="codework__loading" />}>
+          {/* Shaped like code rather than an empty frame: a slow chunk should
+              look like an editor arriving, not like a panel that failed. */}
+          <Suspense
+            fallback={
+              <div className="codework__loading" aria-busy="true">
+                <Skeleton lines={['45%', '70%', '30%', '60%', '25%']} />
+              </div>
+            }
+          >
             <CodeEditor
+              onRun={() => execution.run(source)}
+              onConcept={onConcept}
               value={source}
               onChange={onChange}
               wrap={wrap}
@@ -379,8 +444,15 @@ export function CodeWorkspace({
           <ul>
             {VOCABULARY.map((entry) => (
               <li key={entry.name}>
-                <code>{entry.name}</code>
-                {entry.origin === 'tobot' && <span aria-hidden="true">·</span>}
+                <button
+                  type="button"
+                  data-category={entry.category}
+                  onClick={() => handle.current?.insert(entry.insert ?? entry.name)}
+                  title={entry.signature}
+                  disabled={!editorReady}
+                >
+                  {entry.name}
+                </button>
               </li>
             ))}
           </ul>

@@ -915,78 +915,8 @@
   background: var(--hue-variable-soft);
 }
 
-/* The list while it is still being fetched. Shaped like what is coming, so
-   nothing jumps when it arrives. */
-.home__card--ghost {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  pointer-events: none;
-}
-
 /*
    A sweep rather than a pulse.
-
-   Fading a pale grey shape between full and two-thirds opacity, on a pale
-   background, is a change almost nobody sees — it read as a static block, and
-   a skeleton that does not move looks like a page that has given up. A
-   highlight travelling along the bar is unmistakably something in progress,
-   and it is movement rather than a brightness change, so it survives being
-   subtle.
-*/
-.home__ghost-line {
-  display: block;
-  height: 12px;
-  background: linear-gradient(
-    90deg,
-    var(--bg-inset) 20%,
-    color-mix(in srgb, var(--text-muted) 22%, var(--bg-inset)) 50%,
-    var(--bg-inset) 80%
-  );
-  background-size: 220% 100%;
-  border-radius: var(--radius-full);
-  animation: home-ghost 1.5s linear infinite;
-}
-
-.home__ghost-line--name {
-  width: 60%;
-  height: 16px;
-}
-
-.home__ghost-line--chip {
-  width: 84px;
-  height: 18px;
-}
-
-.home__ghost-line--meta {
-  width: 45%;
-  height: 10px;
-}
-
-/* `ease-in-out` and not `--ease-out`: that token is a one-shot curve for a
-   transition that starts and stops, and on a loop it accelerates and stalls.
-   Slow and shallow, so it reads as a surface waiting rather than a warning. */
-@keyframes home-ghost {
-  from {
-    background-position: 120% 0;
-  }
-  to {
-    background-position: -120% 0;
-  }
-}
-
-/* Motion here is decoration; the text under it says the same thing. */
-/*
-   `base.css` already flattens every animation to nothing under reduced motion,
-   which would leave these bars mid-sweep and lighter on one side than the
-   other. They become a plain fill instead.
-*/
-@media (prefers-reduced-motion: reduce) {
-  .home__ghost-line {
-    background: var(--bg-inset);
-    animation: none;
-  }
-}
 
 /* Announced, not shown: the skeleton says "loading" to the eye already. */
 .home__sr {

@@ -1,3 +1,5 @@
+import type { Category } from '../../components/statementMeta';
+import type { ConceptId } from '../../content/concepts';
 import type { Language } from '../../i18n/types';
 
 /**
@@ -41,11 +43,23 @@ export interface VocabularyEntry {
    * not, and saying so is the honest thing to do.
    */
   origin: 'javascript' | 'tobot';
+  /**
+   * Which topic it belongs to, in the same vocabulary the palette uses.
+   *
+   * So the chip in the rail, the dot in the completion menu and the word in the
+   * text are all the one colour — and that colour is the one the student
+   * already learned from the blocks.
+   */
+  category: Category;
+  /** Where to read more, which is the door the block inspector already offers. */
+  concept?: ConceptId;
 }
 
 export const VOCABULARY: VocabularyEntry[] = [
   {
     name: 'console.log',
+    category: 'io',
+    concept: 'output',
     signature: 'console.log(valor)',
     origin: 'javascript',
     summary: {
@@ -60,6 +74,8 @@ export const VOCABULARY: VocabularyEntry[] = [
   },
   {
     name: 'prompt',
+    category: 'io',
+    concept: 'input',
     signature: 'await prompt(pregunta)',
     origin: 'javascript',
     summary: {
@@ -74,6 +90,8 @@ export const VOCABULARY: VocabularyEntry[] = [
   },
   {
     name: 'ask',
+    category: 'io',
+    concept: 'input',
     signature: 'await ask(pregunta)',
     origin: 'tobot',
     summary: {
@@ -88,6 +106,8 @@ export const VOCABULARY: VocabularyEntry[] = [
   },
   {
     name: 'Number',
+    category: 'variables',
+    concept: 'variables',
     signature: 'Number(texto)',
     origin: 'javascript',
     summary: {
@@ -102,6 +122,8 @@ export const VOCABULARY: VocabularyEntry[] = [
   },
   {
     name: 'String',
+    category: 'variables',
+    concept: 'variables',
     signature: 'String(valor)',
     origin: 'javascript',
     summary: {
@@ -116,6 +138,8 @@ export const VOCABULARY: VocabularyEntry[] = [
   },
   {
     name: 'Boolean',
+    category: 'variables',
+    concept: 'conditionals',
     signature: 'Boolean(valor)',
     origin: 'javascript',
     summary: {
@@ -130,6 +154,7 @@ export const VOCABULARY: VocabularyEntry[] = [
   },
   {
     name: 'Math.random',
+    category: 'functions',
     signature: 'Math.random()',
     origin: 'javascript',
     summary: {
@@ -144,6 +169,7 @@ export const VOCABULARY: VocabularyEntry[] = [
   },
   {
     name: 'Math.floor',
+    category: 'functions',
     signature: 'Math.floor(numero)',
     origin: 'javascript',
     summary: {

@@ -84,3 +84,149 @@
   font-size: var(--text-xs);
   color: var(--text-muted);
 }
+
+
+/*
+ * The palette's categories, in the text.
+ *
+ * `!important` because these sit on top of the syntax highlighting rather than
+ * beside it: a keyword is already coloured by its token class, and the point of
+ * this layer is that topic wins over token. A student who learned that loops
+ * are purple should find `while` purple here too.
+ *
+ * Weight carries as much of it as colour does. The block palette gives each
+ * category a filled chip; text cannot, so the categorised words are the bold
+ * ones and everything else stays regular — which is also what keeps six hues on
+ * one screen from turning into noise.
+ */
+.cm-cat-variables,
+.cm-cat-io,
+.cm-cat-conditionals,
+.cm-cat-loops,
+.cm-cat-list,
+.cm-cat-lists,
+.cm-cat-functions {
+  font-weight: 650;
+}
+
+.cm-cat-variables {
+  color: var(--code-hue-variable) !important;
+}
+
+.cm-cat-io {
+  color: var(--code-hue-io) !important;
+}
+
+.cm-cat-conditionals {
+  color: var(--code-hue-conditional) !important;
+}
+
+.cm-cat-loops {
+  color: var(--code-hue-loop) !important;
+}
+
+.cm-cat-lists {
+  color: var(--code-hue-list) !important;
+}
+
+.cm-cat-functions {
+  color: var(--code-hue-function) !important;
+}
+
+/*
+ * The completion menu, in the app's own shape rather than the stock one.
+ *
+ * It was four declarations: mono type and an accent bar on the selection. Next
+ * to `CanvasMenu` — the surface a student meets when they right-click a block —
+ * it read as a different program's widget, which is most of what "parece un
+ * editor común" was about.
+ */
+.cm-tooltip.cm-tooltip-autocomplete {
+  padding: var(--space-1);
+  background: var(--bg-raised) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.cm-tooltip-autocomplete > ul {
+  max-height: 16em;
+  font-family: var(--font-mono);
+}
+
+.cm-tooltip-autocomplete > ul > li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+}
+
+.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  color: var(--text-inverse);
+  background: var(--accent);
+}
+
+/* The entry's own topic, as a dot — the same hue its word takes in the text, so
+   the menu and the code agree about what kind of thing is being offered. */
+.cm-completionIcon {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  margin-right: 0;
+  background: var(--text-muted);
+  border-radius: var(--radius-full);
+  opacity: 1;
+}
+
+.cm-completionIcon::after {
+  content: '';
+}
+
+.cm-completionIcon-function {
+  background: var(--code-hue-io);
+}
+
+.cm-completionIcon-variable {
+  background: var(--code-hue-variable);
+}
+
+.cm-completionIcon-keyword {
+  background: var(--code-hue-conditional);
+}
+
+.cm-completionLabel {
+  flex: 1;
+}
+
+.cm-completionMatchedText {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cm-completionDetail {
+  margin-left: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+.cm-tooltip-autocomplete > ul > li[aria-selected] .cm-completionDetail {
+  color: color-mix(in srgb, var(--text-inverse) 75%, transparent);
+}
+
+/* The way out of the hover card and into the idea behind the function, which
+   is the door the block inspector already offers and this did not. */
+.codehint__more {
+  align-self: flex-start;
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--accent-strong);
+}
+
+.codehint__more:hover {
+  text-decoration: underline;
+}

@@ -32,6 +32,8 @@ import {
   removeMember,
   submissionsOf,
 } from '../state/classroomStore';
+import { useSlowWait } from '../state/useSlowWait';
+import { Loading } from './Skeleton';
 import './Classroom.css';
 
 interface ClassroomProps {
@@ -80,6 +82,22 @@ const blankCase = (): DraftCase => ({ key: createId(), answers: [], expect: [] }
  */
 let lastRooms: Room[] | null = null;
 
+/** The room's shape while it is being fetched: a header, work, a leaderboard. */
+function RoomSkeleton() {
+  const { d } = useTranslation();
+  return (
+    <div className="classroom">
+      <Loading
+        className="classroom__body"
+        count={2}
+        lines={['40%', '100%', '100%', '70%']}
+        tall
+        label={d.classroom.section}
+      />
+    </div>
+  );
+}
+
 /**
  * The classroom.
  *
@@ -116,10 +134,15 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
   const [points, setPoints] = useState(10);
   const [cases, setCases] = useState<DraftCase[]>([blankCase()]);
 
+  /* Switching rooms used to leave the previous room's assignments, ranking
+     and members on screen until three round-trips finished. */
+  const [switching, setSwitching] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [gradedCount, setGradedCount] = useState<number | null>(null);
 
   const active = rooms.find((room) => room.id === activeId) ?? null;
+  /* Only once the swap is slow enough to notice; a cached room never flashes. */
+  const slowSwitch = useSlowWait(switching);
 
   const loadRooms = useCallback(async () => {
     try {
@@ -147,7 +170,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
     void loadRooms();
   }, [signedIn, loadRooms]);
 
-  const loadRoom = useCallback(async (id: string, teaching: boolean) => {
+  const fillRoom = useCallback(async (id: string, teaching: boolean) => {
     const [people, assignments, board] = await Promise.all([
       membersOf(id),
       assignmentsOf(id),
@@ -169,6 +192,18 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
     );
     setMine(Object.fromEntries(pairs));
   }, []);
+
+  const loadRoom = useCallback(
+    async (id: string, teaching: boolean) => {
+      setSwitching(true);
+      try {
+        await fillRoom(id, teaching);
+      } finally {
+        setSwitching(false);
+      }
+    },
+    [fillRoom],
+  );
 
   useEffect(() => {
     setGradedCount(null);
@@ -293,7 +328,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
 
   if (!signedIn) return <p className="classroom__notice">{d.classroom.needsAccount}</p>;
   if (notSetUp) return <p className="classroom__notice">{d.classroom.notConfigured}</p>;
-  if (!loaded) return null;
+  if (!loaded) return <RoomSkeleton />;
 
   const fail = fault && (
     <p className="classroom__error" role="alert">
@@ -425,6 +460,9 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
 
       {fail}
 
+      {slowSwitch ? (
+        <Loading className="classroom__body" count={2} lines={['40%', '100%', '70%']} tall />
+      ) : (
       <div className="classroom__body">
         <section className="classroom__panel">
           <div className="classroom__panel-head">
@@ -671,6 +709,7 @@ export function Classroom({ signedIn, current, onOpen }: ClassroomProps) {
           </p>
         </section>
       </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,69 @@
+/**
+ * Placeholder content, shared by every view that waits.
+ *
+ * A sweep rather than a pulse: fading a pale bar between full and two-thirds
+ * opacity, on a pale background, is a change almost nobody sees — it read as a
+ * static block, and a skeleton that does not move looks like a page that has
+ * given up. A highlight travelling along the bar is unmistakably something in
+ * progress, and being movement rather than brightness it survives being subtle.
+ */
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  pointer-events: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.skeleton__line {
+  display: block;
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-inset) 20%,
+    color-mix(in srgb, var(--text-muted) 22%, var(--bg-inset)) 50%,
+    var(--bg-inset) 80%
+  );
+  background-size: 220% 100%;
+  border-radius: var(--radius-full);
+  animation: skeleton-sweep 1.5s linear infinite;
+}
+
+.skeleton[data-tall] .skeleton__line:first-child {
+  height: 18px;
+}
+
+@keyframes skeleton-sweep {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+/*
+ * `base.css` flattens every animation to nothing under reduced motion, which
+ * would leave these bars frozen mid-sweep and lighter at one end. They become
+ * a plain fill instead.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__line {
+    background: var(--bg-inset);
+    animation: none;
+  }
+}
+
+/* Announced, not shown: the bars say nothing to a screen reader. */
+.skeleton__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

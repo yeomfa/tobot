@@ -1253,6 +1253,7 @@ function Workbench({
             execution={codeRun}
             onEditorReady={(api) => (codeHandle.current = api)}
             onReport={setCodeReport}
+            onConcept={showConcept}
             robotOpen={robotOpen}
             drawerOpen={drawerOpen}
             robotSize={robotSize}
