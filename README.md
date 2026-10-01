@@ -72,6 +72,9 @@ Consequences worth knowing:
 | `src/content` | Concept explanations, references, worked examples |
 | `src/core/code` | The vocabulary, checks and worker behind code documents |
 | `src/core/classroom` | Marking a submission against a teacher's cases |
+| `src/core/world` | Scenarios a program acts on: components, time, the registry of world functions |
+| `src/core/activity.ts` | The shape of set work, shared by challenges, assignments and authoring |
+| `src/components/scene` | The scene panel that draws a world |
 
 ## Layout
 
@@ -128,6 +131,23 @@ The teacher sets assignments — a starting algorithm plus cases, each a list of
 answers and the lines the program should print — and decides what each is
 worth.
 
+Both happen in the workbench, which has a mode for what it is doing:
+
+- **own** — the student's own document; nearly always.
+- **doing** — set work with its brief in the rail: an assignment to hand in, or
+  a built-in challenge whose cases the student can check against.
+- **review** — a teacher reading one submission. Read-only in both editors,
+  runnable, and markable in place, with each case's expected result beside
+  what happened.
+- **author** — a teacher writing an assignment: title, instructions, points,
+  scenario and cases in the brief panel, the starting program in the real
+  editor. Editing an existing assignment opens the same mode on it.
+
+Review and author switch saving off (`useAlgorithm`'s `setPersisting`): loading
+is itself a change, so without it opening a submission copied it into the
+teacher's library half a second later. The teacher's own document is saved
+first and put back on the way out.
+
 Marking happens in the teacher's browser. There is no server, and the browser
 key is public, so a mark computed on the student's machine would be a claim
 rather than a fact; the policies let only the room's teacher write a score, and
@@ -150,6 +170,40 @@ them are worth knowing before changing anything there:
 re-runnable — `create table if not exists`, `drop policy if exists` before each
 policy, `create or replace` for every function — and each of the three times it
 has grown, a deploy without it has broken something in production.
+
+## Worlds
+
+A document can carry a **world**: a scenario its program acts on — a panel of
+buttons, lamps and motors today; a conveyor or a safety scenario on the same
+footing tomorrow. Absent means exactly what Tobot was before, so no existing
+program behaves differently.
+
+The model is deliberately small. A component is an **input** the scenario owns
+(a pushbutton, a sensor) or an **output** the program owns (a lamp, a motor, a
+siren); skins are only how it is drawn. Four functions act on it — `encender`,
+`apagar`, `leer`, `esperar` (`turnOn`, `turnOff`, `read`, `wait`) — named in the
+interface language like pseudocode, stored in the tree by their stable id, and
+accepted by both runtimes under every name. Each shows its Arduino line on hover.
+
+**World time is moved by the program.** It is neither interpreter steps nor the
+wall clock: only `esperar` advances it. That is what makes a run deterministic,
+and so markable: the same program leaves the same world in either editor, on
+any machine. The world is a pure module (`src/core/world`) that each runtime
+hosts locally — the interpreter on the main thread, `runSource` inside the code
+worker — so reading a sensor is a plain synchronous call in both, and the
+parity test runs every program both ways and requires identical worlds.
+
+A scenario has a duration, and reaching it ends the run normally. A control
+program is an endless loop by nature — read, act, wait, again — and the
+scenario ending is what lets it finish and be checked. A case can describe what
+the scenario does by itself and what must be true when, one moment per line:
+`1 arranque sí` presses start at second 1; `4 motor sí` requires the motor on
+at second 4.
+
+Authoring a world is choosing a template and renaming its parts; drawing one
+from nothing is a later feature. Numeric sensors, moving items and zones —
+which production and safety will need — arrive as new kinds of component in the
+same registry.
 
 ## Persistence
 
