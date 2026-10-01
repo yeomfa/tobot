@@ -618,3 +618,17 @@ $$;
 -- ---------------------------------------------------------------------------
 alter table public.assignments
   add column if not exists instructions text not null default '';
+
+-- ---------------------------------------------------------------------------
+-- The scenario a program acts on: a panel of buttons, lamps and motors.
+--
+-- On an assignment, so students open it in its world; on an algorithm, so work
+-- reopened from the library keeps its world rather than losing it. A plain
+-- description of parts and a duration, checked by the client on the way in
+-- like every other jsonb column here.
+-- ---------------------------------------------------------------------------
+alter table public.assignments
+  add column if not exists world jsonb;
+
+alter table public.algorithms
+  add column if not exists world jsonb;

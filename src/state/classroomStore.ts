@@ -1,6 +1,8 @@
 import type { Algorithm } from '../core/ast/types';
 import { sanitizeStatements } from '../core/ast/validateShape';
 import type { Case, Mark } from '../core/classroom/grade';
+import type { WorldDefinition } from '../core/world/types';
+import { reviveExpectations, reviveInputs, reviveTimeline, reviveWorld } from '../core/world/revive';
 import { getSupabase } from './supabase';
 
 /**
@@ -41,6 +43,8 @@ export interface Assignment {
   kind: 'blocks' | 'code';
   body: Algorithm['body'];
   source?: string;
+  /** The scenario it is played in, if any. */
+  world?: WorldDefinition;
   /** How many cases it has. The cases themselves are the teacher's. */
   caseCount: number;
   createdAt: string;
@@ -85,6 +89,7 @@ export function assignmentAsAlgorithm(assignment: Assignment): Algorithm {
     kind: assignment.kind,
     source: assignment.source,
     body: assignment.body,
+    world: assignment.world,
     createdAt: now,
     updatedAt: now,
   };
@@ -114,7 +119,18 @@ function reviveCases(value: unknown): Case[] {
     const record = entry as Record<string, unknown>;
     const answers = Array.isArray(record.answers) ? record.answers.map(String) : [];
     const expect = Array.isArray(record.expect) ? record.expect.map(String) : [];
-    return [{ answers, expect }];
+    const inputs = reviveInputs(record.inputs);
+    const timeline = reviveTimeline(record.timeline);
+    const expectWorld = reviveExpectations(record.expectWorld);
+    return [
+      {
+        answers,
+        expect,
+        ...(inputs && Object.keys(inputs).length > 0 ? { inputs } : {}),
+        ...(timeline?.length ? { timeline } : {}),
+        ...(expectWorld?.length ? { expectWorld } : {}),
+      },
+    ];
   });
 }
 
@@ -325,6 +341,7 @@ export async function assignmentsOf(classroomId: string): Promise<Assignment[]> 
     // browser is walked, not trusted.
     body: sanitizeStatements(row.body),
     source: typeof row.source === 'string' ? row.source : undefined,
+    world: reviveWorld(row.world),
     caseCount: counts.get(String(row.id)) ?? 0,
     createdAt: String(row.created_at),
   }));
@@ -380,6 +397,8 @@ export async function saveAssignment(
     kind: draft.algorithm.kind ?? 'blocks',
     body: draft.algorithm.body,
     source: draft.algorithm.kind === 'code' ? (draft.algorithm.source ?? '') : null,
+    // Null clears a scenario the author has just removed.
+    world: draft.algorithm.world ?? null,
   };
 
   let id = existingId;

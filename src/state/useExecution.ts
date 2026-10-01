@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Statement } from '../core/ast/types';
 import { Interpreter } from '../core/runtime/interpreter';
 import type { ExecutionState } from '../core/runtime/types';
+import type { WorldState } from '../core/world/types';
 
 export type Speed = 'slow' | 'normal' | 'fast';
 
@@ -54,7 +55,11 @@ export interface ExecutionController {
  * to advance it, which is what lets the same interpreter serve both "run" and
  * "step through" without duplicating execution logic.
  */
-export function useExecution(program: Statement[]): ExecutionController {
+export function useExecution(
+  program: Statement[],
+  /** The world the program acts on, as it stands before the first step. */
+  world: WorldState | null = null,
+): ExecutionController {
   const [state, setState] = useState<ExecutionState>(IDLE_STATE);
   const [isPlaying, setIsPlaying] = useState(false);
   const [canStepBack, setCanStepBack] = useState(false);
@@ -77,11 +82,12 @@ export function useExecution(program: Statement[]): ExecutionController {
 
   /** Creates the machine on first use, or after the program was edited. */
   const ensureMachine = useCallback((): Interpreter => {
-    if (!machine.current) machine.current = new Interpreter(program);
+    if (!machine.current) machine.current = new Interpreter(program, { world });
     return machine.current;
-  }, [program]);
+  }, [program, world]);
 
-  // Editing the algorithm invalidates any run in progress.
+  /* Editing the algorithm invalidates any run in progress, and so does
+     changing how the scenario starts: the run was against a different one. */
   useEffect(() => {
     clearTimer();
     machine.current = null;
@@ -89,7 +95,7 @@ export function useExecution(program: Statement[]): ExecutionController {
     setState(IDLE_STATE);
     // The discarded machine took its history with it.
     setCanStepBack(false);
-  }, [program, clearTimer]);
+  }, [program, world, clearTimer]);
 
   useEffect(() => clearTimer, [clearTimer]);
 

@@ -1,6 +1,8 @@
 import type { RunnerEvent, RunnerRequest } from '../code/runner.worker';
+import type { WorldDefinition, WorldState } from '../world/types';
+import { createWorld } from '../world/world';
 import type { Case, CaseResult, Mark } from './grade';
-import { linesMatch, markFrom } from './grade';
+import { judge, markFrom } from './grade';
 
 /** Long enough for any exercise at this level, short enough to mark a class. */
 const PATIENCE_MS = 5000;
@@ -14,7 +16,7 @@ const PATIENCE_MS = 5000;
  * everything after it, and terminating is the only reliable way to stop code
  * this app never looked at.
  */
-function runCase(source: string, trial: Case): Promise<CaseResult> {
+function runCase(source: string, trial: Case, definition: WorldDefinition | null): Promise<CaseResult> {
   return new Promise((resolve) => {
     const worker = new Worker(new URL('../code/runner.worker.ts', import.meta.url), {
       type: 'module',
@@ -22,14 +24,18 @@ function runCase(source: string, trial: Case): Promise<CaseResult> {
 
     const said: string[] = [];
     const answers = [...trial.answers];
+    const start = definition
+      ? createWorld(definition, { inputs: trial.inputs, timeline: trial.timeline })
+      : null;
+    let world: WorldState | null = start;
     let settled = false;
 
-    const finish = (passed: boolean): void => {
+    const finish = (completed: boolean): void => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
       worker.terminate();
-      resolve({ passed, got: said });
+      resolve(judge(trial, said, completed, world));
     };
 
     const timer = setTimeout(() => finish(false), PATIENCE_MS);
@@ -39,6 +45,10 @@ function runCase(source: string, trial: Case): Promise<CaseResult> {
 
       if (message.type === 'say') {
         said.push(message.text);
+        return;
+      }
+      if (message.type === 'world') {
+        world = message.state;
         return;
       }
       if (message.type === 'ask') {
@@ -55,14 +65,14 @@ function runCase(source: string, trial: Case): Promise<CaseResult> {
         return;
       }
       if (message.type === 'done') {
-        finish(linesMatch(said, trial.expect));
+        finish(true);
       }
     };
 
     worker.onerror = () => finish(false);
 
-    const start: RunnerRequest = { type: 'run', source };
-    worker.postMessage(start);
+    const request: RunnerRequest = { type: 'run', source, world: start };
+    worker.postMessage(request);
   });
 }
 
@@ -73,10 +83,15 @@ function runCase(source: string, trial: Case): Promise<CaseResult> {
  * and a class of thirty submissions with three cases each would otherwise ask
  * the browser for ninety threads at once.
  */
-export async function gradeCode(source: string, cases: Case[], points: number): Promise<Mark> {
+export async function gradeCode(
+  source: string,
+  cases: Case[],
+  points: number,
+  world: WorldDefinition | null = null,
+): Promise<Mark> {
   const results: CaseResult[] = [];
   for (const trial of cases) {
-    results.push(await runCase(source, trial));
+    results.push(await runCase(source, trial, world));
   }
   return markFrom(points, results);
 }

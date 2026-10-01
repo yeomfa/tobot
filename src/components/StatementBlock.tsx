@@ -132,6 +132,11 @@ function argumentFor(current: Expression | undefined, type: ValueKind): Expressi
 export interface FunctionInfo {
   name: string;
   params: Param[];
+  /** What the picker shows, when it is not the name: a world function's
+      name in the interface language. */
+  label?: string;
+  /** Set for a world function, which is either an order or a value, never both. */
+  use?: 'statement' | 'value';
 }
 
 export const StatementBlock = memo(function StatementBlock({
@@ -1234,8 +1239,8 @@ function FunctionPicker({
           options: [
             ...(dangling ? [{ value, label: value, icon: Warning, danger: true }] : []),
             ...functions
-              .filter((fn) => fn.name)
-              .map((fn) => ({ value: fn.name, label: fn.name, icon: FunctionGlyph })),
+              .filter((fn) => fn.name && fn.use !== 'value')
+              .map((fn) => ({ value: fn.name, label: fn.label ?? fn.name, icon: FunctionGlyph })),
           ],
         },
       ]}

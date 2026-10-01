@@ -61,6 +61,7 @@ import { useTranslation } from '../i18n/context';
 import { categoryClass, categoryFor } from '../core/code/categories';
 import { findProblems } from '../core/code/diagnostics';
 import { findEntry, VOCABULARY } from '../core/code/vocabulary';
+import type { VocabularyEntry } from '../core/code/vocabulary';
 import './CodeEditor.css';
 
 /**
@@ -209,19 +210,22 @@ function wordAt(text: string, offset: number): { from: number; to: number; word:
  * of `console.log` still finds the entry: a student pointing at a word does
  * not know which half of it the lookup table happens to be keyed on.
  */
-function entryFor(word: string): ReturnType<typeof findEntry> {
-  const direct = findEntry(word);
+function entryFor(word: string, extra: VocabularyEntry[]): VocabularyEntry | null {
+  const find = (name: string): VocabularyEntry | null =>
+    findEntry(name) ?? extra.find((entry) => entry.name === name) ?? null;
+  const direct = find(word);
   if (direct) return direct;
   // `console.log(` caught with the bracket, or `Math.floor` hovered on `floor`.
   const cleaned = word.replace(/\.$/, '');
-  return findEntry(cleaned);
+  return find(cleaned);
 }
 
 function card(
-  entry: NonNullable<ReturnType<typeof findEntry>>,
+  entry: VocabularyEntry,
   language: Language,
   onlyHere: string,
   more: string,
+  arduino: string,
   onConcept?: (id: ConceptId) => void,
 ): HTMLElement {
   const root = document.createElement('div');
@@ -242,12 +246,23 @@ function card(
   example.textContent = entry.example[language];
   root.append(example);
 
+  /* The bridge to real hardware: the same idea, as it is written on a board. */
+  if (entry.arduino) {
+    const line = document.createElement('p');
+    line.className = 'codehint__arduino';
+    line.append(`${arduino} `);
+    const code = document.createElement('code');
+    code.textContent = entry.arduino;
+    line.append(code);
+    root.append(line);
+  }
+
   /* Said out loud rather than left to be discovered later: a student who
      learns `ask` here and types it into any other editor gets nothing. */
   if (entry.origin === 'tobot') {
     const badge = document.createElement('p');
     badge.className = 'codehint__badge';
-    badge.textContent = onlyHere;
+    badge.textContent = entry.note?.[language] ?? onlyHere;
     root.append(badge);
   }
 
@@ -331,6 +346,8 @@ interface CodeEditorProps {
   extensions?: Extension[];
   /** Shown, run and read, but not changed: a teacher looking at a student's work. */
   readOnly?: boolean;
+  /** More to offer and explain than the built-in six: the world's functions. */
+  vocabulary?: VocabularyEntry[];
 }
 
 /** The layered compartment's contents: what the caller asked for, plus the lock. */
@@ -358,6 +375,7 @@ export const CodeEditor = memo(function CodeEditor({
   onConcept,
   extensions,
   readOnly = false,
+  vocabulary,
 }: CodeEditorProps) {
   const { d, language } = useTranslation();
   const host = useRef<HTMLDivElement>(null);
@@ -378,6 +396,12 @@ export const CodeEditor = memo(function CodeEditor({
   onConceptRef.current = onConcept;
   const moreRef = useRef(d.actions.learnMore);
   moreRef.current = d.actions.learnMore;
+  const arduinoRef = useRef(d.code.arduino);
+  arduinoRef.current = d.code.arduino;
+  /* In a ref like the rest, so a document gaining a world does not rebuild the
+     editor and lose its history. */
+  const extraRef = useRef<VocabularyEntry[]>(vocabulary ?? []);
+  extraRef.current = vocabulary ?? [];
   /* Keyed by what the rule reported, so a second rule is a second entry here
      and nothing else. The map is read inside the extension rather than closed
      over, so changing the interface language re-words the next check instead
@@ -418,13 +442,20 @@ export const CodeEditor = memo(function CodeEditor({
 
       return {
         from: before.from,
-        options: VOCABULARY.map((entry) =>
+        options: [...VOCABULARY, ...extraRef.current].map((entry) =>
           snippetCompletion(entry.insert ?? entry.name, {
             label: entry.name,
             detail: entry.signature,
             type: 'function',
             info: () =>
-              card(entry, languageRef.current, onlyHereRef.current, moreRef.current, onConceptRef.current),
+              card(
+                entry,
+                languageRef.current,
+                onlyHereRef.current,
+                moreRef.current,
+                arduinoRef.current,
+                onConceptRef.current,
+              ),
           }),
         ),
       };
@@ -459,7 +490,7 @@ export const CodeEditor = memo(function CodeEditor({
       const text = editor.state.doc.toString();
       const found = wordAt(text, position);
       if (!found) return null;
-      const entry = entryFor(found.word);
+      const entry = entryFor(found.word, extraRef.current);
       if (!entry) return null;
 
       return {
@@ -472,6 +503,7 @@ export const CodeEditor = memo(function CodeEditor({
             languageRef.current,
             onlyHereRef.current,
             moreRef.current,
+            arduinoRef.current,
             onConceptRef.current,
           ),
         }),

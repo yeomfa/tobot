@@ -1,5 +1,7 @@
 import type { Statement } from '../ast/types';
 import { runToEnd, spokenLines } from '../runtime/headless';
+import type { TimelineEvent, WorldDefinition, WorldState } from '../world/types';
+import { createWorld, valuesAt } from '../world/world';
 
 /**
  * One trial of a program: what it is told, and what it should say back.
@@ -11,12 +13,30 @@ import { runToEnd, spokenLines } from '../runtime/headless';
 export interface Case {
   answers: string[];
   expect: string[];
+  /**
+   * For a program with a world: how the scenario starts, what it does by
+   * itself, and what must be true at given moments. "Start is pressed at
+   * second 1, stop at 5; the motor is on at 3 and off at 7" is a case, and it
+   * is how a latch is tested on a real panel.
+   */
+  inputs?: Record<string, boolean>;
+  timeline?: TimelineEvent[];
+  expectWorld?: WorldExpectation[];
+}
+
+/** One thing that must be true of the world at one moment. */
+export interface WorldExpectation {
+  at: number;
+  id: string;
+  value: boolean;
 }
 
 export interface CaseResult {
   passed: boolean;
   /** What it actually said, so a teacher can see why a case failed. */
   got: string[];
+  /** The world expectations it did not meet, for the same reason. */
+  misses?: WorldExpectation[];
 }
 
 export interface Mark {
@@ -68,15 +88,47 @@ export function markFrom(points: number, results: CaseResult[]): Mark {
  * submissions cannot be: they need the worker, and so they are marked by the
  * caller that owns one.
  */
-export function gradeBlocks(body: Statement[], cases: Case[], points: number): Mark {
+export function gradeBlocks(
+  body: Statement[],
+  cases: Case[],
+  points: number,
+  world: WorldDefinition | null = null,
+): Mark {
   const results = cases.map((trial) => {
-    const state = runToEnd(body, trial.answers);
+    const start = world ? createWorld(world, { inputs: trial.inputs, timeline: trial.timeline }) : null;
+    const state = runToEnd(body, trial.answers, start);
     const got = spokenLines(state);
     /* A program that failed did not answer the question, whatever it printed
        on the way. */
-    const passed = state.status !== 'error' && linesMatch(got, trial.expect);
-    return { passed, got };
+    return judge(trial, got, state.status !== 'error', state.world ?? null);
   });
 
   return markFrom(points, results);
+}
+
+/** The world expectations a finished run did not meet. */
+export function worldMisses(trial: Case, world: WorldState | null): WorldExpectation[] {
+  const expected = trial.expectWorld ?? [];
+  if (expected.length === 0) return [];
+  if (!world) return expected;
+  return expected.filter((one) => (valuesAt(world, one.at)[one.id] ?? false) !== one.value);
+}
+
+/**
+ * Whether one run did what its case asked.
+ *
+ * Shared by both graders so blocks and code are held to one rule. A case about
+ * the world with nothing to print checks the world alone: a student who prints
+ * "motor on" while getting it right has not got it wrong.
+ */
+export function judge(trial: Case, got: string[], completed: boolean, world: WorldState | null): CaseResult {
+  const misses = worldMisses(trial, world);
+  const checksLines = trial.expect.length > 0 || !trial.expectWorld?.length;
+  const passed = completed && misses.length === 0 && (!checksLines || linesMatch(got, trial.expect));
+  return misses.length > 0 ? { passed, got, misses } : { passed, got };
+}
+
+/** Whether a case has anything to check, which a blank one does not. */
+export function caseChecksSomething(trial: Case): boolean {
+  return trial.expect.length > 0 || (trial.expectWorld?.length ?? 0) > 0;
 }

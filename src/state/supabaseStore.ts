@@ -1,5 +1,6 @@
 import type { Algorithm } from '../core/ast/types';
 import { sanitizeStatements } from '../core/ast/validateShape';
+import { reviveWorld } from '../core/world/revive';
 import type { AlgorithmStore } from './storage';
 import { isMissingColumn } from './schemaGap';
 import { getSupabase } from './supabase';
@@ -16,6 +17,7 @@ interface Row {
      run yet. Neither is a reason to fail to open someone's work. */
   kind?: unknown;
   source?: unknown;
+  world?: unknown;
 }
 
 /**
@@ -41,6 +43,7 @@ function toAlgorithm(row: Row): Algorithm {
     kind,
     source: kind === 'code' && typeof row.source === 'string' ? row.source : undefined,
     body: sanitizeStatements(row.body),
+    world: reviveWorld(row.world),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   };
@@ -65,6 +68,8 @@ function toAlgorithm(row: Row): Algorithm {
  * would turn a one-off discovery into a recurring failure.
  */
 let missingColumns = false;
+/** The same, for the `world` column alone, which arrived later. */
+let missingWorld = false;
 
 export class SupabaseAlgorithmStore implements AlgorithmStore {
   /* Every write crosses the network, so it can be slow and it can fail. */
@@ -135,9 +140,26 @@ export class SupabaseAlgorithmStore implements AlgorithmStore {
       source: algorithm.kind === 'code' ? (algorithm.source ?? '') : null,
     };
 
-    const { error } = await supabase
+    /*
+      The world only when there is one. Sent always, a project without the
+      column would fail every save and fall to the shortest row below —
+      dropping `kind` with it, so code documents would stop saving because a
+      feature most documents never use had not been migrated. Sent only with a
+      world, and retried without it, nothing but the world is ever at stake.
+    */
+    const full = algorithm.world && !missingWorld ? { ...withKind, world: algorithm.world } : withKind;
+    let { error } = await supabase
       .from('algorithms')
-      .upsert(missingColumns ? core : withKind, { onConflict: 'id' });
+      .upsert(missingColumns ? core : full, { onConflict: 'id' });
+
+    if (error && full !== withKind && !missingColumns && isMissingColumn(error.code, error.message)) {
+      missingWorld = true;
+      console.warn(
+        '[tobot] the algorithms table has no `world` column yet — saving without it. ' +
+          'Run supabase/schema.sql to keep scenarios with saved work.',
+      );
+      ({ error } = await supabase.from('algorithms').upsert(withKind, { onConflict: 'id' }));
+    }
 
     /*
       A project whose migration has not been run yet has no `kind` column, and

@@ -1,6 +1,8 @@
 import type { Statement } from './ast/types';
 import { createId } from './ast/factory';
 import type { Case } from './classroom/grade';
+import { parseMoments, writeMoments } from './world/lines';
+import type { Language } from '../i18n/types';
 
 /**
  * A piece of work set for a student: what to do, where to start, and how it
@@ -33,14 +35,68 @@ export interface Brief {
   instructions: string;
   /** What it is worth, for work that is marked. */
   points?: number;
+  /**
+   * Cases a student may run against their own work. Only ever a built-in
+   * challenge's: practice, whose cases are its specification. A classroom's
+   * stay with the teacher and never reach this.
+   */
+  cases?: Case[];
 }
 
-/** A case being edited, which keeps its identity while it is typed into. */
-export interface DraftCase extends Case {
+/**
+ * A case being edited, held as the text the author is typing.
+ *
+ * Text, not lists. Splitting on every keystroke and dropping blank lines —
+ * which is what turning "4\n" into `["4"]` does — swallowed the newline the
+ * moment it was typed, so a second answer could only ever be pasted in. The
+ * text is read into a case once, when it is used.
+ */
+export interface DraftCase {
   key: string;
+  answers: string;
+  expect: string;
+  /** What the scenario does by itself: `1 arranque sí`, one per line. */
+  timeline: string;
+  /** What must be true, and when: `4 motor sí`, one per line. */
+  expectWorld: string;
 }
 
-export const blankCase = (): DraftCase => ({ key: createId(), answers: [], expect: [] });
+export const blankCase = (): DraftCase => ({
+  key: createId(),
+  answers: '',
+  expect: '',
+  timeline: '',
+  expectWorld: '',
+});
+
+const lines = (text: string): string[] => text.split('\n').filter((line) => line.trim() !== '');
+
+/** A stored case as text to edit. */
+export function draftFromCase(trial: Case, language: Language): DraftCase {
+  return {
+    key: createId(),
+    answers: trial.answers.join('\n'),
+    expect: trial.expect.join('\n'),
+    timeline: writeMoments(trial.timeline ?? [], language),
+    expectWorld: writeMoments(trial.expectWorld ?? [], language),
+  };
+}
+
+/**
+ * The text read back into a case, with any line that could not be read.
+ *
+ * The world's lines are kept only with a world to apply them to: a case
+ * cannot press a button on a panel the assignment does not have.
+ */
+export function caseFromDraft(draft: DraftCase, withWorld: boolean): { trial: Case; bad: string[] } {
+  const trial: Case = { answers: lines(draft.answers), expect: lines(draft.expect) };
+  if (!withWorld) return { trial, bad: [] };
+  const timeline = parseMoments(draft.timeline);
+  const expected = parseMoments(draft.expectWorld);
+  if (timeline.events.length > 0) trial.timeline = timeline.events;
+  if (expected.events.length > 0) trial.expectWorld = expected.events;
+  return { trial, bad: [...timeline.bad, ...expected.bad] };
+}
 
 /** An assignment while its author is writing it; the program is in the editor. */
 export interface AuthorDraft {

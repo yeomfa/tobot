@@ -111,3 +111,16 @@
   border: 1px solid var(--accent);
   border-radius: var(--radius-xs);
 }
+
+/* Someone else's work: what is there to read stays, and what is there to
+   change goes. Inert already stops the clicks; hiding the controls stops the
+   page from offering what it will not do. */
+.editor__list[inert] .statement-block__add-else,
+.editor__list[inert] .statement-block__actions {
+  display: none;
+}
+
+/* Kept for the spacing between blocks, which they provide; only their hints go. */
+.editor__list[inert] .drop-zone {
+  visibility: hidden;
+}

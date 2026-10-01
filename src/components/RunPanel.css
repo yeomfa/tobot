@@ -140,6 +140,13 @@
   max-height: min(250px, 30vh);
 }
 
+/* With a brief or a scene above it, the robot gives up height first: the
+   controls under it are what must stay on screen, and the robot is the one
+   part of the rail that is still itself at half the size. */
+.app__robot[data-crowded] .run-panel__robot .robot__body {
+  max-height: min(130px, 15vh);
+}
+
 .run-panel__robot .robot__bubble-slot {
   min-height: 42px;
 }

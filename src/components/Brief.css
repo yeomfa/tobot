@@ -79,7 +79,10 @@
  * view. Authoring gets the larger share, because there the form is the work.
  */
 .app__robot > .brief {
-  flex: 0 1 auto;
+  /* Not shrinking: the run panel below asks for the whole height, and with
+     shrinking shared it took nearly all of it, leaving the brief a sliver.
+     The cap is what keeps the robot in view. */
+  flex: 0 0 auto;
   min-height: 0;
   max-height: 45%;
   overflow-y: auto;
@@ -196,7 +199,9 @@
 }
 
 .brief__field input,
-.brief__field textarea {
+.brief__field textarea,
+.brief__field select,
+.brief__part input {
   width: 100%;
   padding: var(--space-2);
   font: inherit;
@@ -215,7 +220,9 @@
 }
 
 .brief__field input:focus,
-.brief__field textarea:focus {
+.brief__field textarea:focus,
+.brief__field select:focus,
+.brief__part input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: var(--shadow-focus);
@@ -229,8 +236,16 @@
 
 .brief__case {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
+  gap: var(--space-2);
+}
+
+/* Two to a row: what goes in beside what must come out. With a world, the
+   second row is what happens beside what must be true. */
+.brief__case-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-2);
 }
 
@@ -340,4 +355,73 @@ li[data-state='fail'] .brief__case-head svg {
   color: var(--text-primary);
   background: var(--bg-surface);
   box-shadow: var(--shadow-sm);
+}
+
+/* -- The scenario while authoring --------------------------------------- */
+
+.brief__world {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.brief__world .brief__field input,
+.brief__world .brief__field select,
+.brief__part input {
+  background: var(--bg-surface);
+}
+
+.brief__parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.brief__part {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brief__part > span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.brief__part input {
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.brief__part code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* -- Moments in a case -------------------------------------------------- */
+
+.brief__io dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--space-2);
+}
+
+.brief__moment[data-missed] {
+  color: var(--danger);
+  text-decoration: underline wavy var(--danger);
+  text-underline-offset: 3px;
 }

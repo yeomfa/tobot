@@ -107,3 +107,27 @@ export function callWorld(
   if (!fn) throw new Error(`not a world function: ${name}`);
   return fn.apply(state, args);
 }
+
+/**
+ * The world functions as the block pickers list them.
+ *
+ * In the same `{ name, params }` shape the student's own functions have, so a
+ * world call is chosen from the same menu and gets the same argument fields.
+ * The name stored is the stable id; the label is what the student reads.
+ */
+export interface WorldSignature {
+  name: string;
+  label: string;
+  params: { name: string; type: 'text' | 'number' }[];
+  /** A statement on its own line, or a value inside an expression. */
+  use: 'statement' | 'value';
+}
+
+export function worldSignatures(language: Language): WorldSignature[] {
+  return WORLD_FUNCTIONS.map((fn) => ({
+    name: fn.id,
+    label: fn.names[language],
+    params: fn.params.map((param) => ({ name: param.name[language], type: param.kind })),
+    use: fn.returns ? 'value' : 'statement',
+  }));
+}

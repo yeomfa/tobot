@@ -25,10 +25,10 @@ import {
 
 import type { Algorithm, NodeId, Statement } from './core/ast/types';
 import { createId } from './core/ast/factory';
-import { blankCase } from './core/activity';
+import { blankCase, caseFromDraft, draftFromCase } from './core/activity';
 import type { AuthorDraft, Brief as BriefText } from './core/activity';
 import type { Case, CaseResult } from './core/classroom/grade';
-import { gradeBlocks } from './core/classroom/grade';
+import { caseChecksSomething, gradeBlocks } from './core/classroom/grade';
 import { gradeCode } from './core/classroom/gradeCode';
 import type { Location as SlotLocation } from './core/ast/operations';
 import { findLocation, findStatement } from './core/ast/operations';
@@ -90,6 +90,9 @@ import {
 } from './state/classroomStore';
 import type { Assignment, Submission } from './state/classroomStore';
 import { Brief } from './components/Brief';
+import { Scene } from './components/scene/Scene';
+import { createWorld } from './core/world/world';
+import { worldVocabulary } from './core/code/worldVocabulary';
 import { useSession } from './state/useSession';
 import { isSupabaseConfigured } from './state/supabase';
 import { useResizable } from './state/useResizable';
@@ -415,7 +418,13 @@ function Workspace({
  */
 type Desk =
   | { mode: 'own' }
-  | { mode: 'doing'; brief: BriefText; assignmentId: string | null }
+  | {
+      mode: 'doing';
+      brief: BriefText;
+      assignmentId: string | null;
+      /** The last time the student checked their work against the brief's cases. */
+      results: CaseResult[] | null;
+    }
   | {
       mode: 'review';
       assignment: Assignment;
@@ -523,7 +532,17 @@ function Workbench({
     return () => clearTimeout(timer);
   }, [algorithm]);
 
-  const execution = useExecution(algorithm.body);
+  /*
+    How the scenario starts, set by hand on the scene before running. Kept per
+    document: another document's buttons are not this one's.
+  */
+  const [worldInputs, setWorldInputs] = useState<Record<string, boolean>>({});
+  useEffect(() => setWorldInputs({}), [algorithm.id]);
+  const startWorld = useMemo(
+    () => (algorithm.world ? createWorld(algorithm.world, { inputs: worldInputs }) : null),
+    [algorithm.world, worldInputs],
+  );
+  const execution = useExecution(algorithm.body, startWorld);
   /* The other way a program can run. Both hooks are held because hooks cannot
      be conditional, and the idle one costs a few pieces of state and no
      worker: nothing is created until something is run. */
@@ -1009,7 +1028,7 @@ function Workbench({
       // closed, and carried over it let Ctrl+C copy blocks no longer on screen.
       selection.clear();
       load(next);
-      setDesk({ mode: 'doing', brief, assignmentId });
+      setDesk({ mode: 'doing', brief, assignmentId, results: null });
       setRobotOpen(true);
       setScreen('editor');
     },
@@ -1038,6 +1057,10 @@ function Workbench({
         kind: submission.kind,
         body: submission.body,
         source: submission.source,
+        /* The assignment's scenario, not the submission's: a student cannot
+           change the panel they were set, so the one that marks them is the
+           one the teacher chose. */
+        world: assignment.world,
         createdAt: submission.submittedAt,
         updatedAt: submission.submittedAt,
       });
@@ -1078,17 +1101,14 @@ function Workbench({
           title: assignment?.title ?? '',
           instructions: assignment?.instructions ?? '',
           points: assignment?.points ?? 10,
-          cases:
-            cases.length > 0
-              ? cases.map((one) => ({ ...one, key: createId() }))
-              : [blankCase()],
+          cases: cases.length > 0 ? cases.map((one) => draftFromCase(one, language)) : [blankCase()],
         },
         returnTo,
       });
       setRobotOpen(true);
       setScreen('editor');
     },
-    [homeDocument, setPersisting, selection, load, d.app.untitled, setRobotOpen, setScreen],
+    [homeDocument, setPersisting, selection, load, d.app.untitled, setRobotOpen, setScreen, language],
   );
 
   /** Out of review or authoring, with the teacher's own document put back. */
@@ -1107,9 +1127,10 @@ function Workbench({
     setDeskBusy(true);
     setDeskFault(null);
     try {
+      const world = algorithm.world ?? null;
       const mark = isCode(algorithm)
-        ? await gradeCode(algorithm.source ?? '', desk.cases, desk.assignment.points)
-        : gradeBlocks(algorithm.body, desk.cases, desk.assignment.points);
+        ? await gradeCode(algorithm.source ?? '', desk.cases, desk.assignment.points, world)
+        : gradeBlocks(algorithm.body, desk.cases, desk.assignment.points, world);
       await recordMark(desk.submission.id, mark);
       setDesk({ ...desk, results: mark.results, score: mark.score });
     } catch (thrown) {
@@ -1134,6 +1155,12 @@ function Workbench({
       setDeskFault(d.brief.needsTitle);
       return;
     }
+    const read = desk.draft.cases.map((one) => caseFromDraft(one, Boolean(algorithm.world)));
+    const bad = read.flatMap((one) => one.bad);
+    if (bad.length > 0) {
+      setDeskFault(fill(d.brief.badLines, { lines: bad.map((line) => `«${line}»`).join(', ') }));
+      return;
+    }
     setDeskBusy(true);
     setDeskFault(null);
     try {
@@ -1144,9 +1171,7 @@ function Workbench({
           instructions: desk.draft.instructions.trim(),
           points: desk.draft.points,
           algorithm: { ...algorithm, name: title },
-          cases: desk.draft.cases
-            .filter((one) => one.expect.length > 0)
-            .map(({ answers, expect }) => ({ answers, expect })),
+          cases: read.map((one) => one.trial).filter(caseChecksSomething),
         },
         desk.editingId ?? undefined,
       );
@@ -1157,7 +1182,27 @@ function Workbench({
     } finally {
       setDeskBusy(false);
     }
-  }, [desk, algorithm, backToRoom, d.brief.needsTitle, d.classroom.failed]);
+  }, [desk, algorithm, backToRoom, d.brief.needsTitle, d.brief.badLines, d.classroom.failed, fill]);
+
+  /**
+   * A student checking their own work against a built-in challenge's cases.
+   *
+   * Nothing is recorded: this is practice, and the answer is for them.
+   */
+  const checkWork = useCallback(async () => {
+    if (desk.mode !== 'doing' || !desk.brief.cases) return;
+    const cases = desk.brief.cases;
+    setDeskBusy(true);
+    try {
+      const world = algorithm.world ?? null;
+      const mark = isCode(algorithm)
+        ? await gradeCode(algorithm.source ?? '', cases, 0, world)
+        : gradeBlocks(algorithm.body, cases, 0, world);
+      setDesk((current) => (current.mode === 'doing' ? { ...current, results: mark.results } : current));
+    } finally {
+      setDeskBusy(false);
+    }
+  }, [desk, algorithm]);
 
   /*
     Whether the starter can still change kind. Only while it is empty, or still
@@ -1169,15 +1214,43 @@ function Workbench({
     : algorithm.body.length === 0;
   const switchStarter = useCallback(
     (kind: 'blocks' | 'code') => {
-      const blank = createEmptyAlgorithm(algorithm.name);
-      load(
-        kind === 'code'
-          ? { ...blank, id: algorithm.id, kind: 'code', source: d.code.starter }
-          : { ...blank, id: algorithm.id },
-      );
+      // The scenario stays: it belongs to the assignment, not to the program.
+      const blank = { ...createEmptyAlgorithm(algorithm.name), id: algorithm.id, world: algorithm.world };
+      load(kind === 'code' ? { ...blank, kind: 'code', source: d.code.starter } : blank);
     },
-    [algorithm.id, algorithm.name, load, d.code.starter],
+    [algorithm.id, algorithm.name, algorithm.world, load, d.code.starter],
   );
+
+  /** What the code editor offers on top of its own six, with a world. */
+  const worldWords = useMemo(
+    () => (algorithm.world ? worldVocabulary(algorithm.world, language) : undefined),
+    [algorithm.world, language],
+  );
+
+  /** The scene, when this document has a world to show. */
+  const running = writing
+    ? codeRun.isRunning
+    : execution.isPlaying || execution.state.status === 'running' || execution.state.status === 'awaitingInput';
+  const runState = writing ? codeRun.state : execution.state;
+  const scene = algorithm.world ? (
+    <Scene
+      definition={algorithm.world}
+      world={runState.status === 'idle' ? null : (runState.world ?? null)}
+      inputs={worldInputs}
+      onToggle={
+        running
+          ? null
+          : (id) => {
+              /* Changing the start clears the last run's end state, which
+                 described a different scenario. */
+              if (writing) codeRun.clear();
+              else execution.stop();
+              setWorldInputs((current) => ({ ...current, [id]: !(startWorld?.values[id] ?? false) }));
+            }
+      }
+      playback={writing}
+    />
+  ) : null;
 
   /** The brief, in whichever form the desk calls for, or nothing at all. */
   const brief =
@@ -1187,6 +1260,17 @@ function Workbench({
         title={desk.brief.title}
         instructions={desk.brief.instructions}
         points={desk.brief.points}
+        world={algorithm.world}
+        check={
+          desk.brief.cases
+            ? {
+                cases: desk.brief.cases,
+                results: desk.results,
+                busy: deskBusy,
+                onRun: () => void checkWork(),
+              }
+            : undefined
+        }
       />
     ) : desk.mode === 'review' ? (
       <Brief
@@ -1195,12 +1279,15 @@ function Workbench({
         instructions={desk.assignment.instructions}
         points={desk.assignment.points}
         student={desk.student}
-        cases={desk.cases}
-        results={desk.results}
+        world={desk.assignment.world}
+        check={{
+          cases: desk.cases,
+          results: desk.results,
+          busy: deskBusy,
+          onRun: () => void markReview(),
+        }}
         score={desk.score}
-        marking={deskBusy}
         fault={deskFault}
-        onMark={() => void markReview()}
       />
     ) : desk.mode === 'author' ? (
       <Brief
@@ -1211,6 +1298,8 @@ function Workbench({
         onChange={(draft) => setDesk({ ...desk, draft })}
         kind={isCode(algorithm) ? 'code' : 'blocks'}
         onKind={starterIsBlank ? switchStarter : null}
+        world={algorithm.world}
+        onWorld={controller.setWorld}
       />
     ) : null;
 
@@ -1230,9 +1319,9 @@ function Workbench({
     setRobotOpen(true);
     // One button, two engines. Which one depends on what is being written,
     // and the header has no business knowing more than that.
-    if (isCode(algorithm)) codeRun.run(algorithm.source ?? '');
+    if (isCode(algorithm)) codeRun.run(algorithm.source ?? '', startWorld);
     else execution.play();
-  }, [algorithm, codeRun, execution, setRobotOpen]);
+  }, [algorithm, codeRun, execution, setRobotOpen, startWorld]);
 
   /* The same checks the editor runs, computed once here and handed to both.
      Validating on every render — twice, since the editor does it too — is a
@@ -1589,6 +1678,9 @@ function Workbench({
             drawerSize={drawerSize}
             readOnly={locked}
             brief={brief}
+            world={startWorld}
+            scene={scene}
+            vocabulary={worldWords}
           />
         </main>
       ) : (
@@ -1778,9 +1870,10 @@ function Workbench({
         </div>
 
         {robotOpen && (
-          <aside className="app__robot">
+          <aside className="app__robot" data-crowded={brief || scene ? true : undefined}>
             <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
             {brief}
+            {scene}
             {/* Above the robot, not instead of it: the robot is what runs the
                 program, and inspecting should not cost the student the thing
                 they are about to press. */}

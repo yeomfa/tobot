@@ -867,7 +867,11 @@ export const Home = memo(function Home({
                       onClick={() =>
                         onOpenActivity(
                           algorithmFromChallenge(challenge, language),
-                          { title: challenge.title[language], instructions: challenge.goal[language] },
+                          {
+                            title: challenge.title[language],
+                            instructions: challenge.goal[language],
+                            cases: challenge.cases?.(language),
+                          },
                           null,
                         )
                       }

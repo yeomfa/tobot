@@ -11,8 +11,10 @@ import {
 } from '@phosphor-icons/react';
 import { lazy, Suspense, useCallback, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import type { WorldState } from '../core/world/types';
 
 import { VOCABULARY } from '../core/code/vocabulary';
+import type { VocabularyEntry } from '../core/code/vocabulary';
 import type { CodeExecutionController } from '../state/useCodeExecution';
 import { useTranslation } from '../i18n/context';
 import type { CodeEditorHandle, CodeEditorReport } from './CodeEditor';
@@ -54,6 +56,12 @@ interface CodeWorkspaceProps {
   readOnly?: boolean;
   /** What the work asks for, at the top of the rail. */
   brief?: ReactNode;
+  /** The world a run starts from, when the document has one. */
+  world?: WorldState | null;
+  /** Its scene, drawn above the robot. */
+  scene?: ReactNode;
+  /** What the world adds to what can be written: its functions. */
+  vocabulary?: VocabularyEntry[];
 }
 
 /**
@@ -83,6 +91,9 @@ export function CodeWorkspace({
   drawerSize,
   readOnly = false,
   brief,
+  world = null,
+  scene,
+  vocabulary,
 }: CodeWorkspaceProps) {
   const { d, t } = useTranslation();
   const [reply, setReply] = useState('');
@@ -336,7 +347,7 @@ export function CodeWorkspace({
             }
           >
             <CodeEditor
-              onRun={() => execution.run(source)}
+              onRun={() => execution.run(source, world)}
               onConcept={onConcept}
               value={source}
               onChange={onChange}
@@ -345,6 +356,7 @@ export function CodeWorkspace({
               onReady={ready}
               onReport={report}
               readOnly={readOnly}
+              vocabulary={vocabulary}
             />
           </Suspense>
         </div>
@@ -394,6 +406,7 @@ export function CodeWorkspace({
       <aside className="codework__robot" aria-label={d.a11y.robotStage}>
         <ResizeHandle resizable={robotSize} edge="left" label={d.panels.resize} />
         {brief}
+        {scene}
         <Robot mood={mood} message={message} />
 
         {/*
@@ -413,7 +426,7 @@ export function CodeWorkspace({
             <button
               type="button"
               className="codework__run"
-              onClick={() => execution.run(source)}
+              onClick={() => execution.run(source, world)}
               disabled={source.trim() === ''}
             >
               <Play weight="fill" /> {d.code.run}
@@ -452,7 +465,7 @@ export function CodeWorkspace({
         <div className="codework__reference">
           <h2>{d.code.reference}</h2>
           <ul>
-            {VOCABULARY.map((entry) => (
+            {[...(vocabulary ?? []), ...VOCABULARY].map((entry) => (
               <li key={entry.name}>
                 <button
                   type="button"

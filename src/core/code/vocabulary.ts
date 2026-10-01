@@ -53,6 +53,13 @@ export interface VocabularyEntry {
   category: Category;
   /** Where to read more, which is the door the block inspector already offers. */
   concept?: ConceptId;
+  /**
+   * The same thing on a microcontroller, for the world's functions: what a
+   * student learning `encender` here will write on real hardware.
+   */
+  arduino?: string;
+  /** What to say about where it exists, when the general "only in Tobot" note is wrong for it. */
+  note?: Record<Language, string>;
 }
 
 export const VOCABULARY: VocabularyEntry[] = [

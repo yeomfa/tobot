@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo, useRef } from 'react';
 
 import { collectFunctions, namesInScopeAt } from '../core/ast/operations';
+import { worldSignatures } from '../core/world/registry';
 import { problemsByNode, validate } from '../core/ast/validate';
 import type { Problem } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
@@ -47,13 +48,21 @@ export const Editor = memo(function Editor({
   retypeLosses,
   readOnly = false,
 }: EditorProps) {
-  const { d } = useTranslation();
+  const { d, language } = useTranslation();
   const count = algorithm.body.length;
 
   // Static checks re-run on every edit; the tree is small enough that this is
   // cheaper than tracking which statement changed.
   /* Every function in the program, so a call can offer them by name. */
-  const functions = useMemo(() => collectFunctions(algorithm.body), [algorithm.body]);
+  /* And, with a world, what the world can do — in the same menu, so switching a
+     motor on is chosen the way calling the student's own function is. */
+  const functions = useMemo(
+    () => [
+      ...collectFunctions(algorithm.body),
+      ...(algorithm.world ? worldSignatures(language) : []),
+    ],
+    [algorithm.body, algorithm.world, language],
+  );
 
   /*
     What each block can name, asked per block.

@@ -39,7 +39,12 @@ interface ExpressionEditorProps {
    * emitters handled a call as a value, and the editor never offered one — so
    * a function could return something no expression could receive.
    */
-  functions?: { name: string; params: { name: string; type: ValueKind }[] }[];
+  functions?: {
+    name: string;
+    params: { name: string; type: ValueKind }[];
+    label?: string;
+    use?: 'statement' | 'value';
+  }[];
   /**
    * Lists in scope, for the two options that read from one.
    *
@@ -503,7 +508,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
       /* Seeded with the first function and a slot per parameter, so the value
          is usable the moment it appears rather than after two more choices. */
       case 'call': {
-        const first = functions.find((fn) => fn.name) ?? functions[0];
+        const first =
+          functions.find((fn) => fn.name && fn.use !== 'statement') ?? functions[0];
         onChange({
           kind: 'call',
           name: first?.name ?? '',
@@ -839,8 +845,8 @@ export const ExpressionEditor = memo(function ExpressionEditor({
             groups={[
               {
                 options: functions
-                  .filter((fn) => fn.name)
-                  .map((fn) => ({ value: fn.name, label: fn.name, icon: FunctionGlyph })),
+                  .filter((fn) => fn.name && fn.use !== 'statement')
+                  .map((fn) => ({ value: fn.name, label: fn.label ?? fn.name, icon: FunctionGlyph })),
               },
             ]}
             onChange={(name) => {

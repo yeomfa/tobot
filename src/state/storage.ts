@@ -1,4 +1,5 @@
 import type { Algorithm } from '../core/ast/types';
+import { reviveWorld } from '../core/world/revive';
 import { sanitizeStatements } from '../core/ast/validateShape';
 import { isSupabaseConfigured } from './supabase';
 
@@ -106,6 +107,7 @@ function reviveAlgorithm(value: unknown): Algorithm | null {
     // can edit, so anything that is not a string is no program at all.
     source: kind === 'code' && typeof record.source === 'string' ? record.source : undefined,
     body: sanitizeStatements(record.body),
+    world: reviveWorld(record.world),
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : new Date().toISOString(),
     updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : new Date().toISOString(),
   };

@@ -1,6 +1,9 @@
 import { createId, literal, variable } from '../core/ast/factory';
 import type { Algorithm, BinaryOperator, Expression, Statement } from '../core/ast/types';
+import type { Case } from '../core/classroom/grade';
+import type { WorldDefinition } from '../core/world/types';
 import type { Language } from '../i18n/types';
+import { word, worldWith } from './worlds';
 
 function bin(operator: BinaryOperator, left: Expression, right: Expression): Expression {
   return { kind: 'binary', operator, left, right };
@@ -47,7 +50,26 @@ export interface Challenge {
   title: Record<Language, string>;
   goal: Record<Language, string>;
   build: (language: Language) => Statement[];
+  /** The scenario it is played in, for an exercise about the world. */
+  world?: (language: Language) => WorldDefinition;
+  /**
+   * How it is checked. Public, unlike a classroom's: a built-in challenge is
+   * practice, and a student who reads the cases has read the specification.
+   */
+  cases?: (language: Language) => Case[];
 }
+
+/** A world call, stored by its stable id: the views name it in each language. */
+const act = (name: string, ...args: Expression[]): Statement => ({
+  id: createId(),
+  kind: 'call',
+  name,
+  args,
+});
+const pressed = (at: number, id: string, length = 1) => [
+  { at, id, value: true },
+  { at: at + length, id, value: false },
+];
 
 const COPY: Record<Language, Record<string, string>> = {
   es: {
@@ -65,6 +87,16 @@ const COPY: Record<Language, Record<string, string>> = {
     goalSum: 'Suma todos los números del 1 al N usando un ciclo.',
     goalEven: 'Muestra solo los números pares del 1 al 20.',
     todoEven: 'TODO: dentro del ciclo, muestra i solo si es par (i módulo 2 = 0)',
+    goalLamp:
+      'Prende la lámpara del tablero. En bloques: «llamar» → «encender» y escribe «lampara». En código: encender("lampara");',
+    todoLamp: 'TODO: enciende la lámpara',
+    goalLatch:
+      'Al pulsar «arranque», el motor se enciende y sigue encendido aunque sueltes el botón. Al pulsar «paro», se apaga. El ciclo repite la revisión cada medio segundo.',
+    todoStart: 'TODO: si leer("arranque") está activo, enciende el motor',
+    todoStop: 'TODO: si leer("paro") está activo, apaga el motor',
+    goalSequence:
+      'Arranca «motor» y, tres segundos después, «motor2». Así se arrancan dos motores grandes sin que la corriente de arranque de ambos llegue a la vez.',
+    todoSequence: 'TODO: espera 3 segundos y enciende motor2',
   },
   en: {
     askBase: 'Type the width of the rectangle:',
@@ -81,6 +113,16 @@ const COPY: Record<Language, Record<string, string>> = {
     goalSum: 'Add every number from 1 to N using a loop.',
     goalEven: 'Show only the even numbers from 1 to 20.',
     todoEven: 'TODO: inside the loop, show i only when it is even (i modulo 2 = 0)',
+    goalLamp:
+      'Light the lamp on the panel. In blocks: "call" → "turnOn" and type "lamp". In code: turnOn("lamp");',
+    todoLamp: 'TODO: switch the lamp on',
+    goalLatch:
+      'Pressing "start" switches the motor on, and it stays on after the button is released. Pressing "stop" switches it off. The loop checks again every half second.',
+    todoStart: 'TODO: if read("start") is active, switch the motor on',
+    todoStop: 'TODO: if read("stop") is active, switch the motor off',
+    goalSequence:
+      'Start "motor" and, three seconds later, "motor2". This is how two large motors are started without both drawing their starting current at once.',
+    todoSequence: 'TODO: wait 3 seconds and switch motor2 on',
   },
 };
 
@@ -163,6 +205,102 @@ export const challenges: Challenge[] = [
       ];
     },
   },
+  /*
+   * Electromechanics: the first exercises played in a scenario, and the first
+   * guided ones. Each is built from the same two primitives every domain uses,
+   * so the panel here is the conveyor or the gas alarm of another class.
+   */
+  {
+    id: 'lamp',
+    topic: 'io',
+    level: 1,
+    title: { es: 'Enciende la lámpara', en: 'Light the lamp' },
+    goal: { es: COPY.es.goalLamp, en: COPY.en.goalLamp },
+    build: (language) => [note(COPY[language].todoLamp)],
+    world: (language) => worldWith(language, 5, [['lamp', 'output', 'lamp']]),
+    cases: (language) => [
+      { answers: [], expect: [], expectWorld: [{ at: 5, id: word(language, 'lamp'), value: true }] },
+    ],
+  },
+  {
+    id: 'latch',
+    topic: 'loops',
+    // a loop, two conditions and the idea of state held between readings
+    level: 3,
+    title: { es: 'Arranque y paro', en: 'Start and stop' },
+    goal: { es: COPY.es.goalLatch, en: COPY.en.goalLatch },
+    build: (language) => {
+      const c = COPY[language];
+      return [
+        {
+          id: createId(),
+          kind: 'while',
+          condition: literal(true, 'boolean'),
+          body: [note(c.todoStart), note(c.todoStop), act('wait', n(0.5))],
+        },
+      ];
+    },
+    world: (language) =>
+      worldWith(language, 10, [
+        ['start', 'input', 'pushbutton'],
+        ['stop', 'input', 'pushbutton'],
+        ['motor', 'output', 'motor'],
+      ]),
+    cases: (language) => {
+      const start = word(language, 'start');
+      const stop = word(language, 'stop');
+      const motor = word(language, 'motor');
+      return [
+        {
+          answers: [],
+          expect: [],
+          timeline: [...pressed(1, start), ...pressed(6, stop)],
+          expectWorld: [
+            { at: 0.5, id: motor, value: false },
+            // Still on long after the button was let go: that is the latch.
+            { at: 4, id: motor, value: true },
+            { at: 8, id: motor, value: false },
+          ],
+        },
+        {
+          answers: [],
+          expect: [],
+          expectWorld: [{ at: 9, id: motor, value: false }],
+        },
+      ];
+    },
+  },
+  {
+    id: 'sequence',
+    topic: 'io',
+    level: 2,
+    title: { es: 'Arranque en secuencia', en: 'Sequenced start' },
+    goal: { es: COPY.es.goalSequence, en: COPY.en.goalSequence },
+    build: (language) => [
+      act('turnOn', s(word(language, 'motor'))),
+      note(COPY[language].todoSequence),
+    ],
+    world: (language) =>
+      worldWith(language, 6, [
+        ['motor', 'output', 'motor'],
+        ['motor2', 'output', 'motor'],
+      ]),
+    cases: (language) => {
+      const motor = word(language, 'motor');
+      const motor2 = word(language, 'motor2');
+      return [
+        {
+          answers: [],
+          expect: [],
+          expectWorld: [
+            { at: 1, id: motor, value: true },
+            { at: 2, id: motor2, value: false },
+            { at: 4, id: motor2, value: true },
+          ],
+        },
+      ];
+    },
+  },
 ];
 
 export function algorithmFromChallenge(challenge: Challenge, language: Language): Algorithm {
@@ -171,6 +309,7 @@ export function algorithmFromChallenge(challenge: Challenge, language: Language)
     id: `alg_${createId().slice(2)}`,
     name: challenge.title[language],
     body: challenge.build(language),
+    world: challenge.world?.(language),
     createdAt: now,
     updatedAt: now,
   };

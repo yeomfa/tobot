@@ -16,6 +16,7 @@ import {
   updateStatement,
 } from '../core/ast/operations';
 import type { Location } from '../core/ast/operations';
+import type { WorldDefinition } from '../core/world/types';
 import type { Algorithm, NodeId, Param, Statement } from '../core/ast/types';
 import { createAlgorithmStore } from './storage';
 
@@ -57,6 +58,7 @@ type Action =
   | { type: 'edit'; transform: (body: Statement[]) => Statement[] }
   | { type: 'rename'; name: string }
   | { type: 'write'; source: string }
+  | { type: 'world'; world: WorldDefinition | undefined }
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'load'; algorithm: Algorithm };
@@ -78,6 +80,14 @@ function reducer(state: EditorState, action: Action): EditorState {
         future: [],
       };
     }
+
+    /* The scenario, which is not part of the program's history: undoing a
+       block should not take the panel away with it. */
+    case 'world':
+      return {
+        ...state,
+        algorithm: { ...state.algorithm, world: action.world, updatedAt: new Date().toISOString() },
+      };
 
     case 'rename':
       return {
@@ -145,6 +155,8 @@ export interface AlgorithmController {
   setName: (name: string) => void;
   /** Replaces the program of a code document. */
   setSource: (source: string) => void;
+  /** Gives the document a scenario, or takes it away. */
+  setWorld: (world: WorldDefinition | undefined) => void;
   add: (statement: Statement, location: Location) => void;
   update: (id: NodeId, update: (statement: Statement) => Statement) => void;
   remove: (id: NodeId) => void;
@@ -305,6 +317,10 @@ export function useAlgorithm(initial: Algorithm, blankName = ''): AlgorithmContr
     canRedo: state.future.length > 0,
     setName: useCallback((name: string) => dispatch({ type: 'rename', name }), []),
     setSource: useCallback((source: string) => dispatch({ type: 'write', source }), []),
+    setWorld: useCallback(
+      (world: WorldDefinition | undefined) => dispatch({ type: 'world', world }),
+      [],
+    ),
     add: useCallback(
       (statement: Statement, location: Location) =>
         edit((body) => insertStatement(body, statement, location)),
