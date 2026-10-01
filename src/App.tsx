@@ -534,6 +534,7 @@ function Workbench({
       [t],
     ),
     tooLong: d.code.tooLong,
+    translate: t,
   });
   const writing = isCode(algorithm);
   /* The code editor owns its own undo stack, so the header's buttons have to

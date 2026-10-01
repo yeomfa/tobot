@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { RunnerEvent, RunnerRequest } from '../core/code/runner.worker';
+import type { WorldState } from '../core/world/types';
 import type {
   ExecutionState,
   OutputEntry,
@@ -39,6 +40,8 @@ export type ErrorText = (message: string, line: number | null) => string;
 export interface RunnerMessages {
   describeError: ErrorText;
   tooLong: string;
+  /** For the mistakes the worker can name but not phrase: a lamp that is not there. */
+  translate: (key: string, vars?: Record<string, string | number>) => string;
 }
 
 export interface CodeExecutionController {
@@ -46,7 +49,8 @@ export interface CodeExecutionController {
       can render a run without knowing which surface produced it. */
   state: ExecutionState;
   isRunning: boolean;
-  run: (source: string) => void;
+  /** Runs the source, acting on this world when there is one. */
+  run: (source: string, world?: WorldState | null) => void;
   stop: () => void;
   answer: (value: string) => void;
   clear: () => void;
@@ -60,6 +64,7 @@ const IDLE: ExecutionState = {
   error: null,
   stepCount: 0,
   pendingPrompt: null,
+  world: null,
 };
 
 /**
@@ -129,7 +134,7 @@ export function useCodeExecution(messages: RunnerMessages): CodeExecutionControl
   }, [clearDeadline, dispose]);
 
   const run = useCallback(
-    (source: string) => {
+    (source: string, world: WorldState | null = null) => {
       dispose();
 
       const created = new Worker(new URL('../core/code/runner.worker.ts', import.meta.url), {
@@ -173,9 +178,19 @@ export function useCodeExecution(messages: RunnerMessages): CodeExecutionControl
           return;
         }
 
+        /* Before the catch-all below, which treats anything it does not know as
+           the end of the run: a world change mid-program is not the end. */
+        if (message.type === 'world') {
+          setState((current) => ({ ...current, world: message.state }));
+          return;
+        }
+
         if (message.type === 'error') {
           clearDeadline();
-          const said = messagesRef.current.describeError(message.text, message.line);
+          const text = message.key
+            ? messagesRef.current.translate(message.key, message.vars)
+            : message.text;
+          const said = messagesRef.current.describeError(text, message.line);
           setState((current) => ({
             ...current,
             status: 'error',
@@ -191,9 +206,9 @@ export function useCodeExecution(messages: RunnerMessages): CodeExecutionControl
         dispose();
       };
 
-      setState({ ...IDLE, status: 'running' });
+      setState({ ...IDLE, status: 'running', world });
       startDeadline();
-      const request: RunnerRequest = { type: 'run', source };
+      const request: RunnerRequest = { type: 'run', source, world };
       created.postMessage(request);
     },
     [clearDeadline, dispose, startDeadline],
