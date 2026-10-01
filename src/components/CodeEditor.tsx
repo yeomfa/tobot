@@ -169,6 +169,90 @@ const theme = EditorView.theme({
     backgroundColor: 'var(--accent-soft)',
   },
   '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: '1.7' },
+
+  /*
+    The tooltips: the completion menu and the hover card.
+
+    Here and not in the stylesheet. CodeMirror's base theme scopes its rules
+    under a generated class, which outranks a plain stylesheet selector — so the
+    menu kept the stock blue selection and the stock glyph icons, and every row
+    kept `overflow-x: hidden`, which turns the other axis into a scrollbar of its
+    own. Rules in the editor's theme are mounted above the base theme and win.
+  */
+  '.cm-tooltip': {
+    color: 'var(--text-primary)',
+    backgroundColor: 'var(--bg-raised)',
+    border: '1px solid var(--border-strong)',
+    borderRadius: 'var(--radius-md)',
+    boxShadow: 'var(--shadow-lg)',
+  },
+  '.cm-tooltip.cm-tooltip-autocomplete': { padding: 'var(--space-1)' },
+  '.cm-tooltip.cm-tooltip-autocomplete > ul': {
+    minWidth: '240px',
+    maxWidth: 'min(420px, 80vw)',
+    maxHeight: '16em',
+    fontFamily: 'var(--font-mono)',
+  },
+  '.cm-tooltip.cm-tooltip-autocomplete > ul > li': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-2)',
+    padding: '5px var(--space-2)',
+    lineHeight: '1.4',
+    // Both axes: one hidden and one not gives every row its own scrollbar.
+    overflow: 'hidden',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-primary)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  '.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]': {
+    color: 'var(--text-inverse)',
+    backgroundColor: 'var(--accent)',
+  },
+  /* The entry's topic as a dot, in the hue its word takes in the text. A fixed
+     size that does not flex, so it can never push the label out of the row. */
+  '.cm-completionIcon': {
+    flex: '0 0 auto',
+    width: '7px',
+    height: '7px',
+    padding: '0',
+    margin: '0',
+    borderRadius: '999px',
+    backgroundColor: 'var(--text-muted)',
+    opacity: '1',
+  },
+  // `[class]` only to outrank the base theme's per-type glyphs (`ƒ`, `x`, `🔑`).
+  '.cm-completionIcon[class]:after': { content: 'none' },
+  '.cm-completionIcon-function, .cm-completionIcon-method': { backgroundColor: 'var(--code-hue-io)' },
+  '.cm-completionIcon-variable, .cm-completionIcon-constant': {
+    backgroundColor: 'var(--code-hue-variable)',
+  },
+  '.cm-completionIcon-keyword': { backgroundColor: 'var(--code-hue-conditional)' },
+  '.cm-completionLabel': {
+    flex: '1 1 auto',
+    minWidth: '0',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  '.cm-completionMatchedText': { fontWeight: '700', textDecoration: 'none' },
+  '.cm-completionDetail': {
+    flex: '0 1 auto',
+    minWidth: '0',
+    margin: '0',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--text-xs)',
+    fontStyle: 'normal',
+    color: 'var(--text-muted)',
+  },
+  '.cm-tooltip-autocomplete > ul > li[aria-selected] .cm-completionDetail': {
+    color: 'color-mix(in srgb, var(--text-inverse) 75%, transparent)',
+  },
+  // The explanation beside the menu: the same card the hover shows.
+  '.cm-tooltip.cm-completionInfo': { padding: '0', maxWidth: '340px' },
 });
 
 /**

@@ -48,6 +48,7 @@ import { useTranslation } from '../i18n/context';
 import {
   DEFAULT_SECTION,
   isLibrarySection,
+  isShownSection,
   sectionPath,
   type LibrarySection,
 } from '../routes';
@@ -121,13 +122,13 @@ const EXAMPLE_ICONS: Record<string, Icon> = {
  */
 let lastKnown: Algorithm[] | null = null;
 
-const SECTIONS: Array<{ id: Section; icon: Icon }> = [
+const SECTIONS = ([
   { id: 'algorithms', icon: FolderOpen },
   { id: 'challenges', icon: PuzzlePiece },
   { id: 'examples', icon: Lightbulb },
   { id: 'classroom', icon: UsersThreeIcon },
   { id: 'concepts', icon: BookOpenText },
-];
+] as Array<{ id: Section; icon: Icon }>).filter((entry) => isShownSection(entry.id));
 
 function sectionLabel(d: ReturnType<typeof useTranslation>['d'], id: Section): string {
   if (id === 'algorithms') return d.library.saved;
@@ -301,7 +302,7 @@ export const Home = memo(function Home({
   */
   const { section: sectionParam } = useParams();
   const navigate = useNavigate();
-  const valid = isLibrarySection(sectionParam);
+  const valid = isLibrarySection(sectionParam) && isShownSection(sectionParam);
   const section: Section = valid ? sectionParam : DEFAULT_SECTION;
 
   /*

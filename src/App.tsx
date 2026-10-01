@@ -91,6 +91,7 @@ import {
 import type { Assignment, Submission } from './state/classroomStore';
 import { Brief } from './components/Brief';
 import { Scene } from './components/scene/Scene';
+import { FEATURES } from './features';
 import { createWorld } from './core/world/world';
 import { worldVocabulary } from './core/code/worldVocabulary';
 import { useSession } from './state/useSession';
@@ -538,9 +539,12 @@ function Workbench({
   */
   const [worldInputs, setWorldInputs] = useState<Record<string, boolean>>({});
   useEffect(() => setWorldInputs({}), [algorithm.id]);
+  /* The document's world, while worlds are shown at all. Left on the document
+     either way, so switching them back on finds it where it was. */
+  const world = FEATURES.worlds ? algorithm.world : undefined;
   const startWorld = useMemo(
-    () => (algorithm.world ? createWorld(algorithm.world, { inputs: worldInputs }) : null),
-    [algorithm.world, worldInputs],
+    () => (world ? createWorld(world, { inputs: worldInputs }) : null),
+    [world, worldInputs],
   );
   const execution = useExecution(algorithm.body, startWorld);
   /* The other way a program can run. Both hooks are held because hooks cannot
@@ -1223,8 +1227,8 @@ function Workbench({
 
   /** What the code editor offers on top of its own six, with a world. */
   const worldWords = useMemo(
-    () => (algorithm.world ? worldVocabulary(algorithm.world, language) : undefined),
-    [algorithm.world, language],
+    () => (world ? worldVocabulary(world, language) : undefined),
+    [world, language],
   );
 
   /** The scene, when this document has a world to show. */
@@ -1232,9 +1236,9 @@ function Workbench({
     ? codeRun.isRunning
     : execution.isPlaying || execution.state.status === 'running' || execution.state.status === 'awaitingInput';
   const runState = writing ? codeRun.state : execution.state;
-  const scene = algorithm.world ? (
+  const scene = world ? (
     <Scene
-      definition={algorithm.world}
+      definition={world}
       world={runState.status === 'idle' ? null : (runState.world ?? null)}
       inputs={worldInputs}
       onToggle={
@@ -1328,8 +1332,8 @@ function Workbench({
      full walk of the tree for something that only changes when the tree
      does. */
   const problems = useMemo(
-    () => problemsByNode(validate(algorithm.body, { world: algorithm.world })),
-    [algorithm.body, algorithm.world],
+    () => problemsByNode(validate(algorithm.body, { world })),
+    [algorithm.body, world],
   );
 
   const activeNodeId = execution.state.currentNodeId;

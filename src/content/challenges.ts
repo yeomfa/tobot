@@ -3,6 +3,7 @@ import type { Algorithm, BinaryOperator, Expression, Statement } from '../core/a
 import type { Case } from '../core/classroom/grade';
 import type { WorldDefinition } from '../core/world/types';
 import type { Language } from '../i18n/types';
+import { FEATURES } from '../features';
 import { word, worldWith } from './worlds';
 
 function bin(operator: BinaryOperator, left: Expression, right: Expression): Expression {
@@ -126,7 +127,7 @@ const COPY: Record<Language, Record<string, string>> = {
   },
 };
 
-export const challenges: Challenge[] = [
+export const allChallenges: Challenge[] = [
   {
     id: 'area',
     topic: 'variables',
@@ -302,6 +303,11 @@ export const challenges: Challenge[] = [
     },
   },
 ];
+
+/** The challenges on offer: those played in a scenario only while worlds are shown. */
+export const challenges: Challenge[] = allChallenges.filter(
+  (challenge) => FEATURES.worlds || !challenge.world,
+);
 
 export function algorithmFromChallenge(challenge: Challenge, language: Language): Algorithm {
   const now = new Date().toISOString();

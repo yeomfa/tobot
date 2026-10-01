@@ -7,7 +7,7 @@ import { runSource } from '../core/code/runSource';
 import { emitters, renderLines } from '../core/emitters';
 import { validate } from '../core/ast/validate';
 import { createWorld } from '../core/world/world';
-import { challenges } from './challenges';
+import { allChallenges } from './challenges';
 import { word } from './worlds';
 
 const call = (name: string, args: Expression[]): Expression => ({ kind: 'call', name, args });
@@ -40,7 +40,7 @@ const solutions: Record<string, (language: 'es' | 'en') => Statement[]> = {
   ],
 };
 
-const scenarioChallenges = challenges.filter((challenge) => challenge.world);
+const scenarioChallenges = allChallenges.filter((challenge) => challenge.world);
 
 describe('the electromechanics challenges', () => {
   it('are the three the pack promises', () => {

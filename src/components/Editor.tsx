@@ -2,6 +2,7 @@ import { memo, useCallback, useMemo, useRef } from 'react';
 
 import { collectFunctions, namesInScopeAt } from '../core/ast/operations';
 import { worldSignatures } from '../core/world/registry';
+import { FEATURES } from '../features';
 import { problemsByNode, validate } from '../core/ast/validate';
 import type { Problem } from '../core/ast/validate';
 import type { Algorithm, NodeId } from '../core/ast/types';
@@ -50,6 +51,7 @@ export const Editor = memo(function Editor({
 }: EditorProps) {
   const { d, language } = useTranslation();
   const count = algorithm.body.length;
+  const world = FEATURES.worlds ? algorithm.world : undefined;
 
   // Static checks re-run on every edit; the tree is small enough that this is
   // cheaper than tracking which statement changed.
@@ -59,9 +61,9 @@ export const Editor = memo(function Editor({
   const functions = useMemo(
     () => [
       ...collectFunctions(algorithm.body),
-      ...(algorithm.world ? worldSignatures(language) : []),
+      ...(world ? worldSignatures(language) : []),
     ],
-    [algorithm.body, algorithm.world, language],
+    [algorithm.body, world, language],
   );
 
   /*
@@ -77,7 +79,7 @@ export const Editor = memo(function Editor({
   );
 
   const problems = useMemo(() => {
-    const found = problemsByNode(validate(algorithm.body, { world: algorithm.world }));
+    const found = problemsByNode(validate(algorithm.body, { world }));
     /* Merged in rather than pushed through `validate`, which only ever sees
        the tree as it is now. A block can carry both: a type that disagrees
        with its value, and a conversion that threw something away. */
@@ -88,7 +90,7 @@ export const Editor = memo(function Editor({
       else found.set(nodeId, [entry]);
     }
     return found;
-  }, [algorithm.body, algorithm.world, retypeLosses]);
+  }, [algorithm.body, world, retypeLosses]);
 
   const canvas = useRef<HTMLDivElement>(null);
   useMagneticDrop(canvas);

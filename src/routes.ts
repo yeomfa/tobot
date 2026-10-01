@@ -14,6 +14,8 @@
  * `index.html`, which is `vercel.json`'s job rather than anything here.
  */
 
+import { FEATURES } from './features';
+
 /** The library's sections, in the order the rail lists them. */
 export const LIBRARY_SECTIONS = [
   'algorithms',
@@ -55,4 +57,9 @@ export function sectionPath(section: LibrarySection): string {
 /** Whether a URL fragment names a section, for validating what a user typed. */
 export function isLibrarySection(value: string | undefined): value is LibrarySection {
   return LIBRARY_SECTIONS.includes(value as LibrarySection);
+}
+
+/** Whether a section is on offer now; a hidden one's link falls back to the default. */
+export function isShownSection(section: LibrarySection): boolean {
+  return section !== 'classroom' || FEATURES.classroom;
 }
