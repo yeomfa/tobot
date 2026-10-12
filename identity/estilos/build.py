@@ -29,6 +29,7 @@ SOURCES = [
     ("dribbble-lee-ann-", "Dribbble · Lee-Ann", "https://dribbble.com/Lee-AnnD"),
     ("dribbble-studio-collective-", "Dribbble · Studio Collective", "https://dribbble.com/studio_collective/collections/5488358-INSPIRE"),
     ("dribbble-raydaklam-", "Dribbble · Raydak Lam", "https://dribbble.com/raydaklam"),
+    ("gumball-", "Not To Scale · The Amazing World of Gumball", "https://nottoscale.tv/work/the-amazing-world-of-gumball/"),
 ]
 
 # ── The test scene, the same for every style so only the style changes ─────────
@@ -44,8 +45,12 @@ END = "Background plain solid white #FFFFFF. No text, no letters, no logos, no p
 REFERENCE = "Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below."
 
 
-def prompt(style):
-    return "\n\n".join([style, REFERENCE, SCENE, COMPOSITION, COLORS, END])
+def prompt(style, end=END):
+    return "\n\n".join([style, REFERENCE, SCENE, COMPOSITION, COLORS, end])
+
+
+# For a style whose background is a photograph, the plain white one would undo it.
+PHOTO_END = "Background: a real photograph of a tidy classroom desk by a window, natural daylight, with a shallow depth of field so it stays calm and slightly out of focus behind the drawn elements. No text, no letters, no logos, no people, no extra objects."
 
 
 STYLES = [
@@ -148,6 +153,16 @@ STYLES = [
         "yes": "Formas puras: se vectoriza perfecto y se recolorea. Al ser abstracto, no depende de que Flow repita el mismo personaje.",
         "watch": "Lo abstracto no cuenta historias concretas, así que sirve más para banners que para estados vacíos. Los colores primarios del estilo chocan con los de las categorías.",
         "prompt": prompt("Create an original geometric illustration in a Bauhaus, mid-century modernist style: the robot and the blocks are built only from pure geometric primitives — circles, half circles, squares and quarter circles — in flat solid colours, in a balanced asymmetric composition, with one or two thin-line accents such as a starburst or concentric circles. No outlines on the shapes, no gradients, no texture."),
+    },
+    {
+        "id": "gumball",
+        "attach": "gumball-1.jpg",
+        "name": "Técnica mixta",
+        "sub": "Dibujo 2D sobre fotografía real, como El increíble mundo de Gumball",
+        "about": "Personajes dibujados en estilos distintos — plano con contorno, 3D, pixel, objetos reales — compuestos sobre fondos fotográficos. La mezcla es el estilo.",
+        "yes": "Mezclar técnicas es la idea misma de Tobot: un programa visto en bloques, en código y en diagrama. Muy memorable y con humor; cada concepto podría tener su propia técnica.",
+        "watch": "Las fotografías no se vectorizan ni se recolorean: quedan como imágenes pesadas y el modo oscuro necesita versiones aparte. Es difícil de mantener coherente en Flow, y Gumball es tan reconocible que Tobot tiene que verse claramente propio.",
+        "prompt": prompt("Create an original mixed-media illustration: the robot is a flat 2D cartoon character with a clean dark outline and simple cel shading, and the blocks are rendered as smooth glossy 3D objects, both composited into a real photographic background with matching light and soft contact shadows, so drawn and real elements share one believable scene.", PHOTO_END),
     },
 ]
 
