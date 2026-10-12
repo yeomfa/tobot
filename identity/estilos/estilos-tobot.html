@@ -1,0 +1,282 @@
+<title>Estilos de ilustración Tobot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column; each style is a study — real examples, then your Flow tests, then the prompt. */
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --fg:#171d2e; --muted:#5b647a; --rule:#e2e6ef; --tone:#eef1f7;
+  --accent:#e8873a; --accent-ink:#b35d17; --accent-soft:#fdf0e5; --ok:#0f8a5f; --warn:#a8650f;
+  --shadow:0 0 0 1px rgb(23 29 46 / .05),0 1px 2px rgb(23 29 46 / .05),0 8px 20px -14px rgb(23 29 46 / .18);
+  --sans:"Plus Jakarta Sans",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141f; --card:#181e2d; --fg:#e8ebf3; --muted:#9aa3b8; --rule:#2a3246; --tone:#202738;
+  --accent:#f0975a; --accent-ink:#f7b585; --accent-soft:#2c2219; --ok:#43c995; --warn:#e4b25c;
+  --shadow:0 0 0 1px rgb(255 255 255 / .05),0 1px 2px rgb(0 0 0 / .4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141f; --card:#181e2d; --fg:#e8ebf3; --muted:#9aa3b8; --rule:#2a3246; --tone:#202738;
+  --accent:#f0975a; --accent-ink:#f7b585; --accent-soft:#2c2219; --ok:#43c995; --warn:#e4b25c;
+  --shadow:0 0 0 1px rgb(255 255 255 / .05),0 1px 2px rgb(0 0 0 / .4); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin:0}
+h1{margin:6px 0 8px;font-size:clamp(26px,3.6vw,34px);line-height:1.15;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:70ch}
+code{font-family:var(--mono);font-size:12.5px;background:var(--tone);padding:1px 5px;border-radius:4px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.step{background:var(--card);box-shadow:var(--shadow);border-radius:12px;padding:14px 16px}
+.step b{display:block;font-weight:700;margin-bottom:4px}
+.step span{color:var(--muted);font-size:14px}
+nav{display:flex;flex-wrap:wrap;gap:8px;position:sticky;top:env(safe-area-inset-top,0px);z-index:2;padding-block:10px;background:var(--bg)}
+nav a{font-size:13px;font-weight:600;color:var(--fg);text-decoration:none;padding:6px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow)}
+nav a:hover{color:var(--accent-ink)}
+.style{background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:64px}
+.style-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.style h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em}
+.sub{margin:2px 0 0;color:var(--muted);font-size:14px}
+.count{flex-shrink:0;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--tone);color:var(--muted)}
+.about{margin:0;max-width:72ch}
+.style h3{margin:6px 0 0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.gallery.tests{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.zoom{display:block;padding:0;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:#fff;cursor:zoom-in;aspect-ratio:4/3}
+.zoom img{width:100%;height:100%;object-fit:contain;display:block}
+.tests .zoom{aspect-ratio:16/9}
+.zoom:focus-visible,.copy:focus-visible,summary:focus-visible,nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+figcaption{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+figcaption a{color:var(--accent-ink);text-underline-offset:2px}
+.empty{padding:16px;border:1px dashed var(--rule);border-radius:10px;color:var(--muted);font-size:14px}
+.empty b{color:var(--fg)}
+.pros{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;margin:0;font-size:14px}
+.pros dt{font-weight:700}
+.pros dt.yes{color:var(--ok)} .pros dt.watch{color:var(--warn)}
+.pros dd{margin:0;color:var(--muted)}
+details{border-top:1px solid var(--rule);padding-top:10px}
+summary{cursor:pointer;font-weight:700;font-size:14px}
+.pwrap{position:relative;margin-top:10px}
+pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--tone);border-radius:8px;padding:40px 12px 12px;max-height:240px;overflow:auto}
+.copy{position:absolute;top:8px;right:8px;border:0;font:inherit;font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--accent);color:#fff;cursor:pointer}
+.copy.done{background:var(--ok)}
+.tablewrap{overflow-x:auto;background:var(--card);box-shadow:var(--shadow);border-radius:16px}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:0}
+tbody th{white-space:nowrap}
+.r3{color:var(--ok);font-weight:700} .r2{color:var(--warn);font-weight:700} .r1{color:#c2413b;font-weight:700}
+section h2{margin:0 0 6px;font-size:22px;font-weight:800}
+section > p{margin:0 0 14px;color:var(--muted);max-width:72ch}
+dialog{border:0;padding:0;background:transparent;max-width:min(1100px,94vw)}
+dialog::backdrop{background:rgb(10 13 22 / .78)}
+dialog img{display:block;max-width:100%;max-height:86vh;border-radius:10px;background:#fff}
+dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;border:0;border-radius:8px;padding:6px 12px;background:var(--card);color:var(--fg);cursor:pointer}
+@media (max-width:760px){.steps{grid-template-columns:minmax(0,1fr)}}
+</style>
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Tobot · Ilustraciones</p>
+    <h1>Estilos de ilustración para probar en Google Flow</h1>
+    <p class="lead">Cinco estilos con ejemplos reales de marcas y estudios que los usan. Cada uno trae el mismo prompt de prueba (Tobot junto a tres bloques de código, con los colores de la app), para comparar lo que sale de Flow con la misma escena en todos.</p>
+  </header>
+
+  <div class="steps">
+    <div class="step"><b>1. Prueba</b><span>Copia el prompt del estilo en Flow, formato 16:9, y descarga en 1K. Si quieres, adjunta uno de los ejemplos como guía de estilo.</span></div>
+    <div class="step"><b>2. Guarda</b><span>En <code>identity/estilos/pruebas/</code> con el nombre del estilo: <code>redondeado-v1.png</code>, <code>grano-v2.png</code>…</span></div>
+    <div class="step"><b>3. Avisa</b><span>Yo regenero esta página con tus pruebas al lado de los ejemplos, y cuando elijas, armamos la lista de escenas.</span></div>
+  </div>
+
+  <nav aria-label="Estilos"><a href="#redondeado">Geometría redondeada</a><a href="#linea">Línea editorial</a><a href="#isometrico">Isométrico</a><a href="#grano">Plano con grano</a><a href="#3d">3D suave</a></nav>
+
+<article class="style" id="redondeado">
+  <header class="style-head">
+    <div>
+      <h2>Geometría redondeada</h2>
+      <p class="sub">Formas básicas con esquinas suaves, como las guías de Duolingo</p>
+    </div>
+    <span class="count">0 pruebas</span>
+  </header>
+  <p class="about">Todo se arma con tres formas: rectángulo redondeado, círculo y triángulo redondeado. Colores planos, sin contornos y con sombras en forma de píldora.</p>
+  <h3>Ejemplos reales</h3>
+  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-01-Flowers-1.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-01-Flowers-1.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-04-cat-shapes-1.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-04-cat-shapes-1.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-05-sample.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-05-sample.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-09-dogs.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-09-dogs.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-10-frogs.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-10-frogs.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure></div>
+  <h3>Tus pruebas en Flow</h3>
+  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/redondeado-v1.png</code>.</div>
+  <dl class="pros">
+    <dt class="yes">A favor</dt><dd>Las formas son las mismas que las de los bloques del editor. Se vectoriza casi sola y se recolorea para el modo oscuro.</dd>
+    <dt class="watch">Ojo</dt><dd>Si se parece demasiado a Duolingo pierde identidad; el naranja y los colores de categoría la hacen de Tobot.</dd>
+  </dl>
+  <details>
+    <summary>Prompt de prueba para Flow</summary>
+    <div class="pwrap"><pre id="p0">Create an original flat vector illustration built only from three basic shapes — rounded rectangles, circles and rounded triangles — with every corner softly rounded and no pointed shapes. Solid flat fills, no outlines, no gradients, no texture. Shadows are flat pill-shaped bars under objects, never ovals. Use as few shapes as possible, with clear variety in their sizes. Calm, friendly and playful, with generous empty space.
+
+Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
+
+Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
+
+Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p0">Copiar</button></div>
+  </details>
+</article>
+<article class="style" id="linea">
+  <header class="style-head">
+    <div>
+      <h2>Línea editorial</h2>
+      <p class="sub">Trazo a mano, casi sin rellenos, como Notion</p>
+    </div>
+    <span class="count">0 pruebas</span>
+  </header>
+  <p class="about">Dibujo de línea negra o pizarra sobre blanco, con uno o dos colores de acento en rellenos planos. Se siente como un cuaderno de clase.</p>
+  <h3>Ejemplos reales</h3>
+  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/linea/notion-buck-1.png" aria-label="Ampliar"><img src="referencias/linea/notion-buck-1.png" alt="BUCK · Notion Faces" loading="lazy"></button><figcaption><a href="https://buck.co/work/notion-faces" target="_blank" rel="noopener">BUCK · Notion Faces</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/linea/notion-buck-7.png" aria-label="Ampliar"><img src="referencias/linea/notion-buck-7.png" alt="BUCK · Notion Faces" loading="lazy"></button><figcaption><a href="https://buck.co/work/notion-faces" target="_blank" rel="noopener">BUCK · Notion Faces</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/linea/notion-caras.png" aria-label="Ampliar"><img src="referencias/linea/notion-caras.png" alt="notion.com" loading="lazy"></button><figcaption><a href="https://www.notion.com/" target="_blank" rel="noopener">notion.com</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/linea/notion-escudo.png" aria-label="Ampliar"><img src="referencias/linea/notion-escudo.png" alt="notion.com" loading="lazy"></button><figcaption><a href="https://www.notion.com/" target="_blank" rel="noopener">notion.com</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/linea/notion-manos.png" aria-label="Ampliar"><img src="referencias/linea/notion-manos.png" alt="notion.com" loading="lazy"></button><figcaption><a href="https://www.notion.com/" target="_blank" rel="noopener">notion.com</a></figcaption></figure></div>
+  <h3>Tus pruebas en Flow</h3>
+  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/linea-v1.png</code>.</div>
+  <dl class="pros">
+    <dt class="yes">A favor</dt><dd>La más sobria; convive bien con el código y en oscuro basta invertir el trazo.</dd>
+    <dt class="watch">Ojo</dt><dd>Puede sentirse fría para principiantes. El trazo a mano genera muchos nodos al vectorizar y su grosor varía entre imágenes.</dd>
+  </dl>
+  <details>
+    <summary>Prompt de prueba para Flow</summary>
+    <div class="pwrap"><pre id="p1">Create an original minimalist line illustration: one dark navy line (#171D2E) of even thickness with a slightly hand-drawn feel, on white. Almost no fills: only the antenna ball, the chest light and the play triangle are solid orange; everything else is outline only. No shading, no gradients, no texture. Editorial and quiet, with lots of white space.
+
+Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
+
+Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
+
+Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p1">Copiar</button></div>
+  </details>
+</article>
+<article class="style" id="isometrico">
+  <header class="style-head">
+    <div>
+      <h2>Isométrico</h2>
+      <p class="sub">Pequeñas maquetas en perspectiva de 30°</p>
+    </div>
+    <span class="count">0 pruebas</span>
+  </header>
+  <p class="about">Cada objeto es un volumen con cara superior clara y laterales más oscuros del mismo tono. Se lee como construir algo pieza a pieza.</p>
+  <h3>Ejemplos reales</h3>
+  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-1.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-1.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-2.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-2.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-3.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-3.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-4.jpg" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-4.jpg" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-5.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-5.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure></div>
+  <h3>Tus pruebas en Flow</h3>
+  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/isometrico-v1.png</code>.</div>
+  <dl class="pros">
+    <dt class="yes">A favor</dt><dd>Encaja con la idea de armar un programa. Son polígonos: se vectoriza fácil y se recolorea.</dd>
+    <dt class="watch">Ojo</dt><dd>Flow suele torcer la perspectiva y el ángulo cambia de una imagen a otra. Es muy de producto SaaS y puede verse corporativo.</dd>
+  </dl>
+  <details>
+    <summary>Prompt de prueba para Flow</summary>
+    <div class="pwrap"><pre id="p2">Create an original isometric flat vector illustration in true 30-degree isometric projection, with no vanishing point. Every object is a simple extruded box with softly rounded edges, with a light top face, a medium left face and a darker right face in the same hue. Solid fills, no outlines, no gradients, no texture, no small details. Calm and tidy, like a small diorama.
+
+Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
+
+Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
+
+Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p2">Copiar</button></div>
+  </details>
+</article>
+<article class="style" id="grano">
+  <header class="style-head">
+    <div>
+      <h2>Plano con grano</h2>
+      <p class="sub">Formas planas con textura de impresión</p>
+    </div>
+    <span class="count">0 pruebas</span>
+  </header>
+  <p class="about">Formas simples con una textura fina de grano dentro de cada color, como un cartel impreso. Cálido y táctil.</p>
+  <h3>Ejemplos reales</h3>
+  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/grano/krea-ia-1.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-1.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/grano/krea-ia-2.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-2.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/grano/krea-ia-3.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-3.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure></div>
+  <h3>Tus pruebas en Flow</h3>
+  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/grano-v1.png</code>.</div>
+  <dl class="pros">
+    <dt class="yes">A favor</dt><dd>Muy cálido y distinto de las apps de programación. Flow lo reproduce con bastante consistencia.</dd>
+    <dt class="watch">Ojo</dt><dd>El grano no se vectoriza: hay que rehacerlo con un filtro en la app. Sobre fondo oscuro se ensucia y pierde contraste.</dd>
+  </dl>
+  <details>
+    <summary>Prompt de prueba para Flow</summary>
+    <div class="pwrap"><pre id="p3">Create an original flat illustration in a risograph print style: simple rounded flat shapes with solid fills, a fine grainy noise texture inside every shape, and a very slight misregistration between colour layers. No outlines, no gradients, no photographic detail. Warm, tactile and calm, with generous empty space.
+
+Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
+
+Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
+
+Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p3">Copiar</button></div>
+  </details>
+</article>
+<article class="style" id="3d">
+  <header class="style-head">
+    <div>
+      <h2>3D suave</h2>
+      <p class="sub">Volúmenes redondeados e iluminados, como los emoji 3D de Microsoft</p>
+    </div>
+    <span class="count">0 pruebas</span>
+  </header>
+  <p class="about">Formas infladas, materiales satinados, luz de estudio y sombra de contacto suave. Es el estilo más llamativo de los cinco.</p>
+  <h3>Ejemplos reales</h3>
+  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-joystick_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-joystick_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-laptop_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-laptop_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-light_bulb_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-light_bulb_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-puzzle_piece_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-puzzle_piece_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-robot_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-robot_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-rocket_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-rocket_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure></div>
+  <h3>Tus pruebas en Flow</h3>
+  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/3d-v1.png</code>.</div>
+  <dl class="pros">
+    <dt class="yes">A favor</dt><dd>Muy amable y actual; atrae a estudiantes jóvenes.</dd>
+    <dt class="watch">Ojo</dt><dd>No se puede vectorizar sin perder el volumen: queda como imagen, más pesada y sin recolorear para el modo oscuro. Flow cambia el personaje de una imagen a otra.</dd>
+  </dl>
+  <details>
+    <summary>Prompt de prueba para Flow</summary>
+    <div class="pwrap"><pre id="p4">Create an original soft 3D render in a glossy toy style: rounded, smooth, slightly inflated forms, soft studio lighting from the upper left, gentle ambient occlusion and a soft contact shadow under each object. Matte-to-satin materials, no hard reflections, no texture noise. Cute and friendly, like a premium 3D emoji, with plenty of empty white space.
+
+Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
+
+Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
+
+Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p4">Copiar</button></div>
+  </details>
+</article>
+
+  <section>
+    <h2>Lo que importa para Tobot</h2>
+    <p>Las ilustraciones van a vivir en una app con modo oscuro, junto a bloques de colores, y tienen que salir parecidas una tras otra desde Flow.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th scope="col">Estilo</th><th scope="col">Encaja con Tobot</th><th scope="col">Modo oscuro</th><th scope="col">Vectorizar en capas</th><th scope="col">Consistencia en Flow</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Geometría redondeada</th><td><span class="r3">Fuerte</span> · sus formas son los bloques</td><td><span class="r3">Fuerte</span> · se recolorea entera</td><td><span class="r3">Fuerte</span> · pocas formas simples</td><td><span class="r3">Fuerte</span> · poco que variar</td></tr>
+          <tr><th scope="row">Línea editorial</th><td><span class="r2">Aceptable</span> · sobria, algo fría</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el trazo da muchos nodos</td><td><span class="r2">Aceptable</span> · el grosor varía</td></tr>
+          <tr><th scope="row">Isométrico</th><td><span class="r2">Aceptable</span> · construir pieza a pieza</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · son polígonos</td><td><span class="r1">Débil</span> · el ángulo se tuerce</td></tr>
+          <tr><th scope="row">Plano con grano</th><td><span class="r2">Aceptable</span> · cálido, menos técnico</td><td><span class="r1">Débil</span> · el grano ensucia lo oscuro</td><td><span class="r2">Aceptable</span> · el grano se rehace aparte</td><td><span class="r3">Fuerte</span> · lo reproduce bien</td></tr>
+          <tr><th scope="row">3D suave</th><td><span class="r2">Aceptable</span> · amable, poco propio</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · queda como imagen</td><td><span class="r1">Débil</span> · el personaje cambia</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<dialog id="viewer" aria-label="Imagen ampliada"><img id="viewer-img" alt=""><button type="button" id="viewer-close">Cerrar</button></dialog>
+
+<script>
+document.querySelectorAll('.copy').forEach(function(b){
+  b.addEventListener('click',function(){
+    var pre=document.getElementById(b.dataset.target), text=pre.textContent;
+    function ok(){b.textContent='Copiado';b.classList.add('done');setTimeout(function(){b.textContent='Copiar';b.classList.remove('done')},1500)}
+    function fallback(){var r=document.createRange();r.selectNodeContents(pre);var s=window.getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Seleccionado';setTimeout(function(){b.textContent='Copiar'},1500)}
+    try{navigator.clipboard.writeText(text).then(ok,fallback)}catch(e){fallback()}
+  });
+});
+var viewer=document.getElementById('viewer'), viewerImg=document.getElementById('viewer-img');
+document.querySelectorAll('.zoom').forEach(function(z){
+  z.addEventListener('click',function(){
+    viewerImg.src=z.dataset.src; viewerImg.alt=z.querySelector('img').alt;
+    if(viewer.showModal){viewer.showModal()}else{window.open(z.dataset.src)}
+  });
+});
+document.getElementById('viewer-close').addEventListener('click',function(){viewer.close()});
+viewer.addEventListener('click',function(e){if(e.target===viewer)viewer.close()});
+</script>

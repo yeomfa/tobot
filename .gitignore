@@ -7,3 +7,10 @@ node_modules
 # Local secrets
 .env.local
 .env
+
+# Visual identity: third-party references and Flow outputs stay local
+identity/estilos/referencias/
+identity/estilos/pruebas/
+identity/ilustraciones/originales/
+identity/referencias-flow/
+identity/estilos/files.txt

@@ -1,0 +1,133 @@
+<title>Estilos de ilustración Tobot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column; each style is a study — real examples, then your Flow tests, then the prompt. */
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --fg:#171d2e; --muted:#5b647a; --rule:#e2e6ef; --tone:#eef1f7;
+  --accent:#e8873a; --accent-ink:#b35d17; --accent-soft:#fdf0e5; --ok:#0f8a5f; --warn:#a8650f;
+  --shadow:0 0 0 1px rgb(23 29 46 / .05),0 1px 2px rgb(23 29 46 / .05),0 8px 20px -14px rgb(23 29 46 / .18);
+  --sans:"Plus Jakarta Sans",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141f; --card:#181e2d; --fg:#e8ebf3; --muted:#9aa3b8; --rule:#2a3246; --tone:#202738;
+  --accent:#f0975a; --accent-ink:#f7b585; --accent-soft:#2c2219; --ok:#43c995; --warn:#e4b25c;
+  --shadow:0 0 0 1px rgb(255 255 255 / .05),0 1px 2px rgb(0 0 0 / .4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141f; --card:#181e2d; --fg:#e8ebf3; --muted:#9aa3b8; --rule:#2a3246; --tone:#202738;
+  --accent:#f0975a; --accent-ink:#f7b585; --accent-soft:#2c2219; --ok:#43c995; --warn:#e4b25c;
+  --shadow:0 0 0 1px rgb(255 255 255 / .05),0 1px 2px rgb(0 0 0 / .4); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin:0}
+h1{margin:6px 0 8px;font-size:clamp(26px,3.6vw,34px);line-height:1.15;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:70ch}
+code{font-family:var(--mono);font-size:12.5px;background:var(--tone);padding:1px 5px;border-radius:4px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.step{background:var(--card);box-shadow:var(--shadow);border-radius:12px;padding:14px 16px}
+.step b{display:block;font-weight:700;margin-bottom:4px}
+.step span{color:var(--muted);font-size:14px}
+nav{display:flex;flex-wrap:wrap;gap:8px;position:sticky;top:env(safe-area-inset-top,0px);z-index:2;padding-block:10px;background:var(--bg)}
+nav a{font-size:13px;font-weight:600;color:var(--fg);text-decoration:none;padding:6px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow)}
+nav a:hover{color:var(--accent-ink)}
+.style{background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:64px}
+.style-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.style h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em}
+.sub{margin:2px 0 0;color:var(--muted);font-size:14px}
+.count{flex-shrink:0;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--tone);color:var(--muted)}
+.about{margin:0;max-width:72ch}
+.style h3{margin:6px 0 0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.gallery.tests{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.zoom{display:block;padding:0;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:#fff;cursor:zoom-in;aspect-ratio:4/3}
+.zoom img{width:100%;height:100%;object-fit:contain;display:block}
+.tests .zoom{aspect-ratio:16/9}
+.zoom:focus-visible,.copy:focus-visible,summary:focus-visible,nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+figcaption{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+figcaption a{color:var(--accent-ink);text-underline-offset:2px}
+.empty{padding:16px;border:1px dashed var(--rule);border-radius:10px;color:var(--muted);font-size:14px}
+.empty b{color:var(--fg)}
+.pros{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;margin:0;font-size:14px}
+.pros dt{font-weight:700}
+.pros dt.yes{color:var(--ok)} .pros dt.watch{color:var(--warn)}
+.pros dd{margin:0;color:var(--muted)}
+details{border-top:1px solid var(--rule);padding-top:10px}
+summary{cursor:pointer;font-weight:700;font-size:14px}
+.pwrap{position:relative;margin-top:10px}
+pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--tone);border-radius:8px;padding:40px 12px 12px;max-height:240px;overflow:auto}
+.copy{position:absolute;top:8px;right:8px;border:0;font:inherit;font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--accent);color:#fff;cursor:pointer}
+.copy.done{background:var(--ok)}
+.tablewrap{overflow-x:auto;background:var(--card);box-shadow:var(--shadow);border-radius:16px}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:0}
+tbody th{white-space:nowrap}
+.r3{color:var(--ok);font-weight:700} .r2{color:var(--warn);font-weight:700} .r1{color:#c2413b;font-weight:700}
+section h2{margin:0 0 6px;font-size:22px;font-weight:800}
+section > p{margin:0 0 14px;color:var(--muted);max-width:72ch}
+dialog{border:0;padding:0;background:transparent;max-width:min(1100px,94vw)}
+dialog::backdrop{background:rgb(10 13 22 / .78)}
+dialog img{display:block;max-width:100%;max-height:86vh;border-radius:10px;background:#fff}
+dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;border:0;border-radius:8px;padding:6px 12px;background:var(--card);color:var(--fg);cursor:pointer}
+@media (max-width:760px){.steps{grid-template-columns:minmax(0,1fr)}}
+</style>
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Tobot · Ilustraciones</p>
+    <h1>Estilos de ilustración para probar en Google Flow</h1>
+    <p class="lead">Cinco estilos con ejemplos reales de marcas y estudios que los usan. Cada uno trae el mismo prompt de prueba (Tobot junto a tres bloques de código, con los colores de la app), para comparar lo que sale de Flow con la misma escena en todos.</p>
+  </header>
+
+  <div class="steps">
+    <div class="step"><b>1. Prueba</b><span>Copia el prompt del estilo en Flow, formato 16:9, y descarga en 1K. Si quieres, adjunta uno de los ejemplos como guía de estilo.</span></div>
+    <div class="step"><b>2. Guarda</b><span>En <code>identity/estilos/pruebas/</code> con el nombre del estilo: <code>redondeado-v1.png</code>, <code>grano-v2.png</code>…</span></div>
+    <div class="step"><b>3. Avisa</b><span>Yo regenero esta página con tus pruebas al lado de los ejemplos, y cuando elijas, armamos la lista de escenas.</span></div>
+  </div>
+
+  <nav aria-label="Estilos">__NAV__</nav>
+
+__STYLES__
+
+  <section>
+    <h2>Lo que importa para Tobot</h2>
+    <p>Las ilustraciones van a vivir en una app con modo oscuro, junto a bloques de colores, y tienen que salir parecidas una tras otra desde Flow.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th scope="col">Estilo</th><th scope="col">Encaja con Tobot</th><th scope="col">Modo oscuro</th><th scope="col">Vectorizar en capas</th><th scope="col">Consistencia en Flow</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Geometría redondeada</th><td><span class="r3">Fuerte</span> · sus formas son los bloques</td><td><span class="r3">Fuerte</span> · se recolorea entera</td><td><span class="r3">Fuerte</span> · pocas formas simples</td><td><span class="r3">Fuerte</span> · poco que variar</td></tr>
+          <tr><th scope="row">Línea editorial</th><td><span class="r2">Aceptable</span> · sobria, algo fría</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el trazo da muchos nodos</td><td><span class="r2">Aceptable</span> · el grosor varía</td></tr>
+          <tr><th scope="row">Isométrico</th><td><span class="r2">Aceptable</span> · construir pieza a pieza</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · son polígonos</td><td><span class="r1">Débil</span> · el ángulo se tuerce</td></tr>
+          <tr><th scope="row">Plano con grano</th><td><span class="r2">Aceptable</span> · cálido, menos técnico</td><td><span class="r1">Débil</span> · el grano ensucia lo oscuro</td><td><span class="r2">Aceptable</span> · el grano se rehace aparte</td><td><span class="r3">Fuerte</span> · lo reproduce bien</td></tr>
+          <tr><th scope="row">3D suave</th><td><span class="r2">Aceptable</span> · amable, poco propio</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · queda como imagen</td><td><span class="r1">Débil</span> · el personaje cambia</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<dialog id="viewer" aria-label="Imagen ampliada"><img id="viewer-img" alt=""><button type="button" id="viewer-close">Cerrar</button></dialog>
+
+<script>
+document.querySelectorAll('.copy').forEach(function(b){
+  b.addEventListener('click',function(){
+    var pre=document.getElementById(b.dataset.target), text=pre.textContent;
+    function ok(){b.textContent='Copiado';b.classList.add('done');setTimeout(function(){b.textContent='Copiar';b.classList.remove('done')},1500)}
+    function fallback(){var r=document.createRange();r.selectNodeContents(pre);var s=window.getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Seleccionado';setTimeout(function(){b.textContent='Copiar'},1500)}
+    try{navigator.clipboard.writeText(text).then(ok,fallback)}catch(e){fallback()}
+  });
+});
+var viewer=document.getElementById('viewer'), viewerImg=document.getElementById('viewer-img');
+document.querySelectorAll('.zoom').forEach(function(z){
+  z.addEventListener('click',function(){
+    viewerImg.src=z.dataset.src; viewerImg.alt=z.querySelector('img').alt;
+    if(viewer.showModal){viewer.showModal()}else{window.open(z.dataset.src)}
+  });
+});
+document.getElementById('viewer-close').addEventListener('click',function(){viewer.close()});
+viewer.addEventListener('click',function(e){if(e.target===viewer)viewer.close()});
+</script>
