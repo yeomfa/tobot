@@ -38,13 +38,20 @@ COLORS = "Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A,
 END = "Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects."
 
 
+# The attached image carries the style and nothing else. Several references are
+# other brands' characters (Duolingo's owl, Kurzgesagt's bird), and Flow copies
+# whatever it is not told to leave alone.
+REFERENCE = "Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below."
+
+
 def prompt(style):
-    return "\n\n".join([style, SCENE, COMPOSITION, COLORS, END])
+    return "\n\n".join([style, REFERENCE, SCENE, COMPOSITION, COLORS, END])
 
 
 STYLES = [
     {
         "id": "redondeado",
+        "attach": "duolingo-09-dogs.png",
         "name": "Geometría redondeada",
         "sub": "Formas básicas con esquinas suaves, como las guías de Duolingo",
         "about": "Todo se arma con tres formas: rectángulo redondeado, círculo y triángulo redondeado. Colores planos, sin contornos y con sombras en forma de píldora.",
@@ -54,6 +61,7 @@ STYLES = [
     },
     {
         "id": "linea",
+        "attach": "notion-escudo.png",
         "name": "Línea editorial",
         "sub": "Trazo a mano, casi sin rellenos, como Notion",
         "about": "Dibujo de línea negra o pizarra sobre blanco, con uno o dos colores de acento en rellenos planos. Se siente como un cuaderno de clase.",
@@ -63,6 +71,7 @@ STYLES = [
     },
     {
         "id": "isometrico",
+        "attach": "dribbble-isometrico-1.png",
         "name": "Isométrico",
         "sub": "Pequeñas maquetas en perspectiva de 30°",
         "about": "Cada objeto es un volumen con cara superior clara y laterales más oscuros del mismo tono. Se lee como construir algo pieza a pieza.",
@@ -72,6 +81,7 @@ STYLES = [
     },
     {
         "id": "grano",
+        "attach": "krea-ia-2.png",
         "name": "Plano con grano",
         "sub": "Formas planas con textura de impresión",
         "about": "Formas simples con una textura fina de grano dentro de cada color, como un cartel impreso. Cálido y táctil.",
@@ -81,6 +91,7 @@ STYLES = [
     },
     {
         "id": "3d",
+        "attach": "fluent-rocket_3d.png",
         "name": "3D suave",
         "sub": "Volúmenes redondeados e iluminados, como los emoji 3D de Microsoft",
         "about": "Formas infladas, materiales satinados, luz de estudio y sombra de contacto suave. Es el estilo más llamativo de los cinco.",
@@ -90,6 +101,7 @@ STYLES = [
     },
     {
         "id": "pixel",
+        "attach": "dribbble-pixel-1.jpg",
         "name": "Pixel art",
         "sub": "Escenas en cuadrícula de píxeles, como los videojuegos de 8 y 16 bits",
         "about": "Cada forma se arma con píxeles cuadrados del mismo tamaño y una paleta corta. Remite a los videojuegos y a la cultura de programar.",
@@ -99,6 +111,7 @@ STYLES = [
     },
     {
         "id": "boceto",
+        "attach": "excalidraw-arquitectura.png",
         "name": "Boceto a mano",
         "sub": "Trazo de pizarra con rellenos rayados, como Excalidraw",
         "about": "Contornos ligeramente temblorosos y rellenos a rayas que no respetan del todo el borde. Así se dibuja un diagrama para pensar un programa.",
@@ -108,6 +121,7 @@ STYLES = [
     },
     {
         "id": "educativo",
+        "attach": "kurzgesagt-2.jpg",
         "name": "Vectorial educativo",
         "sub": "Formas redondas, color vibrante y degradados suaves, como Kurzgesagt",
         "about": "Personajes expresivos de formas simples, colores saturados, degradados leves para dar volumen y algún brillo. Es el lenguaje visual de la divulgación científica.",
@@ -117,6 +131,7 @@ STYLES = [
     },
     {
         "id": "papel",
+        "attach": "dribbble-anupreeta-2.png",
         "name": "Papel recortado",
         "sub": "Capas de cartulina cortada con sombras reales",
         "about": "Cada forma es un trozo de papel mate cortado a cuchilla, apilado en capas con sombras suaves entre ellas. Táctil y artesanal.",
@@ -126,6 +141,7 @@ STYLES = [
     },
     {
         "id": "bauhaus",
+        "attach": "dribbble-studio-collective-1.png",
         "name": "Geométrico Bauhaus",
         "sub": "Composiciones de círculos, cuadrados y cuartos de círculo",
         "about": "Todo se construye con figuras geométricas puras en colores planos, en una composición equilibrada y asimétrica, con algún acento de línea fina.",
@@ -150,10 +166,11 @@ def source_of(name):
     return "Referencia", ""
 
 
-def figure(src, caption, url=""):
+def figure(src, caption, url="", attach=False):
     link = f'<a href="{html.escape(url)}" target="_blank" rel="noopener">{html.escape(caption)}</a>' if url else html.escape(caption)
+    badge = '<span class="attach">Adjuntar en Flow</span>' if attach else ""
     return (
-        f'<figure><button type="button" class="zoom" data-src="{html.escape(src)}" aria-label="Ampliar">'
+        f'<figure{" class=\"pick\"" if attach else ""}>{badge}<button type="button" class="zoom" data-src="{html.escape(src)}" aria-label="Ampliar">'
         f'<img src="{html.escape(src)}" alt="{html.escape(caption)}" loading="lazy"></button>'
         f'<figcaption>{link}</figcaption></figure>'
     )
@@ -171,7 +188,7 @@ def render():
         gallery = []
         for r in refs:
             label, url = source_of(r)
-            gallery.append(figure(f"referencias/{style['id']}/{r}", label, url))
+            gallery.append(figure(f"referencias/{style['id']}/{r}", label, url, r == style["attach"]))
             if (label, url) not in seen:
                 seen.append((label, url))
 
@@ -204,6 +221,7 @@ def render():
   </dl>
   <details>
     <summary>Prompt de prueba para Flow</summary>
+    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/{style["id"]}/{html.escape(style["attach"])}</code></p>
     <div class="pwrap"><pre id="p{i}">{html.escape(style["prompt"])}</pre><button type="button" class="copy" data-target="p{i}">Copiar</button></div>
   </details>
 </article>''')
