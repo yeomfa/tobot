@@ -7,14 +7,15 @@ import {
   StopIcon as Stop,
   TextAlignLeftIcon as Wrap,
   TextAaIcon as TextSize,
-  TextIndentIcon as Indent,
+  BracketsCurlyIcon as Format,
 } from '@phosphor-icons/react';
-import { lazy, Suspense, useCallback, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { WorldState } from '../core/world/types';
 
 import { VOCABULARY } from '../core/code/vocabulary';
 import type { VocabularyEntry } from '../core/code/vocabulary';
+import type { FormatOutcome } from '../core/code/format';
 import type { CodeExecutionController } from '../state/useCodeExecution';
 import { useTranslation } from '../i18n/context';
 import type { CodeEditorHandle, CodeEditorReport } from './CodeEditor';
@@ -125,6 +126,14 @@ export function CodeWorkspace({
   /* State and not just the ref: the toolbar has to re-render when the editor
      finally arrives. Until then its buttons were enabled and did nothing. */
   const [editorReady, setEditorReady] = useState(false);
+  /* Why the last format did nothing, until the next edit makes it stale. A
+     program with a mistake in it cannot be laid out, and a button that silently
+     does nothing is the one answer a student cannot act on. */
+  const [formatFault, setFormatFault] = useState<{ line: number | null } | null>(null);
+  const formatted = useCallback((outcome: FormatOutcome) => {
+    setFormatFault(outcome.ok ? null : { line: outcome.line });
+  }, []);
+  useEffect(() => setFormatFault(null), [source]);
 
   const { state } = execution;
   const asking = state.status === 'awaitingInput';
@@ -274,12 +283,12 @@ export function CodeWorkspace({
           <button
             type="button"
             className="codework__tool"
-            onClick={() => handle.current?.tidy()}
+            onClick={() => void handle.current?.format().then(formatted)}
             disabled={!editorReady || readOnly}
-            title={d.code.tidy}
-            aria-label={d.code.tidy}
+            title={`${d.code.format} · Shift+Alt+F`}
+            aria-label={d.code.format}
           >
-            <Indent weight="bold" />
+            <Format weight="bold" />
           </button>
 
           <button
@@ -333,6 +342,8 @@ export function CodeWorkspace({
             <dd>{d.code.shortcutFind}</dd>
             <dt>Ctrl/⌘ + Z</dt>
             <dd>{d.code.shortcutUndo}</dd>
+            <dt>Shift + Alt + F</dt>
+            <dd>{d.code.format}</dd>
           </dl>
         )}
 
@@ -357,6 +368,7 @@ export function CodeWorkspace({
               onReport={report}
               readOnly={readOnly}
               vocabulary={vocabulary}
+              onFormatted={formatted}
             />
           </Suspense>
         </div>
@@ -369,6 +381,19 @@ export function CodeWorkspace({
               ? t('code.position', { line: where.line, column: where.column })
               : t('code.position', { line: 1, column: 1 })}
           </span>
+          {formatFault !== null && (
+            /* Pressing it leads to the line, like the warning count does. */
+            <button
+              type="button"
+              className="codework__warning"
+              role="status"
+              onClick={() => formatFault.line && handle.current?.goToLine(formatFault.line)}
+            >
+              {formatFault.line
+                ? t('code.formatFailedAt', { line: formatFault.line })
+                : d.code.formatFailed}
+            </button>
+          )}
           {problems === 0 ? (
             <span>{d.code.noProblems}</span>
           ) : (

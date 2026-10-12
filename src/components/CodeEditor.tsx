@@ -15,7 +15,6 @@ import {
   defaultKeymap,
   history,
   historyKeymap,
-  indentSelection,
   indentWithTab,
   redo,
   redoDepth,
@@ -62,6 +61,8 @@ import { categoryClass, categoryFor } from '../core/code/categories';
 import { findProblems } from '../core/code/diagnostics';
 import { findEntry, VOCABULARY } from '../core/code/vocabulary';
 import type { VocabularyEntry } from '../core/code/vocabulary';
+import { formatSource } from '../core/code/format';
+import type { FormatOutcome } from '../core/code/format';
 import './CodeEditor.css';
 
 /**
@@ -370,6 +371,29 @@ function card(
 }
 
 /**
+ * Formats what is in the editor, as one change.
+ *
+ * One transaction replacing the document, so a single Ctrl+Z puts the
+ * student's own layout back; the cursor stays beside the code it was next to.
+ * Nothing happens to a read-only document, or to one that changed while
+ * Prettier was loading — that edit would otherwise be overwritten.
+ */
+async function formatIn(view: EditorView): Promise<FormatOutcome> {
+  const before = view.state.doc.toString();
+  if (view.state.readOnly) return { ok: true, source: before, cursor: view.state.selection.main.head };
+  const outcome = await formatSource(before, view.state.selection.main.head);
+  if (!outcome.ok || view.state.doc.toString() !== before || outcome.source === before) return outcome;
+  view.dispatch({
+    changes: { from: 0, to: before.length, insert: outcome.source },
+    selection: { anchor: Math.min(outcome.cursor, outcome.source.length) },
+    userEvent: 'format',
+    scrollIntoView: true,
+  });
+  view.focus();
+  return outcome;
+}
+
+/**
  * What the surrounding app can ask of a running editor.
  *
  * Handed out rather than reached for: the header's undo button belongs to the
@@ -384,7 +408,8 @@ export interface CodeEditorHandle {
   find: () => void;
   focus: () => void;
   /** Re-indents the whole program by the language's own rules. */
-  tidy: () => void;
+  /** Formats the whole program with Prettier, and says how it went. */
+  format: () => Promise<FormatOutcome>;
   /** Puts the cursor on a line and scrolls it into view. */
   goToLine: (line: number) => void;
   /** Writes a snippet where the cursor is. */
@@ -430,6 +455,8 @@ interface CodeEditorProps {
   extensions?: Extension[];
   /** Shown, run and read, but not changed: a teacher looking at a student's work. */
   readOnly?: boolean;
+  /** Told how a format from the keyboard went; the button hears it from `format`. */
+  onFormatted?: (outcome: FormatOutcome) => void;
   /** More to offer and explain than the built-in six: the world's functions. */
   vocabulary?: VocabularyEntry[];
 }
@@ -460,6 +487,7 @@ export const CodeEditor = memo(function CodeEditor({
   extensions,
   readOnly = false,
   vocabulary,
+  onFormatted,
 }: CodeEditorProps) {
   const { d, language } = useTranslation();
   const host = useRef<HTMLDivElement>(null);
@@ -476,6 +504,8 @@ export const CodeEditor = memo(function CodeEditor({
   onChangeRef.current = onChange;
   const onRunRef = useRef(onRun);
   onRunRef.current = onRun;
+  const onFormattedRef = useRef(onFormatted);
+  onFormattedRef.current = onFormatted;
   const onConceptRef = useRef(onConcept);
   onConceptRef.current = onConcept;
   const moreRef = useRef(d.actions.learnMore);
@@ -640,6 +670,14 @@ export const CodeEditor = memo(function CodeEditor({
               return true;
             },
           },
+          /* The shortcut VS Code uses, so the habit carries over both ways. */
+          {
+            key: 'Shift-Alt-f',
+            run: (view) => {
+              void formatIn(view).then((outcome) => onFormattedRef.current?.(outcome));
+              return true;
+            },
+          },
           ...closeBracketsKeymap,
           ...defaultKeymap,
           ...historyKeymap,
@@ -693,20 +731,7 @@ export const CodeEditor = memo(function CodeEditor({
         editor.focus();
         openSearchPanel(editor);
       },
-      tidy: () => {
-        /* Indentation only — not a formatter. A real one costs more than this
-           whole editor does, and the thing a student's code actually needs is
-           for the nesting to show. The selection is restored afterwards so the
-           cursor does not end up at the end of the file. */
-        const kept = editor.state.selection.main;
-        editor.dispatch({ selection: { anchor: 0, head: editor.state.doc.length } });
-        indentSelection(editor);
-        const length = editor.state.doc.length;
-        editor.dispatch({
-          selection: { anchor: Math.min(kept.anchor, length), head: Math.min(kept.head, length) },
-        });
-        editor.focus();
-      },
+      format: () => formatIn(editor),
       focus: () => editor.focus(),
       insert: (text: string) => {
         /* Through the snippet machinery rather than a raw change, so `#{}` in a
