@@ -167,6 +167,12 @@ STYLES = [
 ]
 
 
+# The Flow test chosen for each style, once there is one.
+CHOSEN = {
+    "educativo": "educativo-v2.png",
+}
+
+
 def images(folder):
     path = os.path.join(HERE, folder)
     if not os.path.isdir(path):
@@ -181,9 +187,14 @@ def source_of(name):
     return "Referencia", ""
 
 
-def figure(src, caption, url="", attach=False):
+def figure(src, caption, url="", attach=False, chosen=False):
     link = f'<a href="{html.escape(url)}" target="_blank" rel="noopener">{html.escape(caption)}</a>' if url else html.escape(caption)
-    badge = '<span class="attach">Adjuntar en Flow</span>' if attach else ""
+    badge = (
+        '<span class="attach">Adjuntar en Flow</span>' if attach
+        else '<span class="attach chosen">Elegida</span>' if chosen
+        else ""
+    )
+    attach = attach or chosen
     return (
         f'<figure{" class=\"pick\"" if attach else ""}>{badge}<button type="button" class="zoom" data-src="{html.escape(src)}" aria-label="Ampliar">'
         f'<img src="{html.escape(src)}" alt="{html.escape(caption)}" loading="lazy"></button>'
@@ -209,7 +220,7 @@ def render():
 
         if tests:
             trials = '<div class="gallery tests">' + "".join(
-                figure(f"pruebas/{t}", t) for t in tests
+                figure(f"pruebas/{t}", t, chosen=CHOSEN.get(style["id"]) == t) for t in tests
             ) + "</div>"
         else:
             trials = (
