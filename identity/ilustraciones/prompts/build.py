@@ -228,6 +228,9 @@ ROWS = [
 # vectorize; "redo" needs another pass in Flow.
 REVIEW = {
     "tobot-giro-v1.png": ("ok", "Sirve como referencia. El tres cuartos y el perfil miran a la derecha y su antena sale curva."),
+    "tobot-expresiones-v1.png": ("ok", "Salieron 8 caras en vez de 6, pero cubren los seis estados del editor: reposo, pensando, hablando, preguntando, terminado y error."),
+    "tobot-editor-base-v1.png": ("ok", "Salió en vista despiezada, con cada parte suelta: mejor de lo pedido para vectorizar en capas y animar."),
+    "tobot-poses-v1.png": ("ok", "Salieron 4 poses en vez de 5: falta «explicando, señalando», y en «pensando» la mano está en el pecho, no en la barbilla."),
     "banner-saved-v1.png": ("ok", "Buena composición: la mitad izquierda queda libre."),
     "banner-challenges-v1.png": ("ok", "Sirve de respaldo, aunque el bloque de arriba flota y la torre con hueco se lee poco."),
     "banner-examples-v1.png": ("ok", "Muy clara: la lupa sobre una columna de bloques."),
