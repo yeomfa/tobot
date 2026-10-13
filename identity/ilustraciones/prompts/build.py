@@ -224,6 +224,25 @@ ROWS = [
 ]
 
 
+# What each saved version came to, once reviewed: (state, note). "ok" is good to
+# vectorize; "redo" needs another pass in Flow.
+REVIEW = {
+    "tobot-giro-v1.png": ("ok", "Sirve como referencia. El tres cuartos y el perfil miran a la derecha y su antena sale curva."),
+    "banner-saved-v1.png": ("ok", "Buena composición: la mitad izquierda queda libre."),
+    "banner-challenges-v1.png": ("ok", "Sirve de respaldo, aunque el bloque de arriba flota y la torre con hueco se lee poco."),
+    "banner-examples-v1.png": ("ok", "Muy clara: la lupa sobre una columna de bloques."),
+    "banner-concepts-v1.png": ("ok", "Muy buena: las tres ideas flotan sobre el libro."),
+    "spot-empty-library-v1.png": ("ok", "Clara y amable."),
+    "spot-empty-editor-v1.png": ("ok", "Se entiende el primer bloque sobre el hueco punteado."),
+    "spot-empty-console-v1.png": ("ok", "Muy clara: globo vacío y botón de ejecutar."),
+    "spot-empty-flowchart-v1.png": ("ok", "Buena: el diagrama punteado espera ser llenado."),
+    "spot-no-results-v1.png": ("redo", "Bordes borrosos y con manchas, como comprimida, y la cabeza deformada (visor inclinado, ojos torcidos). Se vectorizaría mal: generarla de nuevo."),
+    "spot-sign-in-v1.png": ("ok", "De las mejores: escuela, sendero y casa cuentan la idea solos."),
+    "spot-welcome-v1.png": ("ok", "Clara: saludo junto al bloque de inicio."),
+    "spot-blocks-to-code-v1.png": ("ok", "Clara: del bloque a las llaves, con los píxeles en medio."),
+}
+
+
 def versions(file):
     if not os.path.isdir(ORIGINALS):
         return []
@@ -259,11 +278,20 @@ def render():
             if found
             else '<span class="todo-tag">Pendiente</span>'
         )
-        thumbs = "".join(
-            f'<figure><button type="button" class="zoom" data-src="ilustraciones/originales/{html.escape(v)}" aria-label="Ampliar {html.escape(v)}">'
-            f'<img src="ilustraciones/originales/{html.escape(v)}" alt="{html.escape(v)}" loading="lazy"></button><figcaption>{html.escape(v)}</figcaption></figure>'
-            for v in found
-        )
+        def thumb(v):
+            state, comment = REVIEW.get(v, (None, ""))
+            badge = (
+                '<span class="review ok">Aprobada</span>' if state == "ok"
+                else '<span class="review redo">Rehacer</span>' if state == "redo"
+                else ""
+            )
+            return (
+                f'<figure{" class=\"redo\"" if state == "redo" else ""}><button type="button" class="zoom" data-src="ilustraciones/originales/{html.escape(v)}" aria-label="Ampliar {html.escape(v)}">'
+                f'<img src="ilustraciones/originales/{html.escape(v)}" alt="{html.escape(v)}" loading="lazy"></button>'
+                f'<figcaption>{badge}{html.escape(v)}{("<span class=\"comment\">" + html.escape(comment) + "</span>") if comment else ""}</figcaption></figure>'
+            )
+
+        thumbs = "".join(thumb(v) for v in found)
         variants = []
         if cam_prompt:
             variants.append(prompt_block(n, "A · Cámara", file + "-cam", cam_prompt, True))
