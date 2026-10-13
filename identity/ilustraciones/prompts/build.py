@@ -17,7 +17,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # same relative paths work opened from disk and published.
 IDENTITY = os.path.normpath(os.path.join(HERE, "..", ".."))
 ORIGINALS = os.path.join(IDENTITY, "ilustraciones", "originales")
-REFERENCES = ["referencias-flow/tobot-referencia.png", "referencias-flow/tobot-giro.png"]
+FLOW_REFS = os.path.join(IDENTITY, "referencias-flow")
+
+
+def reference(name):
+    """The reference saved under this name, or its latest -vN, which is how Flow's
+    downloads tend to arrive."""
+    found = sorted(
+        (f for f in os.listdir(FLOW_REFS) if re.fullmatch(re.escape(name) + r"(-v\d+)?\.png", f)),
+        key=lambda f: int(m.group(1)) if (m := re.search(r"-v(\d+)\.png$", f)) else 0,
+    ) if os.path.isdir(FLOW_REFS) else []
+    return f"referencias-flow/{found[-1] if found else name + '.png'}"
+
+
+REFERENCES = [reference("tobot-referencia"), reference("tobot-giro")]
 
 # ── The style: vectorial educativo, chosen from identity/estilos ────────────────
 STYLE = "Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot's eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture."
