@@ -35,6 +35,17 @@ td code{white-space:nowrap}
 .ref b{font-size:13px}
 .ref img{width:100%;aspect-ratio:16/9;object-fit:contain;border-radius:8px;border:1px solid var(--rule);background:#fff}
 .ref span{font-size:12.5px;color:var(--muted)}
+.ref figure{gap:4px}
+.ref figure.missing img{display:none}
+.ref figure.missing::before{content:"Aún no existe: genera la hoja de giro y guárdala con este nombre.";display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;aspect-ratio:16/9;border:1px dashed var(--rule);border-radius:8px;font-size:12.5px;color:var(--muted)}
+.cam-tag{display:block;width:max-content;margin-top:6px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent-ink)}
+.variant{display:flex;flex-direction:column;gap:6px}
+.variant + .variant{margin-top:12px;padding-top:12px;border-top:1px dashed var(--rule)}
+.variant-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
+.variant-head b{font-size:13px}
+.gist{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.gist b{color:var(--fg);font-weight:700;margin-right:4px}
+.variant.primary .variant-head b{color:var(--accent-ink)}
 .tablewrap{background:var(--card);box-shadow:var(--shadow);border-radius:12px;overflow:hidden}
 table{width:100%;border-collapse:collapse}
 thead th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 16px;border-bottom:1px solid var(--rule)}
@@ -42,7 +53,7 @@ tr.group th{text-align:left;font-size:12.5px;font-weight:700;color:var(--fg);bac
 tr.group th span{display:block;font-weight:400;color:var(--muted)}
 td{padding:14px 16px;border-bottom:1px solid var(--rule);vertical-align:top}
 tbody tr:last-child td{border-bottom:0}
-td:nth-child(1){width:26%} td:nth-child(2){width:18%} td:nth-child(3){width:8%}
+td:nth-child(1){width:30%} td:nth-child(2){width:9%}
 .note{display:block;margin-top:4px;font-size:12.5px;color:var(--muted)}
 .done-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--tone);color:var(--ok)}
 .todo-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--accent);color:#fff}
@@ -76,24 +87,24 @@ dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;b
 <main class="wrap">
   <p class="eyebrow">Tobot · Ilustraciones</p>
   <h1>Prompts para Google Flow</h1>
-  <p class="lead">Una fila por pieza: dónde va en la app, el nombre del archivo, el formato y el prompt completo. Estilo vectorial educativo, con Tobot siempre igual y en una pose distinta en cada escena.</p>
+  <p class="lead">Una fila por pieza: dónde va en la app, su formato y sus prompts. Estilo vectorial educativo, con Tobot siempre igual. Donde hay espacio, la versión A usa la cámara de Flow —ángulo, perspectiva, encuadre, profundidad— y la B, Tobot de frente, queda de respaldo.</p>
 
   <div class="intro">
     <div class="steps">
-      <div class="step"><b>1. Genera</b><span>Adjunta siempre la referencia de la derecha, elige el formato de la fila y descarga en 1K (el 2K de Flow es una ampliación que deforma los bordes).</span></div>
-      <div class="step"><b>2. Guarda</b><span>En <code>identity/ilustraciones/originales/</code> con el nombre de la fila. Si haces varias opciones: <code>-v1</code>, <code>-v2</code>…</span></div>
-      <div class="step"><b>3. Avisa</b><span>Regenero esta página con tus versiones en su fila; me dices cuál eliges y la vectorizo en capas y la pongo en su lugar.</span></div>
+      <div class="step"><b>1. Genera</b><span>Adjunta la referencia de Tobot en todas, y en las de cámara también la hoja de giro. Formato de la fila, descarga en 1K (el 2K de Flow es una ampliación que deforma los bordes). Empieza por la hoja de giro.</span></div>
+      <div class="step"><b>2. Guarda</b><span>En <code>identity/ilustraciones/originales/</code> con el nombre de la variante: <code>-cam-v1</code> para la de cámara, <code>-v1</code> para la simple, y <code>-v2</code>… si haces varias.</span></div>
+      <div class="step"><b>3. Avisa</b><span>Regenero esta página con tus versiones en su fila. Si la de cámara cambia demasiado a Tobot, nos quedamos con la simple. Me dices cuál eliges y la vectorizo en capas y la pongo en su lugar.</span></div>
     </div>
     <div class="ref">
-      <b>Referencia para adjuntar en todas</b>
-      <img src="__REFERENCE__" alt="Tobot junto a tres bloques, estilo vectorial educativo">
-      <span><code>identity/__REFERENCE__</code></span>
+      <b>Referencias para adjuntar</b>
+      __REFERENCES__
+      <span>La primera en todas; la segunda, además, en las de cámara.</span>
     </div>
   </div>
 
   <div class="tablewrap">
     <table>
-      <thead><tr><th scope="col">Pieza</th><th scope="col">Archivo</th><th scope="col">Formato</th><th scope="col">Prompt</th></tr></thead>
+      <thead><tr><th scope="col">Pieza</th><th scope="col">Formato</th><th scope="col">Prompts y archivos</th></tr></thead>
       <tbody>
 __ROWS__
       </tbody>

@@ -35,6 +35,17 @@ td code{white-space:nowrap}
 .ref b{font-size:13px}
 .ref img{width:100%;aspect-ratio:16/9;object-fit:contain;border-radius:8px;border:1px solid var(--rule);background:#fff}
 .ref span{font-size:12.5px;color:var(--muted)}
+.ref figure{gap:4px}
+.ref figure.missing img{display:none}
+.ref figure.missing::before{content:"Aún no existe: genera la hoja de giro y guárdala con este nombre.";display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;aspect-ratio:16/9;border:1px dashed var(--rule);border-radius:8px;font-size:12.5px;color:var(--muted)}
+.cam-tag{display:block;width:max-content;margin-top:6px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent-ink)}
+.variant{display:flex;flex-direction:column;gap:6px}
+.variant + .variant{margin-top:12px;padding-top:12px;border-top:1px dashed var(--rule)}
+.variant-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
+.variant-head b{font-size:13px}
+.gist{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.gist b{color:var(--fg);font-weight:700;margin-right:4px}
+.variant.primary .variant-head b{color:var(--accent-ink)}
 .tablewrap{background:var(--card);box-shadow:var(--shadow);border-radius:12px;overflow:hidden}
 table{width:100%;border-collapse:collapse}
 thead th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 16px;border-bottom:1px solid var(--rule)}
@@ -42,7 +53,7 @@ tr.group th{text-align:left;font-size:12.5px;font-weight:700;color:var(--fg);bac
 tr.group th span{display:block;font-weight:400;color:var(--muted)}
 td{padding:14px 16px;border-bottom:1px solid var(--rule);vertical-align:top}
 tbody tr:last-child td{border-bottom:0}
-td:nth-child(1){width:26%} td:nth-child(2){width:18%} td:nth-child(3){width:8%}
+td:nth-child(1){width:30%} td:nth-child(2){width:9%}
 .note{display:block;margin-top:4px;font-size:12.5px;color:var(--muted)}
 .done-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--tone);color:var(--ok)}
 .todo-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--accent);color:#fff}
@@ -76,31 +87,323 @@ dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;b
 <main class="wrap">
   <p class="eyebrow">Tobot · Ilustraciones</p>
   <h1>Prompts para Google Flow</h1>
-  <p class="lead">Una fila por pieza: dónde va en la app, el nombre del archivo, el formato y el prompt completo. Estilo vectorial educativo, con Tobot siempre igual y en una pose distinta en cada escena.</p>
+  <p class="lead">Una fila por pieza: dónde va en la app, su formato y sus prompts. Estilo vectorial educativo, con Tobot siempre igual. Donde hay espacio, la versión A usa la cámara de Flow —ángulo, perspectiva, encuadre, profundidad— y la B, Tobot de frente, queda de respaldo.</p>
 
   <div class="intro">
     <div class="steps">
-      <div class="step"><b>1. Genera</b><span>Adjunta siempre la referencia de la derecha, elige el formato de la fila y descarga en 1K (el 2K de Flow es una ampliación que deforma los bordes).</span></div>
-      <div class="step"><b>2. Guarda</b><span>En <code>identity/ilustraciones/originales/</code> con el nombre de la fila. Si haces varias opciones: <code>-v1</code>, <code>-v2</code>…</span></div>
-      <div class="step"><b>3. Avisa</b><span>Regenero esta página con tus versiones en su fila; me dices cuál eliges y la vectorizo en capas y la pongo en su lugar.</span></div>
+      <div class="step"><b>1. Genera</b><span>Adjunta la referencia de Tobot en todas, y en las de cámara también la hoja de giro. Formato de la fila, descarga en 1K (el 2K de Flow es una ampliación que deforma los bordes). Empieza por la hoja de giro.</span></div>
+      <div class="step"><b>2. Guarda</b><span>En <code>identity/ilustraciones/originales/</code> con el nombre de la variante: <code>-cam-v1</code> para la de cámara, <code>-v1</code> para la simple, y <code>-v2</code>… si haces varias.</span></div>
+      <div class="step"><b>3. Avisa</b><span>Regenero esta página con tus versiones en su fila. Si la de cámara cambia demasiado a Tobot, nos quedamos con la simple. Me dices cuál eliges y la vectorizo en capas y la pongo en su lugar.</span></div>
     </div>
     <div class="ref">
-      <b>Referencia para adjuntar en todas</b>
-      <img src="referencias-flow/tobot-referencia.png" alt="Tobot junto a tres bloques, estilo vectorial educativo">
-      <span><code>identity/referencias-flow/tobot-referencia.png</code></span>
+      <b>Referencias para adjuntar</b>
+      <figure><img src="referencias-flow/tobot-referencia.png" alt="" loading="lazy" onerror="this.closest('figure').classList.add('missing')"><figcaption><code>identity/referencias-flow/tobot-referencia.png</code></figcaption></figure><figure><img src="referencias-flow/tobot-giro.png" alt="" loading="lazy" onerror="this.closest('figure').classList.add('missing')"><figcaption><code>identity/referencias-flow/tobot-giro.png</code></figcaption></figure>
+      <span>La primera en todas; la segunda, además, en las de cámara.</span>
     </div>
   </div>
 
   <div class="tablewrap">
     <table>
-      <thead><tr><th scope="col">Pieza</th><th scope="col">Archivo</th><th scope="col">Formato</th><th scope="col">Prompt</th></tr></thead>
+      <thead><tr><th scope="col">Pieza</th><th scope="col">Formato</th><th scope="col">Prompts y archivos</th></tr></thead>
       <tbody>
-<tr class="group"><th colspan="4" scope="colgroup">Biblioteca · banners<span>En la cabecera de cada sección de la biblioteca, a la derecha, en lugar del ícono actual.</span></th></tr>
+<tr class="group"><th colspan="3" scope="colgroup">Tobot · personaje y editor<span>Primero que todo: la hoja de giro se guarda también en referencias-flow/ y pasa a ser la segunda referencia de las escenas con cámara.</span></th></tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Hoja de giro</b><span class="note">Genérala primero y guarda la elegida también como referencias-flow/tobot-giro.png: es la que le enseña a Flow cómo se ve Tobot de lado y de espaldas.</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>tobot-giro-v1.png</code></div><p class="gist"><b>Escena</b> Character turnaround sheet of Tobot: the same robot shown four times side by side at exactly the same size and height, standing in a neutral relaxed pose with its arms slightly away from the body — front view, three-quarter view facing left, side view facing left, and back view.</p><div class="pwrap"><pre id="p0">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Scene: Character turnaround sheet of Tobot: the same robot shown four times side by side at exactly the same size and height, standing in a neutral relaxed pose with its arms slightly away from the body — front view, three-quarter view facing left, side view facing left, and back view.
+
+Composition: wide character sheet on plain white, every figure the same size and standing on one shared invisible ground line, evenly spaced across the width, nothing else in the image.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p0">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Hoja de expresiones</b><span class="note">Los seis estados del robot del editor: reposo, pensando, hablando, preguntando, terminado y error. Sin boca, como en la referencia: todo se dice con los ojos, la antena y la luz del pecho.</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>tobot-expresiones-v1.png</code></div><p class="gist"><b>Escena</b> Expression sheet: Tobot&#x27;s head and shoulders shown six times, front view, same size, in two rows of three, one expression each, told only through the eyes on the visor, the antenna and the chest light, with no mouth. Left to right, top row: calm (relaxed pill eyes), thinking (eyes glancing up to one side, antenna ball glowing brighter), speaking (bright eyes lifted upward, chest light bright). Bottom row: asking (eyes wide and round, head tilted), happy and done (eyes as upward curved arcs, a small sparkle by the antenna), error (eyes as two short flat lines, antenna drooping, chest light dim).</p><div class="pwrap"><pre id="p1">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Scene: Expression sheet: Tobot&#x27;s head and shoulders shown six times, front view, same size, in two rows of three, one expression each, told only through the eyes on the visor, the antenna and the chest light, with no mouth. Left to right, top row: calm (relaxed pill eyes), thinking (eyes glancing up to one side, antenna ball glowing brighter), speaking (bright eyes lifted upward, chest light bright). Bottom row: asking (eyes wide and round, head tilted), happy and done (eyes as upward curved arcs, a small sparkle by the antenna), error (eyes as two short flat lines, antenna drooping, chest light dim).
+
+Composition: wide sheet on plain white, the six heads in two even rows of three, same size, evenly spaced, nothing else in the image.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p1">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Tobot base para el editor</b><span class="note">La que se vectoriza en capas para el panel del robot: cada parte separada para animarla (parpadeo, antena, brazos, luz del pecho).</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>tobot-editor-base-v1.png</code></div><p class="gist"><b>Escena</b> Tobot alone, front view, standing perfectly straight and symmetrical, arms hanging slightly away from the body, legs straight, calm relaxed eyes. Every part is clearly separate so it can be animated: the antenna, head, visor, eyes, body, chest light, arms and legs do not overlap one another.</p><div class="pwrap"><pre id="p2">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Scene: Tobot alone, front view, standing perfectly straight and symmetrical, arms hanging slightly away from the body, legs straight, calm relaxed eyes. Every part is clearly separate so it can be animated: the antenna, head, visor, eyes, body, chest light, arms and legs do not overlap one another.
+
+Composition: square image. Tobot centered, about 60% of the image height, on plain white. No sparkles, no glow halo around the body, no ground shadow.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p2">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Hoja de poses</b><span class="note">Poses de cuerpo entero para los estados del editor y para usar sueltas en la app.</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>tobot-poses-v1.png</code></div><p class="gist"><b>Escena</b> Pose sheet: Tobot full body shown five times side by side at the same size: waving hello with one hand raised high; one hand on its chin, thinking; both arms open wide, asking a question; one arm pointing forward, explaining; shoulders slumped and head lowered, something went wrong.</p><div class="pwrap"><pre id="p3">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Scene: Pose sheet: Tobot full body shown five times side by side at the same size: waving hello with one hand raised high; one hand on its chin, thinking; both arms open wide, asking a question; one arm pointing forward, explaining; shoulders slumped and head lowered, something went wrong.
+
+Composition: wide character sheet on plain white, every figure the same size and standing on one shared invisible ground line, evenly spaced across the width, nothing else in the image.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p3">Copiar</button></div></div></td>
+</tr>
+<tr class="group"><th colspan="3" scope="colgroup">Landing<span>Las escenas con más cámara: es donde una imagen con vida compensa su peso.</span></th></tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Portada</b><span class="note">Para el hero de la landing, junto o detrás de la demo en vivo.</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>landing-hero-cam-v1.png</code></div><p class="gist"><b>Cámara</b> dramatic low angle from the ground looking up, with a slight wide-angle lens</p><p class="gist"><b>Escena</b> Tobot stands proudly on top of a big stack of snapped-together code blocks in all six colours, one arm raised high; the stack rises from the bottom edge towards the camera, the nearest blocks large and cropped, with a few sparkles around Tobot.</p><div class="pwrap"><pre id="p4">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: dramatic low angle from the ground looking up, with a slight wide-angle lens
+
+Scene: Tobot stands proudly on top of a big stack of snapped-together code blocks in all six colours, one arm raised high; the stack rises from the bottom edge towards the camera, the nearest blocks large and cropped, with a few sparkles around Tobot.
+
+Composition: wide hero image. The headline sits on the left, so keep the left 45% almost empty white; the scene fills the right 55% and may bleed off the right and bottom edges. One strong focal point at about two thirds of the width.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p4">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>landing-hero-v1.png</code></div><p class="gist"><b>Escena</b> Tobot stands next to a big stack of six snapped-together code blocks, one of each colour, waving with one hand.</p><div class="pwrap"><pre id="p5">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Scene: Tobot stands next to a big stack of six snapped-together code blocks, one of each colour, waving with one hand.
+
+Composition: wide hero image. The headline sits on the left, so keep the left 45% almost empty white; the scene fills the right 55% and may bleed off the right and bottom edges. One strong focal point at about two thirds of the width.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p5">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Paso 1 · Arma tu algoritmo</b><span class="note">«Así funciona», primer paso.</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">4:3</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>landing-step-build-cam-v1.png</code></div><p class="gist"><b>Cámara</b> straight top-down view, looking down from directly above</p><p class="gist"><b>Escena</b> seen from directly above, Tobot drags a violet code block across a large canvas with a faint dot grid to snap it under a short column of two blocks; its antenna points at the camera.</p><div class="pwrap"><pre id="p6">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: straight top-down view, looking down from directly above
+
+Scene: seen from directly above, Tobot drags a violet code block across a large canvas with a faint dot grid to snap it under a short column of two blocks; its antenna points at the camera.
+
+Composition: 4:3 card illustration. One scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p6">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>landing-step-build-v1.png</code></div><p class="gist"><b>Escena</b> Tobot carries a violet code block towards a short column of two snapped-together blocks, about to snap it underneath.</p><div class="pwrap"><pre id="p7">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Scene: Tobot carries a violet code block towards a short column of two snapped-together blocks, about to snap it underneath.
+
+Composition: 4:3 card illustration. One scene centered, about 70% of the width, with white around it so it sits calmly above a short text.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p7">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Paso 2 · Entiende qué hace</b><span class="note">«Así funciona», segundo paso: lo mismo en bloques y en código.</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">4:3</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>landing-step-understand-cam-v1.png</code></div><p class="gist"><b>Cámara</b> over-the-shoulder view from behind Tobot, slightly to one side</p><p class="gist"><b>Escena</b> Tobot, seen from behind, looks at a large dark navy rounded screen split into two halves: on the left a column of three code blocks, on the right three matching rows of short coloured bars standing for lines of code; a soft glow from the screen lights the edge of Tobot&#x27;s head.</p><div class="pwrap"><pre id="p8">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: over-the-shoulder view from behind Tobot, slightly to one side
+
+Scene: Tobot, seen from behind, looks at a large dark navy rounded screen split into two halves: on the left a column of three code blocks, on the right three matching rows of short coloured bars standing for lines of code; a soft glow from the screen lights the edge of Tobot&#x27;s head.
+
+Composition: 4:3 card illustration. One scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p8">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>landing-step-understand-v1.png</code></div><p class="gist"><b>Escena</b> Tobot stands between a column of three code blocks and a dark navy rounded card with three matching short coloured bars, pointing from one to the other.</p><div class="pwrap"><pre id="p9">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Scene: Tobot stands between a column of three code blocks and a dark navy rounded card with three matching short coloured bars, pointing from one to the other.
+
+Composition: 4:3 card illustration. One scene centered, about 70% of the width, with white around it so it sits calmly above a short text.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p9">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Paso 3 · Ejecútalo paso a paso</b><span class="note">«Así funciona», tercer paso: el robot va instrucción por instrucción.</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">4:3</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>landing-step-run-cam-v1.png</code></div><p class="gist"><b>Cámara</b> wide view with strong perspective, the path receding into the distance</p><p class="gist"><b>Escena</b> Tobot walks along a path of code blocks laid flat like stepping stones that recede into the distance; the block under its foot glows softly, the ones already behind it glow dimmer, and the ones ahead are still unlit.</p><div class="pwrap"><pre id="p10">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: wide view with strong perspective, the path receding into the distance
+
+Scene: Tobot walks along a path of code blocks laid flat like stepping stones that recede into the distance; the block under its foot glows softly, the ones already behind it glow dimmer, and the ones ahead are still unlit.
+
+Composition: 4:3 card illustration. One scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p10">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>landing-step-run-v1.png</code></div><p class="gist"><b>Escena</b> Tobot steps from one code block to the next on a short row of three blocks laid flat like stepping stones; the block under its foot glows softly.</p><div class="pwrap"><pre id="p11">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Scene: Tobot steps from one code block to the next on a short row of three blocks laid flat like stepping stones; the block under its foot glows softly.
+
+Composition: 4:3 card illustration. One scene centered, about 70% of the width, with white around it so it sits calmly above a short text.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p11">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Para quien aprende</b><span class="note">Tarjeta «Si estás aprendiendo».</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">4:3</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>landing-for-students-cam-v1.png</code></div><p class="gist"><b>Cámara</b> medium close-up from the side, at desk height</p><p class="gist"><b>Escena</b> Tobot sits at a small desk in front of an open laptop, its visor lit by the screen, one hand on the trackpad, a small stack of code blocks beside the laptop slightly out of focus in the foreground.</p><div class="pwrap"><pre id="p12">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: medium close-up from the side, at desk height
+
+Scene: Tobot sits at a small desk in front of an open laptop, its visor lit by the screen, one hand on the trackpad, a small stack of code blocks beside the laptop slightly out of focus in the foreground.
+
+Composition: 4:3 card illustration. One scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p12">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>landing-for-students-v1.png</code></div><p class="gist"><b>Escena</b> Tobot sits at a small desk in front of an open laptop, with a small stack of code blocks beside it.</p><div class="pwrap"><pre id="p13">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Scene: Tobot sits at a small desk in front of an open laptop, with a small stack of code blocks beside it.
+
+Composition: 4:3 card illustration. One scene centered, about 70% of the width, with white around it so it sits calmly above a short text.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p13">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Para quien enseña</b><span class="note">Tarjeta «Si enseñas».</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">4:3</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>landing-for-teachers-cam-v1.png</code></div><p class="gist"><b>Cámara</b> three-quarter view along the board, which recedes in perspective</p><p class="gist"><b>Escena</b> Tobot stands at a large board and points with a long stick at a simple flowchart of rounded boxes joined by arrows; the board recedes in perspective, its far end smaller.</p><div class="pwrap"><pre id="p14">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: three-quarter view along the board, which recedes in perspective
+
+Scene: Tobot stands at a large board and points with a long stick at a simple flowchart of rounded boxes joined by arrows; the board recedes in perspective, its far end smaller.
+
+Composition: 4:3 card illustration. One scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p14">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>landing-for-teachers-v1.png</code></div><p class="gist"><b>Escena</b> Tobot stands beside a board with a simple flowchart of rounded boxes and arrows, pointing at it.</p><div class="pwrap"><pre id="p15">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Scene: Tobot stands beside a board with a simple flowchart of rounded boxes and arrows, pointing at it.
+
+Composition: 4:3 card illustration. One scene centered, about 70% of the width, with white around it so it sits calmly above a short text.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p15">Copiar</button></div></div></td>
+</tr>
+<tr class="todo">
+<td data-label="Pieza"><b>Cierre · ¿Empezamos?</b><span class="note">Banda final oscura de la landing, junto al «¿Empezamos?».</span><span class="todo-tag">Pendiente</span></td>
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>landing-closing-cam-v1.png</code></div><p class="gist"><b>Cámara</b> low angle looking up, the rocket moving diagonally towards the upper right</p><p class="gist"><b>Escena</b> Tobot rides a small rocket built from snapped-together code blocks, lifting off towards the upper right, waving at the camera, with a soft trail of small square pixels behind it.</p><div class="pwrap"><pre id="p16">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: low angle looking up, the rocket moving diagonally towards the upper right
+
+Scene: Tobot rides a small rocket built from snapped-together code blocks, lifting off towards the upper right, waving at the camera, with a soft trail of small square pixels behind it.
+
+Composition: wide hero image. The headline sits on the left, so keep the left 45% almost empty white; the scene fills the right 55% and may bleed off the right and bottom edges. One strong focal point at about two thirds of the width.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p16">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>landing-closing-v1.png</code></div><p class="gist"><b>Escena</b> Tobot waves goodbye standing next to a small rocket built from snapped-together code blocks.</p><div class="pwrap"><pre id="p17">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Scene: Tobot waves goodbye standing next to a small rocket built from snapped-together code blocks.
+
+Composition: wide hero image. The headline sits on the left, so keep the left 45% almost empty white; the scene fills the right 55% and may bleed off the right and bottom edges. One strong focal point at about two thirds of the width.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p17">Copiar</button></div></div></td>
+</tr>
+<tr class="group"><th colspan="3" scope="colgroup">Biblioteca · banners<span>En la cabecera de cada sección de la biblioteca, a la derecha, en lugar del ícono actual.</span></th></tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Tus algoritmos</b><span class="note">Sección Guardados: «Empieza uno nuevo, retoma lo que dejaste…».</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>banner-saved-v1.png</code></td>
-<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p0">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>banner-saved-cam-v1.png</code></div><p class="gist"><b>Cámara</b> high three-quarter view from above, looking down at a slight angle</p><p class="gist"><b>Escena</b> Tobot kneels in front of a low open shelf seen in depth, arranging small snapped-together stacks of code blocks in rows that recede into the distance; the nearest stack is large in the foreground, slightly cropped by the bottom edge.</p><div class="pwrap"><pre id="p18">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: high three-quarter view from above, looking down at a slight angle
+
+Scene: Tobot kneels in front of a low open shelf seen in depth, arranging small snapped-together stacks of code blocks in rows that recede into the distance; the nearest stack is large in the foreground, slightly cropped by the bottom edge.
+
+Composition: wide banner. Keep the left 50% almost empty white, because text sits there; the scene lives in the right half and may bleed off the right and bottom edges. One clear focal point at about three quarters of the width. Large simple shapes that still read when the image is small.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p18">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>banner-saved-v1.png</code></div><p class="gist"><b>Escena</b> Tobot stands beside the open drawer of a simple rounded filing cabinet, gently placing a small stack of three snapped-together code blocks (violet, teal, amber) into it; two more small stacks already rest inside the drawer.</p><div class="pwrap"><pre id="p19">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -112,13 +415,26 @@ Composition: wide banner. Place the whole scene in the right 45% of the image, c
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p0">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p19">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Ponte a prueba</b><span class="note">Sección Retos: ejercicios a medio hacer.</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>banner-challenges-v1.png</code></td>
-<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p1">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>banner-challenges-cam-v1.png</code></div><p class="gist"><b>Cámara</b> low angle from the ground looking up, with a slight wide-angle perspective</p><p class="gist"><b>Escena</b> a tall tower of snapped-together code blocks rises up and to the right, with one empty gap near the top; Tobot climbs the tower, one hand on a block, holding the missing amber block up towards the gap; the top of the tower is cropped by the top edge.</p><div class="pwrap"><pre id="p20">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: low angle from the ground looking up, with a slight wide-angle perspective
+
+Scene: a tall tower of snapped-together code blocks rises up and to the right, with one empty gap near the top; Tobot climbs the tower, one hand on a block, holding the missing amber block up towards the gap; the top of the tower is cropped by the top edge.
+
+Composition: wide banner. Keep the left 50% almost empty white, because text sits there; the scene lives in the right half and may bleed off the right and bottom edges. One clear focal point at about three quarters of the width. Large simple shapes that still read when the image is small.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p20">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>banner-challenges-v1.png</code></div><p class="gist"><b>Escena</b> Tobot looks at a tall stack of four snapped-together code blocks that has one empty gap in the middle; it holds the missing amber block in both hands, about to slot it in, its head tilted with curiosity.</p><div class="pwrap"><pre id="p21">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -130,13 +446,26 @@ Composition: wide banner. Place the whole scene in the right 45% of the image, c
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p1">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p21">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Aprende con ejemplos</b><span class="note">Sección Ejemplos: problemas ya resueltos para comparar.</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>banner-examples-v1.png</code></td>
-<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p2">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>banner-examples-cam-v1.png</code></div><p class="gist"><b>Cámara</b> close-up, a large magnifying glass in the foreground</p><p class="gist"><b>Escena</b> seen through a big round magnifying glass that fills most of the right half, Tobot&#x27;s visor and one glowing eye appear large and curious; behind the glass, slightly out of focus, stands a neat column of code blocks.</p><div class="pwrap"><pre id="p22">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: close-up, a large magnifying glass in the foreground
+
+Scene: seen through a big round magnifying glass that fills most of the right half, Tobot&#x27;s visor and one glowing eye appear large and curious; behind the glass, slightly out of focus, stands a neat column of code blocks.
+
+Composition: wide banner. Keep the left 50% almost empty white, because text sits there; the scene lives in the right half and may bleed off the right and bottom edges. One clear focal point at about three quarters of the width. Large simple shapes that still read when the image is small.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p22">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>banner-examples-v1.png</code></div><p class="gist"><b>Escena</b> Tobot holds a large round magnifying glass up to a finished program: a neat column of five snapped-together code blocks (indigo, teal, amber, violet, teal) standing beside it, with one small sparkle where the lens points.</p><div class="pwrap"><pre id="p23">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -148,13 +477,26 @@ Composition: wide banner. Place the whole scene in the right 45% of the image, c
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p2">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p23">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Entiende las ideas</b><span class="note">Sección Conceptos: variables, decisiones y ciclos desde cero.</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>banner-concepts-v1.png</code></td>
-<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p3">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">16:9</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>banner-concepts-cam-v1.png</code></div><p class="gist"><b>Cámara</b> medium shot from slightly below, with depth</p><p class="gist"><b>Escena</b> Tobot sits cross-legged reading an open book; from its pages three simple rounded shapes rise into the air in layers — a small indigo box, an amber diamond and a violet circular arrow — the nearest one large and close to the camera, the farthest small.</p><div class="pwrap"><pre id="p24">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: medium shot from slightly below, with depth
+
+Scene: Tobot sits cross-legged reading an open book; from its pages three simple rounded shapes rise into the air in layers — a small indigo box, an amber diamond and a violet circular arrow — the nearest one large and close to the camera, the farthest small.
+
+Composition: wide banner. Keep the left 50% almost empty white, because text sits there; the scene lives in the right half and may bleed off the right and bottom edges. One clear focal point at about three quarters of the width. Large simple shapes that still read when the image is small.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p24">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>banner-concepts-v1.png</code></div><p class="gist"><b>Escena</b> Tobot sits on a short stack of three closed books and holds an open book on its lap; above the open book float three simple rounded shapes that stand for ideas: a small indigo box, an amber diamond and a violet circular arrow.</p><div class="pwrap"><pre id="p25">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -166,14 +508,13 @@ Composition: wide banner. Place the whole scene in the right 45% of the image, c
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p3">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p25">Copiar</button></div></div></td>
 </tr>
-<tr class="group"><th colspan="4" scope="colgroup">Estados vacíos<span>Donde hoy solo hay una frase: aparecen cuando todavía no hay nada que mostrar.</span></th></tr>
+<tr class="group"><th colspan="3" scope="colgroup">Estados vacíos<span>Donde hoy solo hay una frase. Simples casi todos: en pequeño, una escena compleja se pierde.</span></th></tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Biblioteca vacía</b><span class="note">«Todavía no has guardado ningún algoritmo».</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-empty-library-v1.png</code></td>
 <td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p4">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>spot-empty-library-v1.png</code></div><p class="gist"><b>Escena</b> Tobot holds an open, empty folder with both hands and peeks into it with a hopeful expression.</p><div class="pwrap"><pre id="p26">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -185,13 +526,26 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p4">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p26">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Algoritmo vacío</b><span class="note">En el lienzo de bloques: «Tu algoritmo está vacío».</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-empty-editor-v1.png</code></td>
-<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p5">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>spot-empty-editor-cam-v1.png</code></div><p class="gist"><b>Cámara</b> straight top-down view, looking down from directly above</p><p class="gist"><b>Escena</b> seen from directly above: a large empty canvas with a faint dot grid; Tobot kneels at its lower edge and reaches in to place the first teal block in the middle, where a dashed outline waits.</p><div class="pwrap"><pre id="p27">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: straight top-down view, looking down from directly above
+
+Scene: seen from directly above: a large empty canvas with a faint dot grid; Tobot kneels at its lower edge and reaches in to place the first teal block in the middle, where a dashed outline waits.
+
+Composition: square image. One single scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p27">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>spot-empty-editor-v1.png</code></div><p class="gist"><b>Escena</b> Tobot kneels beside an empty dashed outline of a code block on the ground, holding a teal code block just above it, about to place the very first block.</p><div class="pwrap"><pre id="p28">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -203,13 +557,12 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p5">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p28">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Consola sin salida</b><span class="note">«Aún no hay salida. Ejecuta tu algoritmo para ver qué dice el robot».</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-empty-console-v1.png</code></td>
 <td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p6">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>spot-empty-console-v1.png</code></div><p class="gist"><b>Escena</b> Tobot stands with an empty rounded speech bubble floating above its head, one hand resting on a big round orange play button on the ground beside it, waiting to be run.</p><div class="pwrap"><pre id="p29">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -221,13 +574,12 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p6">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p29">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Diagrama vacío</b><span class="note">En la pestaña Diagrama: «Agrega instrucciones para ver el diagrama».</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-empty-flowchart-v1.png</code></td>
 <td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p7">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>spot-empty-flowchart-v1.png</code></div><p class="gist"><b>Escena</b> Tobot holds a short orange pencil and stands beside a small easel with a blank board; on the board there are only three faint dashed rounded boxes joined by faint dashed arrows, waiting to be filled.</p><div class="pwrap"><pre id="p30">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -239,13 +591,26 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p7">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p30">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Sin resultados</b><span class="note">Filtros de retos y búsqueda de la paleta sin coincidencias.</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-no-results-v1.png</code></td>
-<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p8">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>spot-no-results-cam-v1.png</code></div><p class="gist"><b>Cámara</b> very wide shot, Tobot small in a big empty space</p><p class="gist"><b>Escena</b> Tobot, small and far away, stands in a wide empty pale landscape holding a magnifying glass, looking around; nothing else is there except a few faint dashed lines on the ground leading nowhere.</p><div class="pwrap"><pre id="p31">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: very wide shot, Tobot small in a big empty space
+
+Scene: Tobot, small and far away, stands in a wide empty pale landscape holding a magnifying glass, looking around; nothing else is there except a few faint dashed lines on the ground leading nowhere.
+
+Composition: square image. One single scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p31">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>spot-no-results-v1.png</code></div><p class="gist"><b>Escena</b> Tobot looks through a large round magnifying glass at an empty patch of ground, its head tilted and one hand raised in a puzzled shrug; the lens shows nothing.</p><div class="pwrap"><pre id="p32">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -257,14 +622,27 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p8">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p32">Copiar</button></div></div></td>
 </tr>
-<tr class="group"><th colspan="4" scope="colgroup">Cuenta y bienvenida<span>Fuera del editor: entrar a la cuenta y el primer paso del recorrido.</span></th></tr>
+<tr class="group"><th colspan="3" scope="colgroup">Cuenta y bienvenida<span>Fuera del editor: entrar a la cuenta, el recorrido y el paso a código.</span></th></tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Entrar a la cuenta</b><span class="note">Junto al formulario de inicio de sesión: «Tus algoritmos te siguen entre el salón y tu casa».</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-sign-in-v1.png</code></td>
-<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p9">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>spot-sign-in-cam-v1.png</code></div><p class="gist"><b>Cámara</b> wide shot with deep perspective</p><p class="gist"><b>Escena</b> a gentle path winds from a small school building in the far distance towards the camera and ends at a small house close to the viewer; Tobot walks along the path towards the house with a small backpack and a little stack of code blocks under one arm.</p><div class="pwrap"><pre id="p33">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: wide shot with deep perspective
+
+Scene: a gentle path winds from a small school building in the far distance towards the camera and ends at a small house close to the viewer; Tobot walks along the path towards the house with a small backpack and a little stack of code blocks under one arm.
+
+Composition: square image. One single scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p33">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>spot-sign-in-v1.png</code></div><p class="gist"><b>Escena</b> Tobot walks along a short gentle path with a small backpack, carrying a little stack of snapped-together code blocks under one arm; a small simple school building stands on the left end of the path and a small simple house on the right end.</p><div class="pwrap"><pre id="p34">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -276,13 +654,12 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p9">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p34">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>Bienvenida del recorrido</b><span class="note">Primer paso del recorrido guiado del editor.</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-welcome-v1.png</code></td>
 <td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p10">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>Prompt</b><code>spot-welcome-v1.png</code></div><p class="gist"><b>Escena</b> Tobot waves hello with one hand raised high, cheerful, standing next to a single amber code block marked with a small white rounded play triangle.</p><div class="pwrap"><pre id="p35">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -294,13 +671,26 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p10">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p35">Copiar</button></div></div></td>
 </tr>
 <tr class="todo">
 <td data-label="Pieza"><b>De bloques a código</b><span class="note">Opcional: para «Escribir en JavaScript» y «Abrir en JavaScript».</span><span class="todo-tag">Pendiente</span></td>
-<td data-label="Archivo"><code>spot-blocks-to-code-v1.png</code></td>
-<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span></td>
-<td data-label="Prompt" class="pcell"><div class="pwrap"><pre id="p11">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+<td data-label="Formato"><span class="ar">1:1</span><span class="q">1K</span><span class="cam-tag">Con cámara</span></td>
+<td data-label="Prompts" class="pcell"><div class="variant primary"><div class="variant-head"><b>A · Cámara</b><code>spot-blocks-to-code-cam-v1.png</code></div><p class="gist"><b>Cámara</b> over-the-shoulder view from behind Tobot</p><p class="gist"><b>Escena</b> Tobot, seen from behind and slightly to the side, holds a teal code block up towards a large dark navy rounded screen; on the screen the same block becomes a pair of orange curly brace shapes, and small square pixels float between the block and the screen.</p><div class="pwrap"><pre id="p36">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
+
+The robot is Tobot, the character in the attached images (the reference scene and the turnaround sheet with its front, three-quarter, side and back views). Keep its design exactly from every angle — same head, visor, eyes, antenna, chest light, body and proportions: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs. The camera is free to show it from another angle, crop it or place it in depth; the character never changes.
+
+Code blocks look like the ones in the attached image: rounded rectangular blocks with a small notch on top and a matching tab below, so they snap together, each with a slightly darker bottom face.
+
+Camera: over-the-shoulder view from behind Tobot
+
+Scene: Tobot, seen from behind and slightly to the side, holds a teal code block up towards a large dark navy rounded screen; on the screen the same block becomes a pair of orange curly brace shapes, and small square pixels float between the block and the screen.
+
+Composition: square image. One single scene with one clear focal point slightly off-center; it may be cropped by one edge, and the rest stays white.
+
+Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
+
+Background mostly plain white #FFFFFF: any setting is drawn with a few large soft shapes in pale tones that fade into the white at the edges, never a full rectangle of background. No text, no letters, no numbers, no logos, no people.</pre><button type="button" class="copy" data-target="p36">Copiar</button></div></div><div class="variant"><div class="variant-head"><b>B · Simple, respaldo</b><code>spot-blocks-to-code-v1.png</code></div><p class="gist"><b>Escena</b> Tobot holds a teal code block in one hand; from the block, a short trail of small square pixels flows into a dark navy rounded card that shows a pair of orange curly brace shapes.</p><div class="pwrap"><pre id="p37">Create an original flat vector illustration in the same style as the attached image: bold rounded shapes, vibrant saturated colours, volume shown with two flat tones per colour (a light side and a shadow side with a clean edge), a soft glow only on the robot&#x27;s eyes and chest light, and a few small sparkles. Clean edges, no outlines, no gradients other than the glow, no texture.
 
 The robot is Tobot, the character in the attached image. Keep its design exactly — same head, visor, eyes, chest light, body and proportions — and change only its pose and expression: a white rounded head and body with light grey-blue shading only on the shadow side, a dark navy rounded visor with two short cyan vertical pill-shaped eyes that glow softly, a short antenna centered on top of the head with an orange ball, a round orange light on its chest, and short rounded arms and legs.
 
@@ -312,7 +702,7 @@ Composition: square image. One single scene, centered, about 60% of the width, s
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A (the antenna ball, the chest light and at most one more small accent), cyan #22D3EE (only the eyes), the block colours indigo #6366F1, teal #0891B2, amber #D97706, violet #7C3AED, pink #DB2777 and olive green #4D7C0F, each with its own darker shade, and a pale grey-blue #E8EBF2 for shadows on the ground.
 
-Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p11">Copiar</button></div></td>
+Background plain solid white #FFFFFF. No text, no letters, no numbers, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p37">Copiar</button></div></div></td>
 </tr>
       </tbody>
     </table>
