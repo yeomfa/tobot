@@ -79,6 +79,7 @@ def sheet(scene, composition=SHEET):
 
 
 GROUPS = {
+    "brand": ("Marca", "El logo. Flow sirve para explorar ideas; el definitivo se dibuja a mano en SVG para que se lea a 16 px."),
     "character": ("Tobot · personaje y editor", "Primero que todo: la hoja de giro se guarda también en referencias-flow/ y pasa a ser la segunda referencia de las escenas con cámara."),
     "landing": ("Landing", "Las escenas con más cámara: es donde una imagen con vida compensa su peso."),
     "banners": ("Biblioteca · banners", "En la cabecera de cada sección de la biblioteca, a la derecha, en lugar del ícono actual."),
@@ -87,7 +88,12 @@ GROUPS = {
 }
 
 # (group, piece, file, format, note, B · simple prompt or None, A · camera prompt or None)
+LOGO = "Create a minimal flat vector app logo mark for a learn-to-code app, based on the robot character in the attached image. The mark is the robot reduced to its simplest geometric form: a rounded square head with a short centered antenna topped by an orange ball, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, and, instead of a body, two or three stacked rounded bars that look like code blocks snapping together, each slightly indented like lines of code. Use as few shapes as possible, all with rounded corners, perfectly symmetrical, built on a simple grid, with bold solid flat colours and no shading, no gradients, no glow, no sparkles, no outlines, no texture.\n\nIt must read clearly at 16 pixels and still work in a single colour.\n\nColors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, cyan #22D3EE, and for the bars teal #0891B2 and amber #D97706.\n\nComposition: square image, the mark centered, about 60% of the width, alone on plain solid white #FFFFFF. No text, no letters, no wordmark, no app-icon tile behind it, no other objects."
+
 ROWS = [
+    ("brand", "Logo", "logo", "1:1",
+     "Exploración: cuatro variantes generadas. Ninguna sirve; el definitivo se redibuja a mano sobre la idea del logo actual.",
+     LOGO, None),
     # ── Tobot himself ───────────────────────────────────────────────────────────
     ("character", "Hoja de giro", "tobot-giro", "16:9",
      "Genérala primero y guarda la elegida también como referencias-flow/tobot-giro.png: es la que le enseña a Flow cómo se ve Tobot de lado y de espaldas.",
@@ -239,10 +245,61 @@ REVIEW = {
     "spot-empty-editor-v1.png": ("ok", "Se entiende el primer bloque sobre el hueco punteado."),
     "spot-empty-console-v1.png": ("ok", "Muy clara: globo vacío y botón de ejecutar."),
     "spot-empty-flowchart-v1.png": ("ok", "Buena: el diagrama punteado espera ser llenado."),
-    "spot-no-results-v1.png": ("redo", "Bordes borrosos y con manchas, como comprimida, y la cabeza deformada (visor inclinado, ojos torcidos). Se vectorizaría mal: generarla de nuevo."),
+    "spot-no-results-v1.png": ("ok", "Regenerada: limpia y clara. Reemplaza a la anterior, que salió borrosa."),
     "spot-sign-in-v1.png": ("ok", "De las mejores: escuela, sendero y casa cuentan la idea solos."),
     "spot-welcome-v1.png": ("ok", "Clara: saludo junto al bloque de inicio."),
     "spot-blocks-to-code-v1.png": ("ok", "Clara: del bloque a las llaves, con los píxeles en medio."),
+    # Camera versions and the landing.
+    "landing-hero-cam-v1.png": ("ok", "La mejor del lote: contrapicado, Tobot en lo alto de una torre de los seis colores."),
+    "landing-hero-v1.png": ("ok", "Es la imagen de referencia, no una escena nueva; sirve de respaldo."),
+    "landing-step-build-cam-v1.png": ("redo", "La cenital deforma a Tobot: el visor se lee como un casco. Mejor la simple."),
+    "landing-step-build-v1.png": ("ok", "Clara: lleva el bloque violeta a la columna."),
+    "landing-step-understand-cam-v1.png": ("ok", "Muy buena: sobre el hombro, bloques y código lado a lado en la pantalla."),
+    "landing-step-understand-v1.png": ("ok", "Clara, sirve de respaldo."),
+    "landing-step-run-cam-v1.png": ("ok", "Excelente: el sendero de bloques en perspectiva, iluminado bajo el pie."),
+    "landing-step-run-v1.png": ("ok", "Clara, sirve de respaldo."),
+    "landing-for-students-cam-v1.png": ("ok", "Buena profundidad: el escritorio, la pantalla iluminando el visor."),
+    "landing-for-students-v1.png": ("ok", "Clara, sirve de respaldo."),
+    "landing-for-teachers-cam-v1.png": ("ok", "Buena: la pizarra en perspectiva con el diagrama."),
+    "landing-for-teachers-v1.png": ("ok", "Clara, sirve de respaldo."),
+    "landing-closing-cam-v1.png": ("ok", "Con mucha vida, aunque el cohete no está hecho de bloques."),
+    "landing-closing-v1.png": ("ok", "Correcta pero quieta; respaldo."),
+    "banner-saved-cam-v1.png": ("ok", "Con profundidad, aunque es la más cargada y la estantería entra un poco en la zona del texto: vigilarla al recortar."),
+    "banner-challenges-cam-v1.png": ("ok", "Muy buena: la escalada cuenta la pieza que falta, que la simple no lograba."),
+    "banner-examples-cam-v1.png": ("ok", "Simpática, pero no se ven los bloques que pedía la escena; si molesta, la simple es más clara."),
+    "banner-concepts-cam-v1.png": ("ok", "Buena: las ideas más grandes y cercanas."),
+    "spot-empty-editor-cam-v1.png": ("ok", "Buena: la cenital funciona aquí, el bloque sobre el hueco punteado."),
+    "spot-no-results-cam-v1.png": ("redo", "Tobot queda diminuto: en un estado vacío pequeño se perdería. Mejor la simple."),
+    "spot-sign-in-cam-v1.png": ("ok", "Preciosa: el sendero de la escuela a la casa en perspectiva."),
+    "spot-blocks-to-code-cam-v1.png": ("ok", "Buena: sobre el hombro, del bloque a las llaves."),
+    # The logo, which Flow cannot do well.
+    "logo-v1.png": ("no", "Trae el texto «TOBOT» y la cabeza blanca se pierde sobre blanco."),
+    "logo-v2.png": ("no", "La más limpia, pero sin silueta: la cabeza blanca desaparece y a 16 px queda una mancha."),
+    "logo-v3.png": ("no", "Trae el texto «TOBOT»; las barras se leen como panqueques, no como bloques."),
+    "logo-v4.png": ("no", "El contorno gris salva la silueta pero se ve débil; demasiadas barras para 16 px."),
+}
+
+# The version to use for each piece, where one has been chosen.
+CHOSEN = {
+    "landing-hero": "landing-hero-cam-v1.png",
+    "landing-step-build": "landing-step-build-v1.png",
+    "landing-step-understand": "landing-step-understand-cam-v1.png",
+    "landing-step-run": "landing-step-run-cam-v1.png",
+    "landing-for-students": "landing-for-students-cam-v1.png",
+    "landing-for-teachers": "landing-for-teachers-cam-v1.png",
+    "landing-closing": "landing-closing-cam-v1.png",
+    "banner-saved": "banner-saved-cam-v1.png",
+    "banner-challenges": "banner-challenges-cam-v1.png",
+    "banner-examples": "banner-examples-cam-v1.png",
+    "banner-concepts": "banner-concepts-cam-v1.png",
+    "spot-empty-library": "spot-empty-library-v1.png",
+    "spot-empty-editor": "spot-empty-editor-cam-v1.png",
+    "spot-empty-console": "spot-empty-console-v1.png",
+    "spot-empty-flowchart": "spot-empty-flowchart-v1.png",
+    "spot-no-results": "spot-no-results-v1.png",
+    "spot-sign-in": "spot-sign-in-cam-v1.png",
+    "spot-welcome": "spot-welcome-v1.png",
+    "spot-blocks-to-code": "spot-blocks-to-code-cam-v1.png",
 }
 
 
@@ -284,12 +341,14 @@ def render():
         def thumb(v):
             state, comment = REVIEW.get(v, (None, ""))
             badge = (
-                '<span class="review ok">Aprobada</span>' if state == "ok"
+                '<span class="review chosen">Elegida</span>' if CHOSEN.get(file) == v
+                else '<span class="review ok">Aprobada</span>' if state == "ok"
                 else '<span class="review redo">Rehacer</span>' if state == "redo"
+                else '<span class="review redo">Descartada</span>' if state == "no"
                 else ""
             )
             return (
-                f'<figure{" class=\"redo\"" if state == "redo" else ""}><button type="button" class="zoom" data-src="ilustraciones/originales/{html.escape(v)}" aria-label="Ampliar {html.escape(v)}">'
+                f'<figure{" class=\"redo\"" if state in ("redo", "no") else " class=\"chosen\"" if CHOSEN.get(file) == v else ""}><button type="button" class="zoom" data-src="ilustraciones/originales/{html.escape(v)}" aria-label="Ampliar {html.escape(v)}">'
                 f'<img src="ilustraciones/originales/{html.escape(v)}" alt="{html.escape(v)}" loading="lazy"></button>'
                 f'<figcaption>{badge}{html.escape(v)}{("<span class=\"comment\">" + html.escape(comment) + "</span>") if comment else ""}</figcaption></figure>'
             )
