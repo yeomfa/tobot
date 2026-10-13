@@ -1,41 +1,50 @@
 /**
- * The mark's colours.
+ * The mark's colours: Tobot's own.
  *
- * The head and antenna key off `currentColor`, so a caller can tint them by
- * setting `color`, while the statement bars carry the teal and amber that pair
- * with the orange. Setting `--brand-mark-bars` collapses them to one colour
- * where the context needs it, such as a monochrome print.
+ * Navy head, cyan eyes, orange antenna, teal body. The rim is transparent on a
+ * light background and light on a dark one, where the navy head would
+ * otherwise sink into the page. A caller on a permanently dark surface can set
+ * `--brand-mark-rim` itself.
  */
 .brand-mark {
+  --brand-mark-rim: transparent;
+  --brand-mark-stalk: #171d2e;
+
   display: block;
   flex-shrink: 0;
-  color: var(--accent);
   overflow: visible;
 }
 
+:root[data-theme='dark'] .brand-mark {
+  --brand-mark-rim: #e8ebf3;
+  --brand-mark-stalk: #e8ebf3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .brand-mark {
+    --brand-mark-rim: #e8ebf3;
+    --brand-mark-stalk: #e8ebf3;
+  }
+}
+
 .brand-mark__head {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
+  fill: #171d2e;
+  stroke: var(--brand-mark-rim);
+}
+
+.brand-mark__eye {
+  fill: #22d3ee;
 }
 
 .brand-mark__antenna {
   fill: none;
-  stroke: currentColor;
+  stroke: var(--brand-mark-stalk);
 }
 
-.brand-mark__spark,
-.brand-mark__eye {
-  fill: currentColor;
+.brand-mark__spark {
+  fill: #e8873a;
 }
 
-/* Teal is the orange's complement, so the two bars carry the contrast the
-   mark needs without either colour fighting the head for attention. */
-.brand-mark__bar--1 {
-  fill: var(--brand-mark-bars, #0d9488);
-}
-
-.brand-mark__bar--2 {
-  fill: var(--brand-mark-bars, #f59e0b);
-  opacity: 0.85;
+.brand-mark__body {
+  fill: #0891b2;
 }
