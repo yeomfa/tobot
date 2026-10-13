@@ -44,6 +44,13 @@ nav a:hover{color:var(--accent-ink)}
 figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0;position:relative}
 figure.pick .zoom{border:2px solid var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .attach{position:absolute;top:8px;left:8px;z-index:1;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff;pointer-events:none}
+.sidebyside{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.side{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--fg);background:var(--card);box-shadow:var(--shadow);border-radius:12px;padding:10px}
+.side img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;border:1px solid var(--rule);background:#fff}
+.side span{font-size:14px;color:var(--muted)}
+.side b{color:var(--fg)}
+.side:hover b{color:var(--accent-ink)}
+.side:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .attach.chosen{background:var(--ok)}
 .attach-note{margin:10px 0 0;font-size:14px;color:var(--muted)}
 .zoom{display:block;padding:0;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:#fff;cursor:zoom-in;aspect-ratio:4/3}
@@ -83,7 +90,7 @@ dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;b
   <header>
     <p class="eyebrow">Tobot · Ilustraciones</p>
     <h1>Estilos de ilustración para probar en Google Flow</h1>
-    <p class="lead">Once estilos con ejemplos reales de marcas, estudios y artistas que los usan. Cada uno trae el mismo prompt de prueba (Tobot junto a tres bloques de código, con los colores de la app), para comparar lo que sale de Flow con la misma escena en todos.</p>
+    <p class="lead">__COUNT__ estilos con prueba en Flow, cada uno con ejemplos reales de marcas, estudios y artistas que los usan. Cada uno trae el mismo prompt de prueba (Tobot junto a tres bloques de código, con los colores de la app), para comparar lo que sale de Flow con la misma escena en todos.</p>
   </header>
 
   <div class="steps">
@@ -91,6 +98,14 @@ dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;b
     <div class="step"><b>2. Guarda</b><span>En <code>identity/estilos/pruebas/</code> con el nombre del estilo: <code>redondeado-v1.png</code>, <code>grano-v2.png</code>…</span></div>
     <div class="step"><b>3. Avisa</b><span>Yo regenero esta página con tus pruebas al lado de los ejemplos, y cuando elijas, armamos la lista de escenas.</span></div>
   </div>
+
+  <section>
+    <h2>Las pruebas, lado a lado</h2>
+    <p>La misma escena en cada estilo: la prueba elegida, o la más reciente. Pulsa una para ir a su estilo.</p>
+    <div class="sidebyside">
+__SIDE__
+    </div>
+  </section>
 
   <nav aria-label="Estilos">__NAV__</nav>
 
@@ -103,17 +118,17 @@ __STYLES__
       <table>
         <thead><tr><th scope="col">Estilo</th><th scope="col">Encaja con Tobot</th><th scope="col">Modo oscuro</th><th scope="col">Vectorizar en capas</th><th scope="col">Consistencia en Flow</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Geometría redondeada</th><td><span class="r3">Fuerte</span> · sus formas son los bloques</td><td><span class="r3">Fuerte</span> · se recolorea entera</td><td><span class="r3">Fuerte</span> · pocas formas simples</td><td><span class="r3">Fuerte</span> · poco que variar</td></tr>
-          <tr><th scope="row">Línea editorial</th><td><span class="r2">Aceptable</span> · sobria, algo fría</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el trazo da muchos nodos</td><td><span class="r2">Aceptable</span> · el grosor varía</td></tr>
-          <tr><th scope="row">Isométrico</th><td><span class="r2">Aceptable</span> · construir pieza a pieza</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · son polígonos</td><td><span class="r1">Débil</span> · el ángulo se tuerce</td></tr>
-          <tr><th scope="row">Plano con grano</th><td><span class="r2">Aceptable</span> · cálido, menos técnico</td><td><span class="r1">Débil</span> · el grano ensucia lo oscuro</td><td><span class="r2">Aceptable</span> · el grano se rehace aparte</td><td><span class="r3">Fuerte</span> · lo reproduce bien</td></tr>
-          <tr><th scope="row">3D suave</th><td><span class="r2">Aceptable</span> · amable, poco propio</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · queda como imagen</td><td><span class="r1">Débil</span> · el personaje cambia</td></tr>
-          <tr><th scope="row">Pixel art</th><td><span class="r3">Fuerte</span> · videojuegos y programación</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · miles de cuadrados</td><td><span class="r2">Aceptable</span> · píxeles irregulares</td></tr>
-          <tr><th scope="row">Boceto a mano</th><td><span class="r3">Fuerte</span> · así se piensa un programa</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el rayado da muchos trazos</td><td><span class="r2">Aceptable</span> · tiende al exceso de detalle</td></tr>
-          <tr><th scope="row">Vectorial educativo</th><td><span class="r3">Fuerte</span> · hecho para enseñar</td><td><span class="r2">Aceptable</span> · degradados que hay que rehacer</td><td><span class="r2">Aceptable</span> · muchas capas</td><td><span class="r2">Aceptable</span> · denso, varía</td></tr>
-          <tr><th scope="row">Papel recortado</th><td><span class="r2">Aceptable</span> · cálido, poco técnico</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · las sombras son imagen</td><td><span class="r2">Aceptable</span> · la profundidad cambia</td></tr>
-          <tr><th scope="row">Técnica mixta</th><td><span class="r2">Aceptable</span> · memorable, recargado</td><td><span class="r1">Débil</span> · la foto no se recolorea</td><td><span class="r1">Débil</span> · el fondo es fotografía</td><td><span class="r1">Débil</span> · cada mezcla sale distinta</td></tr>
-          <tr><th scope="row">Geométrico Bauhaus</th><td><span class="r2">Aceptable</span> · abstracto</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · formas puras</td><td><span class="r3">Fuerte</span> · no depende del personaje</td></tr>
+          <tr data-style="redondeado"><th scope="row">Geometría redondeada</th><td><span class="r3">Fuerte</span> · sus formas son los bloques</td><td><span class="r3">Fuerte</span> · se recolorea entera</td><td><span class="r3">Fuerte</span> · pocas formas simples</td><td><span class="r3">Fuerte</span> · poco que variar</td></tr>
+          <tr data-style="linea"><th scope="row">Línea editorial</th><td><span class="r2">Aceptable</span> · sobria, algo fría</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el trazo da muchos nodos</td><td><span class="r2">Aceptable</span> · el grosor varía</td></tr>
+          <tr data-style="isometrico"><th scope="row">Isométrico</th><td><span class="r2">Aceptable</span> · construir pieza a pieza</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · son polígonos</td><td><span class="r1">Débil</span> · el ángulo se tuerce</td></tr>
+          <tr data-style="grano"><th scope="row">Plano con grano</th><td><span class="r2">Aceptable</span> · cálido, menos técnico</td><td><span class="r1">Débil</span> · el grano ensucia lo oscuro</td><td><span class="r2">Aceptable</span> · el grano se rehace aparte</td><td><span class="r3">Fuerte</span> · lo reproduce bien</td></tr>
+          <tr data-style="3d"><th scope="row">3D suave</th><td><span class="r2">Aceptable</span> · amable, poco propio</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · queda como imagen</td><td><span class="r1">Débil</span> · el personaje cambia</td></tr>
+          <tr data-style="pixel"><th scope="row">Pixel art</th><td><span class="r3">Fuerte</span> · videojuegos y programación</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · miles de cuadrados</td><td><span class="r2">Aceptable</span> · píxeles irregulares</td></tr>
+          <tr data-style="boceto"><th scope="row">Boceto a mano</th><td><span class="r3">Fuerte</span> · así se piensa un programa</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el rayado da muchos trazos</td><td><span class="r2">Aceptable</span> · tiende al exceso de detalle</td></tr>
+          <tr data-style="educativo"><th scope="row">Vectorial educativo</th><td><span class="r3">Fuerte</span> · hecho para enseñar</td><td><span class="r2">Aceptable</span> · degradados que hay que rehacer</td><td><span class="r2">Aceptable</span> · muchas capas</td><td><span class="r2">Aceptable</span> · denso, varía</td></tr>
+          <tr data-style="papel"><th scope="row">Papel recortado</th><td><span class="r2">Aceptable</span> · cálido, poco técnico</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · las sombras son imagen</td><td><span class="r2">Aceptable</span> · la profundidad cambia</td></tr>
+          <tr data-style="gumball"><th scope="row">Técnica mixta</th><td><span class="r2">Aceptable</span> · memorable, recargado</td><td><span class="r1">Débil</span> · la foto no se recolorea</td><td><span class="r1">Débil</span> · el fondo es fotografía</td><td><span class="r1">Débil</span> · cada mezcla sale distinta</td></tr>
+          <tr data-style="bauhaus"><th scope="row">Geométrico Bauhaus</th><td><span class="r2">Aceptable</span> · abstracto</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · formas puras</td><td><span class="r3">Fuerte</span> · no depende del personaje</td></tr>
         </tbody>
       </table>
     </div>

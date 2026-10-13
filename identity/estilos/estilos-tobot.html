@@ -44,6 +44,13 @@ nav a:hover{color:var(--accent-ink)}
 figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0;position:relative}
 figure.pick .zoom{border:2px solid var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .attach{position:absolute;top:8px;left:8px;z-index:1;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff;pointer-events:none}
+.sidebyside{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.side{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--fg);background:var(--card);box-shadow:var(--shadow);border-radius:12px;padding:10px}
+.side img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;border:1px solid var(--rule);background:#fff}
+.side span{font-size:14px;color:var(--muted)}
+.side b{color:var(--fg)}
+.side:hover b{color:var(--accent-ink)}
+.side:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .attach.chosen{background:var(--ok)}
 .attach-note{margin:10px 0 0;font-size:14px;color:var(--muted)}
 .zoom{display:block;padding:0;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:#fff;cursor:zoom-in;aspect-ratio:4/3}
@@ -83,7 +90,7 @@ dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;b
   <header>
     <p class="eyebrow">Tobot · Ilustraciones</p>
     <h1>Estilos de ilustración para probar en Google Flow</h1>
-    <p class="lead">Once estilos con ejemplos reales de marcas, estudios y artistas que los usan. Cada uno trae el mismo prompt de prueba (Tobot junto a tres bloques de código, con los colores de la app), para comparar lo que sale de Flow con la misma escena en todos.</p>
+    <p class="lead">6 estilos con prueba en Flow, cada uno con ejemplos reales de marcas, estudios y artistas que los usan. Cada uno trae el mismo prompt de prueba (Tobot junto a tres bloques de código, con los colores de la app), para comparar lo que sale de Flow con la misma escena en todos.</p>
   </header>
 
   <div class="steps">
@@ -92,7 +99,20 @@ dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;b
     <div class="step"><b>3. Avisa</b><span>Yo regenero esta página con tus pruebas al lado de los ejemplos, y cuando elijas, armamos la lista de escenas.</span></div>
   </div>
 
-  <nav aria-label="Estilos"><a href="#redondeado">Geometría redondeada</a><a href="#linea">Línea editorial</a><a href="#isometrico">Isométrico</a><a href="#grano">Plano con grano</a><a href="#3d">3D suave</a><a href="#pixel">Pixel art</a><a href="#boceto">Boceto a mano</a><a href="#educativo">Vectorial educativo</a><a href="#papel">Papel recortado</a><a href="#bauhaus">Geométrico Bauhaus</a><a href="#gumball">Técnica mixta</a></nav>
+  <section>
+    <h2>Las pruebas, lado a lado</h2>
+    <p>La misma escena en cada estilo: la prueba elegida, o la más reciente. Pulsa una para ir a su estilo.</p>
+    <div class="sidebyside">
+<a class="side" href="#redondeado"><img src="pruebas/redondeado-v1.png" alt="Geometría redondeada" loading="lazy"><span><b>Geometría redondeada</b></span></a>
+<a class="side" href="#linea"><img src="pruebas/linea-v1.png" alt="Línea editorial" loading="lazy"><span><b>Línea editorial</b></span></a>
+<a class="side" href="#grano"><img src="pruebas/grano-v1.png" alt="Plano con grano" loading="lazy"><span><b>Plano con grano</b></span></a>
+<a class="side" href="#pixel"><img src="pruebas/pixel-v1.png" alt="Pixel art" loading="lazy"><span><b>Pixel art</b></span></a>
+<a class="side" href="#educativo"><img src="pruebas/educativo-v2.png" alt="Vectorial educativo" loading="lazy"><span><b>Vectorial educativo</b> · elegida</span></a>
+<a class="side" href="#gumball"><img src="pruebas/gumball-1.jpg" alt="Técnica mixta" loading="lazy"><span><b>Técnica mixta</b></span></a>
+    </div>
+  </section>
+
+  <nav aria-label="Estilos"><a href="#redondeado">Geometría redondeada</a><a href="#linea">Línea editorial</a><a href="#grano">Plano con grano</a><a href="#pixel">Pixel art</a><a href="#educativo">Vectorial educativo</a><a href="#gumball">Técnica mixta</a></nav>
 
 <article class="style" id="redondeado">
   <header class="style-head">
@@ -100,13 +120,13 @@ dialog button{position:absolute;top:8px;right:8px;font:inherit;font-weight:700;b
       <h2>Geometría redondeada</h2>
       <p class="sub">Formas básicas con esquinas suaves, como las guías de Duolingo</p>
     </div>
-    <span class="count">0 pruebas</span>
+    <span class="count">1 prueba</span>
   </header>
   <p class="about">Todo se arma con tres formas: rectángulo redondeado, círculo y triángulo redondeado. Colores planos, sin contornos y con sombras en forma de píldora.</p>
   <h3>Ejemplos reales</h3>
   <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-01-Flowers-1.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-01-Flowers-1.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-04-cat-shapes-1.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-04-cat-shapes-1.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-05-sample.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-05-sample.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-09-dogs.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-09-dogs.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/redondeado/duolingo-10-frogs.png" aria-label="Ampliar"><img src="referencias/redondeado/duolingo-10-frogs.png" alt="Duolingo · Shape language" loading="lazy"></button><figcaption><a href="https://blog.duolingo.com/shape-language-duolingos-art-style/" target="_blank" rel="noopener">Duolingo · Shape language</a></figcaption></figure></div>
   <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/redondeado-v1.png</code>.</div>
+  <div class="gallery tests"><figure><button type="button" class="zoom" data-src="pruebas/redondeado-v1.png" aria-label="Ampliar"><img src="pruebas/redondeado-v1.png" alt="redondeado-v1.png" loading="lazy"></button><figcaption>redondeado-v1.png</figcaption></figure></div>
   <dl class="pros">
     <dt class="yes">A favor</dt><dd>Las formas son las mismas que las de los bloques del editor. Se vectoriza casi sola y se recolorea para el modo oscuro.</dd>
     <dt class="watch">Ojo</dt><dd>Si se parece demasiado a Duolingo pierde identidad; el naranja y los colores de categoría la hacen de Tobot.</dd>
@@ -133,13 +153,13 @@ Background plain solid white #FFFFFF. No text, no letters, no logos, no people, 
       <h2>Línea editorial</h2>
       <p class="sub">Trazo a mano, casi sin rellenos, como Notion</p>
     </div>
-    <span class="count">0 pruebas</span>
+    <span class="count">1 prueba</span>
   </header>
   <p class="about">Dibujo de línea negra o pizarra sobre blanco, con uno o dos colores de acento en rellenos planos. Se siente como un cuaderno de clase.</p>
   <h3>Ejemplos reales</h3>
   <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/linea/notion-buck-1.png" aria-label="Ampliar"><img src="referencias/linea/notion-buck-1.png" alt="BUCK · Notion Faces" loading="lazy"></button><figcaption><a href="https://buck.co/work/notion-faces" target="_blank" rel="noopener">BUCK · Notion Faces</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/linea/notion-buck-7.png" aria-label="Ampliar"><img src="referencias/linea/notion-buck-7.png" alt="BUCK · Notion Faces" loading="lazy"></button><figcaption><a href="https://buck.co/work/notion-faces" target="_blank" rel="noopener">BUCK · Notion Faces</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/linea/notion-caras.png" aria-label="Ampliar"><img src="referencias/linea/notion-caras.png" alt="notion.com" loading="lazy"></button><figcaption><a href="https://www.notion.com/" target="_blank" rel="noopener">notion.com</a></figcaption></figure><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/linea/notion-escudo.png" aria-label="Ampliar"><img src="referencias/linea/notion-escudo.png" alt="notion.com" loading="lazy"></button><figcaption><a href="https://www.notion.com/" target="_blank" rel="noopener">notion.com</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/linea/notion-manos.png" aria-label="Ampliar"><img src="referencias/linea/notion-manos.png" alt="notion.com" loading="lazy"></button><figcaption><a href="https://www.notion.com/" target="_blank" rel="noopener">notion.com</a></figcaption></figure></div>
   <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/linea-v1.png</code>.</div>
+  <div class="gallery tests"><figure><button type="button" class="zoom" data-src="pruebas/linea-v1.png" aria-label="Ampliar"><img src="pruebas/linea-v1.png" alt="linea-v1.png" loading="lazy"></button><figcaption>linea-v1.png</figcaption></figure></div>
   <dl class="pros">
     <dt class="yes">A favor</dt><dd>La más sobria; convive bien con el código y en oscuro basta invertir el trazo.</dd>
     <dt class="watch">Ojo</dt><dd>Puede sentirse fría para principiantes. El trazo a mano genera muchos nodos al vectorizar y su grosor varía entre imágenes.</dd>
@@ -160,27 +180,27 @@ Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7
 Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p1">Copiar</button></div>
   </details>
 </article>
-<article class="style" id="isometrico">
+<article class="style" id="grano">
   <header class="style-head">
     <div>
-      <h2>Isométrico</h2>
-      <p class="sub">Pequeñas maquetas en perspectiva de 30°</p>
+      <h2>Plano con grano</h2>
+      <p class="sub">Formas planas con textura de impresión</p>
     </div>
-    <span class="count">0 pruebas</span>
+    <span class="count">1 prueba</span>
   </header>
-  <p class="about">Cada objeto es un volumen con cara superior clara y laterales más oscuros del mismo tono. Se lee como construir algo pieza a pieza.</p>
+  <p class="about">Formas simples con una textura fina de grano dentro de cada color, como un cartel impreso. Cálido y táctil.</p>
   <h3>Ejemplos reales</h3>
-  <div class="gallery"><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-1.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-1.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-2.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-2.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-3.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-3.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-4.jpg" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-4.jpg" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/isometrico/dribbble-isometrico-5.png" aria-label="Ampliar"><img src="referencias/isometrico/dribbble-isometrico-5.png" alt="Dribbble · colección isométrica (varios autores)" loading="lazy"></button><figcaption><a href="https://dribbble.com/tomsouverain/collections/628510-Isometric" target="_blank" rel="noopener">Dribbble · colección isométrica (varios autores)</a></figcaption></figure></div>
+  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/grano/krea-ia-1.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-1.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/grano/krea-ia-2.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-2.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/grano/krea-ia-3.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-3.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure></div>
   <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/isometrico-v1.png</code>.</div>
+  <div class="gallery tests"><figure><button type="button" class="zoom" data-src="pruebas/grano-v1.png" aria-label="Ampliar"><img src="pruebas/grano-v1.png" alt="grano-v1.png" loading="lazy"></button><figcaption>grano-v1.png</figcaption></figure></div>
   <dl class="pros">
-    <dt class="yes">A favor</dt><dd>Encaja con la idea de armar un programa. Son polígonos: se vectoriza fácil y se recolorea.</dd>
-    <dt class="watch">Ojo</dt><dd>Flow suele torcer la perspectiva y el ángulo cambia de una imagen a otra. Es muy de producto SaaS y puede verse corporativo.</dd>
+    <dt class="yes">A favor</dt><dd>Muy cálido y distinto de las apps de programación. Flow lo reproduce con bastante consistencia.</dd>
+    <dt class="watch">Ojo</dt><dd>El grano no se vectoriza: hay que rehacerlo con un filtro en la app. Sobre fondo oscuro se ensucia y pierde contraste.</dd>
   </dl>
   <details>
     <summary>Prompt de prueba para Flow</summary>
-    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/isometrico/dribbble-isometrico-1.png</code></p>
-    <div class="pwrap"><pre id="p2">Create an original isometric flat vector illustration in true 30-degree isometric projection, with no vanishing point. Every object is a simple extruded box with softly rounded edges, with a light top face, a medium left face and a darker right face in the same hue. Solid fills, no outlines, no gradients, no texture, no small details. Calm and tidy, like a small diorama.
+    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/grano/krea-ia-2.png</code></p>
+    <div class="pwrap"><pre id="p2">Create an original flat illustration in a risograph print style: simple rounded flat shapes with solid fills, a fine grainy noise texture inside every shape, and a very slight misregistration between colour layers. No outlines, no gradients, no photographic detail. Warm, tactile and calm, with generous empty space.
 
 Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
 
@@ -193,27 +213,27 @@ Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7
 Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p2">Copiar</button></div>
   </details>
 </article>
-<article class="style" id="grano">
+<article class="style" id="pixel">
   <header class="style-head">
     <div>
-      <h2>Plano con grano</h2>
-      <p class="sub">Formas planas con textura de impresión</p>
+      <h2>Pixel art</h2>
+      <p class="sub">Escenas en cuadrícula de píxeles, como los videojuegos de 8 y 16 bits</p>
     </div>
-    <span class="count">0 pruebas</span>
+    <span class="count">1 prueba</span>
   </header>
-  <p class="about">Formas simples con una textura fina de grano dentro de cada color, como un cartel impreso. Cálido y táctil.</p>
+  <p class="about">Cada forma se arma con píxeles cuadrados del mismo tamaño y una paleta corta. Remite a los videojuegos y a la cultura de programar.</p>
   <h3>Ejemplos reales</h3>
-  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/grano/krea-ia-1.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-1.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/grano/krea-ia-2.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-2.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/grano/krea-ia-3.png" aria-label="Ampliar"><img src="referencias/grano/krea-ia-3.png" alt="Krea · moodboard (imágenes generadas por IA)" loading="lazy"></button><figcaption><a href="https://www.krea.ai/moodboard-feed/textured-corporate-memphis-24d71726-6dd9-52c5-b0e9-d192e5d0cd88" target="_blank" rel="noopener">Krea · moodboard (imágenes generadas por IA)</a></figcaption></figure></div>
+  <div class="gallery"><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-1.jpg" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-1.jpg" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-2.jpg" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-2.jpg" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-3.jpg" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-3.jpg" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-4.png" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-4.png" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-5.png" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-5.png" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure></div>
   <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/grano-v1.png</code>.</div>
+  <div class="gallery tests"><figure><button type="button" class="zoom" data-src="pruebas/pixel-v1.png" aria-label="Ampliar"><img src="pruebas/pixel-v1.png" alt="pixel-v1.png" loading="lazy"></button><figcaption>pixel-v1.png</figcaption></figure></div>
   <dl class="pros">
-    <dt class="yes">A favor</dt><dd>Muy cálido y distinto de las apps de programación. Flow lo reproduce con bastante consistencia.</dd>
-    <dt class="watch">Ojo</dt><dd>El grano no se vectoriza: hay que rehacerlo con un filtro en la app. Sobre fondo oscuro se ensucia y pierde contraste.</dd>
+    <dt class="yes">A favor</dt><dd>Conecta con lo que muchos estudiantes ya conocen de los videojuegos y es muy distinto de cualquier otra app educativa.</dd>
+    <dt class="watch">Ojo</dt><dd>Flow suele hacer un falso pixel art con píxeles de tamaños irregulares. Vectorizarlo da miles de cuadrados: conviene dejarlo como imagen escalada sin suavizar, y no se recolorea para el modo oscuro.</dd>
   </dl>
   <details>
     <summary>Prompt de prueba para Flow</summary>
-    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/grano/krea-ia-2.png</code></p>
-    <div class="pwrap"><pre id="p3">Create an original flat illustration in a risograph print style: simple rounded flat shapes with solid fills, a fine grainy noise texture inside every shape, and a very slight misregistration between colour layers. No outlines, no gradients, no photographic detail. Warm, tactile and calm, with generous empty space.
+    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/pixel/dribbble-pixel-1.jpg</code></p>
+    <div class="pwrap"><pre id="p3">Create an original pixel art illustration on a strict pixel grid, like a 16-bit game scene: every pixel is the same size, crisp square edges, no anti-aliasing, no blur, a limited palette with flat shading in two or three tones per colour. Simple and readable at a small size, with generous empty space.
 
 Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
 
@@ -224,105 +244,6 @@ Composition: place the robot and the blocks in the right 55% of the image, stand
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
 
 Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p3">Copiar</button></div>
-  </details>
-</article>
-<article class="style" id="3d">
-  <header class="style-head">
-    <div>
-      <h2>3D suave</h2>
-      <p class="sub">Volúmenes redondeados e iluminados, como los emoji 3D de Microsoft</p>
-    </div>
-    <span class="count">0 pruebas</span>
-  </header>
-  <p class="about">Formas infladas, materiales satinados, luz de estudio y sombra de contacto suave. Es el estilo más llamativo de los cinco.</p>
-  <h3>Ejemplos reales</h3>
-  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-joystick_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-joystick_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-laptop_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-laptop_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-light_bulb_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-light_bulb_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-puzzle_piece_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-puzzle_piece_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/3d/fluent-robot_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-robot_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/3d/fluent-rocket_3d.png" aria-label="Ampliar"><img src="referencias/3d/fluent-rocket_3d.png" alt="Microsoft Fluent Emoji (MIT)" loading="lazy"></button><figcaption><a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener">Microsoft Fluent Emoji (MIT)</a></figcaption></figure></div>
-  <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/3d-v1.png</code>.</div>
-  <dl class="pros">
-    <dt class="yes">A favor</dt><dd>Muy amable y actual; atrae a estudiantes jóvenes.</dd>
-    <dt class="watch">Ojo</dt><dd>No se puede vectorizar sin perder el volumen: queda como imagen, más pesada y sin recolorear para el modo oscuro. Flow cambia el personaje de una imagen a otra.</dd>
-  </dl>
-  <details>
-    <summary>Prompt de prueba para Flow</summary>
-    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/3d/fluent-rocket_3d.png</code></p>
-    <div class="pwrap"><pre id="p4">Create an original soft 3D render in a glossy toy style: rounded, smooth, slightly inflated forms, soft studio lighting from the upper left, gentle ambient occlusion and a soft contact shadow under each object. Matte-to-satin materials, no hard reflections, no texture noise. Cute and friendly, like a premium 3D emoji, with plenty of empty white space.
-
-Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
-
-Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
-
-Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
-
-Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
-
-Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p4">Copiar</button></div>
-  </details>
-</article>
-<article class="style" id="pixel">
-  <header class="style-head">
-    <div>
-      <h2>Pixel art</h2>
-      <p class="sub">Escenas en cuadrícula de píxeles, como los videojuegos de 8 y 16 bits</p>
-    </div>
-    <span class="count">0 pruebas</span>
-  </header>
-  <p class="about">Cada forma se arma con píxeles cuadrados del mismo tamaño y una paleta corta. Remite a los videojuegos y a la cultura de programar.</p>
-  <h3>Ejemplos reales</h3>
-  <div class="gallery"><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-1.jpg" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-1.jpg" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-2.jpg" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-2.jpg" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-3.jpg" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-3.jpg" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-4.png" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-4.png" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/pixel/dribbble-pixel-5.png" aria-label="Ampliar"><img src="referencias/pixel/dribbble-pixel-5.png" alt="Dribbble · 8-bit pixel art inspiration" loading="lazy"></button><figcaption><a href="https://dribbble.com/stories/2022/07/22/8-bit-pixel-art-inspiration" target="_blank" rel="noopener">Dribbble · 8-bit pixel art inspiration</a></figcaption></figure></div>
-  <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/pixel-v1.png</code>.</div>
-  <dl class="pros">
-    <dt class="yes">A favor</dt><dd>Conecta con lo que muchos estudiantes ya conocen de los videojuegos y es muy distinto de cualquier otra app educativa.</dd>
-    <dt class="watch">Ojo</dt><dd>Flow suele hacer un falso pixel art con píxeles de tamaños irregulares. Vectorizarlo da miles de cuadrados: conviene dejarlo como imagen escalada sin suavizar, y no se recolorea para el modo oscuro.</dd>
-  </dl>
-  <details>
-    <summary>Prompt de prueba para Flow</summary>
-    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/pixel/dribbble-pixel-1.jpg</code></p>
-    <div class="pwrap"><pre id="p5">Create an original pixel art illustration on a strict pixel grid, like a 16-bit game scene: every pixel is the same size, crisp square edges, no anti-aliasing, no blur, a limited palette with flat shading in two or three tones per colour. Simple and readable at a small size, with generous empty space.
-
-Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
-
-Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
-
-Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
-
-Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
-
-Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p5">Copiar</button></div>
-  </details>
-</article>
-<article class="style" id="boceto">
-  <header class="style-head">
-    <div>
-      <h2>Boceto a mano</h2>
-      <p class="sub">Trazo de pizarra con rellenos rayados, como Excalidraw</p>
-    </div>
-    <span class="count">0 pruebas</span>
-  </header>
-  <p class="about">Contornos ligeramente temblorosos y rellenos a rayas que no respetan del todo el borde. Así se dibuja un diagrama para pensar un programa.</p>
-  <h3>Ejemplos reales</h3>
-  <div class="gallery"><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/boceto/excalidraw-arquitectura.png" aria-label="Ampliar"><img src="referencias/boceto/excalidraw-arquitectura.png" alt="Excalidraw · bibliotecas de la comunidad" loading="lazy"></button><figcaption><a href="https://libraries.excalidraw.com/" target="_blank" rel="noopener">Excalidraw · bibliotecas de la comunidad</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/boceto/excalidraw-iconos.png" aria-label="Ampliar"><img src="referencias/boceto/excalidraw-iconos.png" alt="Excalidraw · bibliotecas de la comunidad" loading="lazy"></button><figcaption><a href="https://libraries.excalidraw.com/" target="_blank" rel="noopener">Excalidraw · bibliotecas de la comunidad</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/boceto/excalidraw-producto.jpg" aria-label="Ampliar"><img src="referencias/boceto/excalidraw-producto.jpg" alt="Excalidraw" loading="lazy"></button><figcaption><a href="https://github.com/excalidraw/excalidraw" target="_blank" rel="noopener">Excalidraw</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/boceto/excalidraw-robots.png" aria-label="Ampliar"><img src="referencias/boceto/excalidraw-robots.png" alt="Excalidraw · bibliotecas de la comunidad" loading="lazy"></button><figcaption><a href="https://libraries.excalidraw.com/" target="_blank" rel="noopener">Excalidraw · bibliotecas de la comunidad</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/boceto/excalidraw-storytelling.png" aria-label="Ampliar"><img src="referencias/boceto/excalidraw-storytelling.png" alt="Excalidraw · bibliotecas de la comunidad" loading="lazy"></button><figcaption><a href="https://libraries.excalidraw.com/" target="_blank" rel="noopener">Excalidraw · bibliotecas de la comunidad</a></figcaption></figure></div>
-  <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/boceto-v1.png</code>.</div>
-  <dl class="pros">
-    <dt class="yes">A favor</dt><dd>Cercano y sin pretensiones: invita a intentarlo. Las formas son simples y en oscuro basta invertir el trazo.</dd>
-    <dt class="watch">Ojo</dt><dd>Puede parecer inacabado en una pantalla de bienvenida. Flow tiende a cargarlo de detalle, y el rayado genera muchos trazos al vectorizar.</dd>
-  </dl>
-  <details>
-    <summary>Prompt de prueba para Flow</summary>
-    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/boceto/excalidraw-arquitectura.png</code></p>
-    <div class="pwrap"><pre id="p6">Create an original hand-drawn sketch illustration in the style of a whiteboard diagram drawn with a marker: slightly wobbly dark navy outlines of uneven pressure, simple shapes, and loose hatched fills in a few colours that do not perfectly stay inside the lines. Informal, friendly and clear, like a quick drawing that explains an idea, with lots of white space.
-
-Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
-
-Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
-
-Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
-
-Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
-
-Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p6">Copiar</button></div>
   </details>
 </article>
 <article class="style" id="educativo">
@@ -345,7 +266,7 @@ Background plain solid white #FFFFFF. No text, no letters, no logos, no people, 
   <details>
     <summary>Prompt de prueba para Flow</summary>
     <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/educativo/kurzgesagt-2.jpg</code></p>
-    <div class="pwrap"><pre id="p7">Create an original flat vector illustration in the style of an educational science animation: bold rounded shapes, vibrant saturated colours, smooth subtle gradients for volume, soft glows and a few small sparkles; the robot is cute and expressive. Clean edges, no outlines, no texture.
+    <div class="pwrap"><pre id="p4">Create an original flat vector illustration in the style of an educational science animation: bold rounded shapes, vibrant saturated colours, smooth subtle gradients for volume, soft glows and a few small sparkles; the robot is cute and expressive. Clean edges, no outlines, no texture.
 
 Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
 
@@ -355,73 +276,7 @@ Composition: place the robot and the blocks in the right 55% of the image, stand
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
 
-Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p7">Copiar</button></div>
-  </details>
-</article>
-<article class="style" id="papel">
-  <header class="style-head">
-    <div>
-      <h2>Papel recortado</h2>
-      <p class="sub">Capas de cartulina cortada con sombras reales</p>
-    </div>
-    <span class="count">0 pruebas</span>
-  </header>
-  <p class="about">Cada forma es un trozo de papel mate cortado a cuchilla, apilado en capas con sombras suaves entre ellas. Táctil y artesanal.</p>
-  <h3>Ejemplos reales</h3>
-  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/papel/dribbble-anupreeta-1.jpg" aria-label="Ampliar"><img src="referencias/papel/dribbble-anupreeta-1.jpg" alt="Dribbble · Anupreeta" loading="lazy"></button><figcaption><a href="https://dribbble.com/anupreeta" target="_blank" rel="noopener">Dribbble · Anupreeta</a></figcaption></figure><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/papel/dribbble-anupreeta-2.png" aria-label="Ampliar"><img src="referencias/papel/dribbble-anupreeta-2.png" alt="Dribbble · Anupreeta" loading="lazy"></button><figcaption><a href="https://dribbble.com/anupreeta" target="_blank" rel="noopener">Dribbble · Anupreeta</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/papel/dribbble-lee-ann-1.jpg" aria-label="Ampliar"><img src="referencias/papel/dribbble-lee-ann-1.jpg" alt="Dribbble · Lee-Ann" loading="lazy"></button><figcaption><a href="https://dribbble.com/Lee-AnnD" target="_blank" rel="noopener">Dribbble · Lee-Ann</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/papel/dribbble-lee-ann-2.jpg" aria-label="Ampliar"><img src="referencias/papel/dribbble-lee-ann-2.jpg" alt="Dribbble · Lee-Ann" loading="lazy"></button><figcaption><a href="https://dribbble.com/Lee-AnnD" target="_blank" rel="noopener">Dribbble · Lee-Ann</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/papel/dribbble-madebyjulene-1.jpg" aria-label="Ampliar"><img src="referencias/papel/dribbble-madebyjulene-1.jpg" alt="Dribbble · Julene Harrison" loading="lazy"></button><figcaption><a href="https://dribbble.com/madebyjulene" target="_blank" rel="noopener">Dribbble · Julene Harrison</a></figcaption></figure></div>
-  <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/papel-v1.png</code>.</div>
-  <dl class="pros">
-    <dt class="yes">A favor</dt><dd>Cálido y hecho a mano; nadie en educación de programación lo usa.</dd>
-    <dt class="watch">Ojo</dt><dd>Las sombras y la fibra del papel no se vectorizan: queda como imagen y no se recolorea para el modo oscuro. Cada imagen de Flow sale con una profundidad distinta.</dd>
-  </dl>
-  <details>
-    <summary>Prompt de prueba para Flow</summary>
-    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/papel/dribbble-anupreeta-2.png</code></p>
-    <div class="pwrap"><pre id="p8">Create an original layered paper-cut illustration: every shape is cut from coloured matte cardstock with clean knife-cut edges, stacked in several layers with soft realistic drop shadows between them, so the scene has gentle physical depth. Subtle paper fibre texture, no outlines, no gradients other than the shadows. Calm and crafted, with generous empty space.
-
-Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
-
-Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
-
-Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
-
-Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
-
-Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p8">Copiar</button></div>
-  </details>
-</article>
-<article class="style" id="bauhaus">
-  <header class="style-head">
-    <div>
-      <h2>Geométrico Bauhaus</h2>
-      <p class="sub">Composiciones de círculos, cuadrados y cuartos de círculo</p>
-    </div>
-    <span class="count">0 pruebas</span>
-  </header>
-  <p class="about">Todo se construye con figuras geométricas puras en colores planos, en una composición equilibrada y asimétrica, con algún acento de línea fina.</p>
-  <h3>Ejemplos reales</h3>
-  <div class="gallery"><figure><button type="button" class="zoom" data-src="referencias/bauhaus/dribbble-raydaklam-1.jpg" aria-label="Ampliar"><img src="referencias/bauhaus/dribbble-raydaklam-1.jpg" alt="Dribbble · Raydak Lam" loading="lazy"></button><figcaption><a href="https://dribbble.com/raydaklam" target="_blank" rel="noopener">Dribbble · Raydak Lam</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/bauhaus/dribbble-raydaklam-2.jpg" aria-label="Ampliar"><img src="referencias/bauhaus/dribbble-raydaklam-2.jpg" alt="Dribbble · Raydak Lam" loading="lazy"></button><figcaption><a href="https://dribbble.com/raydaklam" target="_blank" rel="noopener">Dribbble · Raydak Lam</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/bauhaus/dribbble-raydaklam-3.jpg" aria-label="Ampliar"><img src="referencias/bauhaus/dribbble-raydaklam-3.jpg" alt="Dribbble · Raydak Lam" loading="lazy"></button><figcaption><a href="https://dribbble.com/raydaklam" target="_blank" rel="noopener">Dribbble · Raydak Lam</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/bauhaus/dribbble-raydaklam-4.jpg" aria-label="Ampliar"><img src="referencias/bauhaus/dribbble-raydaklam-4.jpg" alt="Dribbble · Raydak Lam" loading="lazy"></button><figcaption><a href="https://dribbble.com/raydaklam" target="_blank" rel="noopener">Dribbble · Raydak Lam</a></figcaption></figure><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/bauhaus/dribbble-studio-collective-1.png" aria-label="Ampliar"><img src="referencias/bauhaus/dribbble-studio-collective-1.png" alt="Dribbble · Studio Collective" loading="lazy"></button><figcaption><a href="https://dribbble.com/studio_collective/collections/5488358-INSPIRE" target="_blank" rel="noopener">Dribbble · Studio Collective</a></figcaption></figure></div>
-  <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/bauhaus-v1.png</code>.</div>
-  <dl class="pros">
-    <dt class="yes">A favor</dt><dd>Formas puras: se vectoriza perfecto y se recolorea. Al ser abstracto, no depende de que Flow repita el mismo personaje.</dd>
-    <dt class="watch">Ojo</dt><dd>Lo abstracto no cuenta historias concretas, así que sirve más para banners que para estados vacíos. Los colores primarios del estilo chocan con los de las categorías.</dd>
-  </dl>
-  <details>
-    <summary>Prompt de prueba para Flow</summary>
-    <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/bauhaus/dribbble-studio-collective-1.png</code></p>
-    <div class="pwrap"><pre id="p9">Create an original geometric illustration in a Bauhaus, mid-century modernist style: the robot and the blocks are built only from pure geometric primitives — circles, half circles, squares and quarter circles — in flat solid colours, in a balanced asymmetric composition, with one or two thin-line accents such as a starburst or concentric circles. No outlines on the shapes, no gradients, no texture.
-
-Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
-
-Scene: a small friendly robot on the left — a white rounded head and body, a dark navy rounded visor with two short cyan vertical pill-shaped eyes, a short antenna with an orange ball on top, and a round orange light on its chest — and, to its right, a neat stack of three rounded rectangular blocks that look like code blocks: violet at the bottom, teal in the middle, amber on top, the amber one marked with a small white rounded play triangle.
-
-Composition: place the robot and the blocks in the right 55% of the image, standing on an invisible ground at the bottom; keep the left 45% completely empty.
-
-Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
-
-Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p9">Copiar</button></div>
+Background plain solid white #FFFFFF. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p4">Copiar</button></div>
   </details>
 </article>
 <article class="style" id="gumball">
@@ -430,13 +285,13 @@ Background plain solid white #FFFFFF. No text, no letters, no logos, no people, 
       <h2>Técnica mixta</h2>
       <p class="sub">Dibujo 2D sobre fotografía real, como El increíble mundo de Gumball</p>
     </div>
-    <span class="count">0 pruebas</span>
+    <span class="count">1 prueba</span>
   </header>
   <p class="about">Personajes dibujados en estilos distintos — plano con contorno, 3D, pixel, objetos reales — compuestos sobre fondos fotográficos. La mezcla es el estilo.</p>
   <h3>Ejemplos reales</h3>
   <div class="gallery"><figure class="pick"><span class="attach">Adjuntar en Flow</span><button type="button" class="zoom" data-src="referencias/gumball/gumball-1.jpg" aria-label="Ampliar"><img src="referencias/gumball/gumball-1.jpg" alt="Not To Scale · The Amazing World of Gumball" loading="lazy"></button><figcaption><a href="https://nottoscale.tv/work/the-amazing-world-of-gumball/" target="_blank" rel="noopener">Not To Scale · The Amazing World of Gumball</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/gumball/gumball-2.jpg" aria-label="Ampliar"><img src="referencias/gumball/gumball-2.jpg" alt="Not To Scale · The Amazing World of Gumball" loading="lazy"></button><figcaption><a href="https://nottoscale.tv/work/the-amazing-world-of-gumball/" target="_blank" rel="noopener">Not To Scale · The Amazing World of Gumball</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/gumball/gumball-3.jpg" aria-label="Ampliar"><img src="referencias/gumball/gumball-3.jpg" alt="Not To Scale · The Amazing World of Gumball" loading="lazy"></button><figcaption><a href="https://nottoscale.tv/work/the-amazing-world-of-gumball/" target="_blank" rel="noopener">Not To Scale · The Amazing World of Gumball</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/gumball/gumball-4.jpg" aria-label="Ampliar"><img src="referencias/gumball/gumball-4.jpg" alt="Not To Scale · The Amazing World of Gumball" loading="lazy"></button><figcaption><a href="https://nottoscale.tv/work/the-amazing-world-of-gumball/" target="_blank" rel="noopener">Not To Scale · The Amazing World of Gumball</a></figcaption></figure><figure><button type="button" class="zoom" data-src="referencias/gumball/gumball-5.jpg" aria-label="Ampliar"><img src="referencias/gumball/gumball-5.jpg" alt="Not To Scale · The Amazing World of Gumball" loading="lazy"></button><figcaption><a href="https://nottoscale.tv/work/the-amazing-world-of-gumball/" target="_blank" rel="noopener">Not To Scale · The Amazing World of Gumball</a></figcaption></figure></div>
   <h3>Tus pruebas en Flow</h3>
-  <div class="empty"><b>Aún no hay pruebas.</b> Genera la escena con el prompt de abajo y guárdala como <code>identity/estilos/pruebas/gumball-v1.png</code>.</div>
+  <div class="gallery tests"><figure><button type="button" class="zoom" data-src="pruebas/gumball-1.jpg" aria-label="Ampliar"><img src="pruebas/gumball-1.jpg" alt="gumball-1.jpg" loading="lazy"></button><figcaption>gumball-1.jpg</figcaption></figure></div>
   <dl class="pros">
     <dt class="yes">A favor</dt><dd>Mezclar técnicas es la idea misma de Tobot: un programa visto en bloques, en código y en diagrama. Muy memorable y con humor; cada concepto podría tener su propia técnica.</dd>
     <dt class="watch">Ojo</dt><dd>Las fotografías no se vectorizan ni se recolorean: quedan como imágenes pesadas y el modo oscuro necesita versiones aparte. Es difícil de mantener coherente en Flow, y Gumball es tan reconocible que Tobot tiene que verse claramente propio.</dd>
@@ -444,7 +299,7 @@ Background plain solid white #FFFFFF. No text, no letters, no logos, no people, 
   <details>
     <summary>Prompt de prueba para Flow</summary>
     <p class="attach-note">Adjunta la imagen marcada arriba: <code>identity/estilos/referencias/gumball/gumball-1.jpg</code></p>
-    <div class="pwrap"><pre id="p10">Create an original mixed-media illustration: the robot is a flat 2D cartoon character with a clean dark outline and simple cel shading, and the blocks are rendered as smooth glossy 3D objects, both composited into a real photographic background with matching light and soft contact shadows, so drawn and real elements share one believable scene.
+    <div class="pwrap"><pre id="p5">Create an original mixed-media illustration: the robot is a flat 2D cartoon character with a clean dark outline and simple cel shading, and the blocks are rendered as smooth glossy 3D objects, both composited into a real photographic background with matching light and soft contact shadows, so drawn and real elements share one believable scene.
 
 Style reference: match the visual style of the attached image — its shapes, its line, its shading and its texture. Use it only for the style: do not copy its subject, its characters, its composition or its colors. The scene and the colors are the ones described below.
 
@@ -454,7 +309,7 @@ Composition: place the robot and the blocks in the right 55% of the image, stand
 
 Colors, only these: white #FFFFFF, navy slate #171D2E, orange #E8873A, violet #7C3AED, teal #0891B2, amber #D97706, cyan #22D3EE (only the eyes), and a pale grey-blue #E8EBF2 for shadows.
 
-Background: a real photograph of a tidy classroom desk by a window, natural daylight, with a shallow depth of field so it stays calm and slightly out of focus behind the drawn elements. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p10">Copiar</button></div>
+Background: a real photograph of a tidy classroom desk by a window, natural daylight, with a shallow depth of field so it stays calm and slightly out of focus behind the drawn elements. No text, no letters, no logos, no people, no extra objects.</pre><button type="button" class="copy" data-target="p5">Copiar</button></div>
   </details>
 </article>
 
@@ -465,17 +320,12 @@ Background: a real photograph of a tidy classroom desk by a window, natural dayl
       <table>
         <thead><tr><th scope="col">Estilo</th><th scope="col">Encaja con Tobot</th><th scope="col">Modo oscuro</th><th scope="col">Vectorizar en capas</th><th scope="col">Consistencia en Flow</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Geometría redondeada</th><td><span class="r3">Fuerte</span> · sus formas son los bloques</td><td><span class="r3">Fuerte</span> · se recolorea entera</td><td><span class="r3">Fuerte</span> · pocas formas simples</td><td><span class="r3">Fuerte</span> · poco que variar</td></tr>
-          <tr><th scope="row">Línea editorial</th><td><span class="r2">Aceptable</span> · sobria, algo fría</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el trazo da muchos nodos</td><td><span class="r2">Aceptable</span> · el grosor varía</td></tr>
-          <tr><th scope="row">Isométrico</th><td><span class="r2">Aceptable</span> · construir pieza a pieza</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · son polígonos</td><td><span class="r1">Débil</span> · el ángulo se tuerce</td></tr>
-          <tr><th scope="row">Plano con grano</th><td><span class="r2">Aceptable</span> · cálido, menos técnico</td><td><span class="r1">Débil</span> · el grano ensucia lo oscuro</td><td><span class="r2">Aceptable</span> · el grano se rehace aparte</td><td><span class="r3">Fuerte</span> · lo reproduce bien</td></tr>
-          <tr><th scope="row">3D suave</th><td><span class="r2">Aceptable</span> · amable, poco propio</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · queda como imagen</td><td><span class="r1">Débil</span> · el personaje cambia</td></tr>
-          <tr><th scope="row">Pixel art</th><td><span class="r3">Fuerte</span> · videojuegos y programación</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · miles de cuadrados</td><td><span class="r2">Aceptable</span> · píxeles irregulares</td></tr>
-          <tr><th scope="row">Boceto a mano</th><td><span class="r3">Fuerte</span> · así se piensa un programa</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el rayado da muchos trazos</td><td><span class="r2">Aceptable</span> · tiende al exceso de detalle</td></tr>
-          <tr><th scope="row">Vectorial educativo</th><td><span class="r3">Fuerte</span> · hecho para enseñar</td><td><span class="r2">Aceptable</span> · degradados que hay que rehacer</td><td><span class="r2">Aceptable</span> · muchas capas</td><td><span class="r2">Aceptable</span> · denso, varía</td></tr>
-          <tr><th scope="row">Papel recortado</th><td><span class="r2">Aceptable</span> · cálido, poco técnico</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · las sombras son imagen</td><td><span class="r2">Aceptable</span> · la profundidad cambia</td></tr>
-          <tr><th scope="row">Técnica mixta</th><td><span class="r2">Aceptable</span> · memorable, recargado</td><td><span class="r1">Débil</span> · la foto no se recolorea</td><td><span class="r1">Débil</span> · el fondo es fotografía</td><td><span class="r1">Débil</span> · cada mezcla sale distinta</td></tr>
-          <tr><th scope="row">Geométrico Bauhaus</th><td><span class="r2">Aceptable</span> · abstracto</td><td><span class="r3">Fuerte</span> · se recolorea</td><td><span class="r3">Fuerte</span> · formas puras</td><td><span class="r3">Fuerte</span> · no depende del personaje</td></tr>
+          <tr data-style="redondeado"><th scope="row">Geometría redondeada</th><td><span class="r3">Fuerte</span> · sus formas son los bloques</td><td><span class="r3">Fuerte</span> · se recolorea entera</td><td><span class="r3">Fuerte</span> · pocas formas simples</td><td><span class="r3">Fuerte</span> · poco que variar</td></tr>
+          <tr data-style="linea"><th scope="row">Línea editorial</th><td><span class="r2">Aceptable</span> · sobria, algo fría</td><td><span class="r3">Fuerte</span> · invertir el trazo</td><td><span class="r2">Aceptable</span> · el trazo da muchos nodos</td><td><span class="r2">Aceptable</span> · el grosor varía</td></tr>
+          <tr data-style="grano"><th scope="row">Plano con grano</th><td><span class="r2">Aceptable</span> · cálido, menos técnico</td><td><span class="r1">Débil</span> · el grano ensucia lo oscuro</td><td><span class="r2">Aceptable</span> · el grano se rehace aparte</td><td><span class="r3">Fuerte</span> · lo reproduce bien</td></tr>
+          <tr data-style="pixel"><th scope="row">Pixel art</th><td><span class="r3">Fuerte</span> · videojuegos y programación</td><td><span class="r1">Débil</span> · no se recolorea</td><td><span class="r1">Débil</span> · miles de cuadrados</td><td><span class="r2">Aceptable</span> · píxeles irregulares</td></tr>
+          <tr data-style="educativo"><th scope="row">Vectorial educativo</th><td><span class="r3">Fuerte</span> · hecho para enseñar</td><td><span class="r2">Aceptable</span> · degradados que hay que rehacer</td><td><span class="r2">Aceptable</span> · muchas capas</td><td><span class="r2">Aceptable</span> · denso, varía</td></tr>
+          <tr data-style="gumball"><th scope="row">Técnica mixta</th><td><span class="r2">Aceptable</span> · memorable, recargado</td><td><span class="r1">Débil</span> · la foto no se recolorea</td><td><span class="r1">Débil</span> · el fondo es fotografía</td><td><span class="r1">Débil</span> · cada mezcla sale distinta</td></tr>
         </tbody>
       </table>
     </div>

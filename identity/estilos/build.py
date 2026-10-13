@@ -204,8 +204,11 @@ def figure(src, caption, url="", attach=False, chosen=False):
 
 def render():
     tests_all = images("pruebas")
-    blocks, files = [], []
-    for i, style in enumerate(STYLES):
+    # A style with no Flow test has been set aside: it is not shown, and its
+    # references stay on disk in case it comes back.
+    shown = [s for s in STYLES if any(t.startswith(s["id"] + "-") for t in tests_all)]
+    blocks, files, side = [], [], []
+    for i, style in enumerate(shown):
         refs = images(os.path.join("referencias", style["id"]))
         tests = [t for t in tests_all if t.startswith(style["id"] + "-")]
         files += [f"referencias/{style['id']}/{r}" for r in refs] + [f"pruebas/{t}" for t in tests]
@@ -218,6 +221,12 @@ def render():
             if (label, url) not in seen:
                 seen.append((label, url))
 
+        if tests:
+            pick = CHOSEN.get(style["id"]) or tests[-1]
+            side.append(
+                f'<a class="side" href="#{style["id"]}"><img src="pruebas/{html.escape(pick)}" alt="{html.escape(style["name"])}" loading="lazy">'
+                f'<span><b>{html.escape(style["name"])}</b>{" · elegida" if CHOSEN.get(style["id"]) == pick else ""}</span></a>'
+            )
         if tests:
             trials = '<div class="gallery tests">' + "".join(
                 figure(f"pruebas/{t}", t, chosen=CHOSEN.get(style["id"]) == t) for t in tests
@@ -252,16 +261,23 @@ def render():
   </details>
 </article>''')
 
-    nav = "".join(f'<a href="#{s["id"]}">{html.escape(s["name"])}</a>' for s in STYLES)
+    nav = "".join(f'<a href="#{s["id"]}">{html.escape(s["name"])}</a>' for s in shown)
+    template = open(os.path.join(HERE, "template.html")).read()
+    # Table rows of set-aside styles go with them.
+    hidden = {s["id"] for s in STYLES} - {s["id"] for s in shown}
+    template = "\n".join(
+        line for line in template.split("\n")
+        if not any(f'data-style="{h}"' in line for h in hidden)
+    )
     page = (
-        open(os.path.join(HERE, "template.html"))
-        .read()
-        .replace("__NAV__", nav)
+        template.replace("__NAV__", nav)
+        .replace("__SIDE__", "\n".join(side))
+        .replace("__COUNT__", str(len(shown)))
         .replace("__STYLES__", "\n".join(blocks))
     )
     open(os.path.join(HERE, "estilos-tobot.html"), "w").write(page)
     open(os.path.join(HERE, "files.txt"), "w").write("\n".join(files) + "\n")
-    print(f"{len(STYLES)} estilos, {len(files)} imágenes ({len(tests_all)} pruebas) → estilos-tobot.html")
+    print(f"{len(shown)} estilos con prueba ({len(hidden)} descartados), {len(files)} imágenes ({len(tests_all)} pruebas) → estilos-tobot.html")
 
 
 if __name__ == "__main__":
