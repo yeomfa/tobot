@@ -24,10 +24,12 @@ import { BrandMark } from './BrandMark';
 import { Illustration } from './Illustration';
 import type { IllustrationName } from './Illustration';
 import { SettingsMenu } from './SettingsMenu';
-import { Blobs, Chips, DashRule } from './landing/Decor';
+import { Sparkles } from './Sparkles';
+import { DashRule } from './landing/Decor';
 import { ConceptPeek } from './landing/ConceptPeek';
 import { HeroStage } from './landing/HeroStage';
 import { Reveal } from './landing/Reveal';
+import { RobotGreeting } from './landing/RobotGreeting';
 import { Starfield } from './landing/Starfield';
 import { ViewsShowcase } from './landing/ViewsShowcase';
 import './Landing.css';
@@ -134,10 +136,11 @@ export function Landing({
 
       <main>
         {/* 1 — Hero: left-aligned and asymmetric. Centring this was what set
-            the centred tone for every section that followed. */}
+            the centred tone for every section that followed. Navy in both
+            themes, the ground Tobot is drawn on, so he is the first thing
+            anyone meets. */}
         <section className="landing__hero">
-          <Blobs />
-          <Chips />
+          <Sparkles count={16} seed={5} />
 
           <div className="landing__inner landing__hero-inner">
             <div className="landing__hero-copy">
@@ -158,7 +161,20 @@ export function Landing({
               <p className="landing__note">{d.landing.noAccount}</p>
             </div>
 
-            <div className="landing__hero-stage">
+            {/* Decorative: his greeting is already the page's headline. */}
+            <div className="landing__hero-tobot" aria-hidden="true">
+              <RobotGreeting mood="idle" message={d.landing.robotHello} follow size="lg" />
+            </div>
+          </div>
+        </section>
+
+        {/* 1b — The demonstration, given a section of its own below the hero
+            so it can be watched rather than glanced at beside the headline. */}
+        <section className="landing__band landing__demo">
+          <div className="landing__inner landing__demo-inner">
+            <h2 className="landing__headline">{d.landing.demoTitle}</h2>
+            <p className="landing__lead">{d.landing.demoLead}</p>
+            <div className="landing__demo-stage">
               <HeroStage />
               <p className="landing__caption">{d.landing.demoCaption}</p>
             </div>

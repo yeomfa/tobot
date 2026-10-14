@@ -76,6 +76,8 @@ export const es = {
     tryItLong: 'Entrar a Tobot',
     signIn: 'Entrar',
     noAccount: 'Sin instalar nada. Empieza en el navegador.',
+    demoTitle: 'Míralo en acción',
+    demoLead: 'Dos bloques, y Tobot los ejecuta uno por uno.',
     demoCaption: 'Tobot arma este algoritmo y lo ejecuta, igual que lo harás tú.',
 
     stepsTitle: 'Así funciona',

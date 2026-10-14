@@ -17,10 +17,10 @@
  * Three robots breathe and blink, always — that is character, and it is the
  * whole ambient allowance. On top of it:
  *
- * - One driven loop on the page: the hero. No other section owns a timer.
- * - No decorative animation at all. The blobs, chips, grids and rules are
- *   static. A background that pulses competes with the one thing that should
- *   be moving.
+ * - One driven loop on the page: the demonstration below the hero. No other
+ *   section owns a timer.
+ * - One decorative animation: the sparkles around Tobot in the hero, slow and
+ *   out of step, as in the illustrations. Grids and rules are static.
  * - Two moving things at any instant, never three.
  * - Reveal staggers at most three items, 70ms apart.
  * - Hover moves only what is hovered: a border and two pixels.
@@ -308,33 +308,43 @@
  * `min-height` rather than `height` — on a short laptop the content must be
  * allowed to push past rather than be clipped.
  */
+/*
+ * Navy in both themes: the ground the illustrations are drawn on, and the one
+ * the library banners and the closing band share. The text tokens are lifted
+ * to their light-on-dark values inside it, so everything in the hero — and in
+ * the nav floating over it — follows without rules of its own.
+ */
+.landing__hero,
+.landing__nav {
+  --text-primary: var(--slate-50);
+  --text-secondary: var(--slate-300);
+  --text-muted: var(--slate-400);
+  /* Tobot's speech bubble and the nav's menus, dark like the ground. */
+  --bg-raised: var(--slate-800);
+  --border-default: rgb(255 255 255 / 0.12);
+}
+
+/* On navy the mark needs the light rim it wears in the dark theme, whichever
+   theme is on. */
+.landing .landing__nav .landing__brand .brand-mark {
+  --brand-mark-rim: #e8ebf3;
+  --brand-mark-stalk: #e8ebf3;
+}
+
 .landing__hero {
   position: relative;
   display: flex;
   align-items: center;
   min-height: 100svh;
+  background:
+    radial-gradient(ellipse 50% 60% at 75% 45%, rgb(232 135 58 / 0.16), transparent 70%),
+    linear-gradient(135deg, var(--brand-navy), var(--brand-navy-2));
   /* Slightly above centre: an optically centred block sits a little high, and
      the caption below the demo needs somewhere to go. */
   padding-block: calc(var(--header-height) + var(--space-5)) var(--band-tight);
   /* The decoration sits behind the content but inside the section, so the
      stacking context is local and nothing above can bury it. */
   isolation: isolate;
-}
-
-/* The warm wash over the editor's grid, concentrated behind the text so it
-   does not fight the demo beside it. Reaches the very top of the page now
-   that the nav floats rather than occupying a band of its own. */
-.landing__hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-image:
-    linear-gradient(var(--border-subtle) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse 70% 60% at 25% 30%, #000, transparent 72%);
-  pointer-events: none;
 }
 
 /*
@@ -345,7 +355,7 @@
 .landing__hero-inner {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(300px, 38ch) minmax(0, 1.35fr);
+  grid-template-columns: minmax(300px, 46ch) minmax(0, 1fr);
   align-items: center;
   gap: clamp(var(--space-4), 3vw, var(--space-6));
 }
@@ -361,8 +371,38 @@
   margin-top: var(--space-5);
 }
 
-.landing__hero-stage {
+/* Tobot large, the right half of the hero to himself. */
+.landing__hero-tobot {
+  display: flex;
+  justify-content: center;
   min-width: 0;
+}
+
+.landing .landing__hero-tobot .robot-greeting[data-size] {
+  max-width: 420px;
+}
+
+.landing .landing__hero-tobot .robot-greeting[data-size] .robot__body {
+  width: min(100%, 360px);
+  max-height: none;
+}
+
+/* ---------------------------------------------------------------------------
+   1b — The demonstration
+   --------------------------------------------------------------------------- */
+
+.landing__demo-inner {
+  text-align: center;
+}
+
+.landing__demo .landing__lead {
+  margin-inline: auto;
+}
+
+.landing__demo-stage {
+  max-width: 860px;
+  margin: var(--space-6) auto 0;
+  text-align: left;
 }
 
 /* ---------------------------------------------------------------------------
@@ -849,6 +889,16 @@
   .landing__hero-inner {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-6);
+  }
+
+  /* Stacked under the copy: room above for his bubble, and a size that
+     leaves the headline the first thing on a phone. */
+  .landing__hero-tobot {
+    margin-top: var(--space-7);
+  }
+
+  .landing .landing__hero-tobot .robot-greeting[data-size] .robot__body {
+    width: min(100%, 220px);
   }
 
   .landing__audience-inner {

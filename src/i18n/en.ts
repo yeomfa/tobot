@@ -71,6 +71,8 @@ export const en: Dictionary = {
     tryItLong: 'Open Tobot',
     signIn: 'Sign in',
     noAccount: 'Nothing to install. Start in the browser.',
+    demoTitle: 'See it in action',
+    demoLead: 'Two blocks, and Tobot runs them one at a time.',
     demoCaption: 'Tobot builds this algorithm and runs it, exactly as you will.',
 
     stepsTitle: 'How it works',
