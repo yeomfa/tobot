@@ -25,6 +25,7 @@
   width: 180px;
   min-height: 0;
   max-height: 55%;
+  object-fit: contain;
 }
 
 .flowchart__toolbar {

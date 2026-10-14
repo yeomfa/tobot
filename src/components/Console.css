@@ -21,6 +21,7 @@
   width: 140px;
   min-height: 0;
   max-height: 55%;
+  object-fit: contain;
 }
 
 /* Variables sit above the log, so the run's state and its output read

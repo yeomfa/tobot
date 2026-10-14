@@ -137,11 +137,8 @@ export const es = {
       body: 'Reparte ejercicios como un enlace, sin instalar nada en la sala. Tus estudiantes ven el diagrama y el código de lo mismo, lado a lado.',
     },
 
-
     robotHello: '¡Hola! Soy Tobot. Mira lo que puedo hacer.',
     robotDone: '¡Listo! Eso es un algoritmo.',
-    robotGuide: 'Yo te acompaño en cada paso.',
-    robotBye: '¿Empezamos?',
 
     sameTitle: 'Aprende programación de verdad',
     journey: {

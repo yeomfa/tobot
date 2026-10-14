@@ -1,6 +1,5 @@
 import {
   ArrowRightIcon as ArrowRight,
-  ChalkboardTeacherIcon as ChalkboardTeacher,
   ChatCircleTextIcon as ChatCircleText,
   CheckIcon as Check,
   CodeIcon as Code,
@@ -8,7 +7,6 @@ import {
   GraduationCapIcon as GraduationCap,
   LightningIcon as Lightning,
   MoonIcon as Moon,
-  StudentIcon as Student,
   SunIcon as Sun,
   TranslateIcon as Translate,
   TreeStructureIcon as TreeStructure,
@@ -23,13 +21,14 @@ import type { Preferences } from '../state/storage';
 import { useTranslation } from '../i18n/context';
 import { ROUTES } from '../routes';
 import { BrandMark } from './BrandMark';
+import { Illustration } from './Illustration';
+import type { IllustrationName } from './Illustration';
 import { SettingsMenu } from './SettingsMenu';
 import { Blobs, Chips, DashRule } from './landing/Decor';
 import { ConceptPeek } from './landing/ConceptPeek';
 import { HeroStage } from './landing/HeroStage';
 import { Reveal } from './landing/Reveal';
 import { Starfield } from './landing/Starfield';
-import { RobotGreeting } from './landing/RobotGreeting';
 import { ViewsShowcase } from './landing/ViewsShowcase';
 import './Landing.css';
 
@@ -45,6 +44,13 @@ const FEATURES = [
      until now happened somewhere else. */
   { key: 'write', icon: Terminal, hue: 'function', wide: true },
 ] as const;
+
+/** The three steps, each with Tobot doing it. */
+const STEPS: ReadonlyArray<{ key: 'build' | 'compare' | 'run'; art: IllustrationName }> = [
+  { key: 'build', art: 'landing-step-build' },
+  { key: 'compare', art: 'landing-step-understand' },
+  { key: 'run', art: 'landing-step-run' },
+];
 
 type Theme = Preferences['theme'];
 
@@ -183,38 +189,27 @@ export function Landing({
           </div>
         </section>
 
-        {/* 3 — How it works: a vertical list beside a robot that stays with
-            the reader, rather than three cards in a row. */}
+        {/* 3 — How it works: a vertical list, each step with Tobot doing it,
+            rather than three cards in a row. */}
         <section className="landing__band landing__how">
-          <div className="landing__inner landing__how-inner">
-            <div>
-              <h2 className="landing__headline">{d.landing.stepsTitle}</h2>
-              <p className="landing__lead">{d.landing.stepsLead}</p>
+          <div className="landing__inner">
+            <h2 className="landing__headline">{d.landing.stepsTitle}</h2>
+            <p className="landing__lead">{d.landing.stepsLead}</p>
 
-              <ol className="landing__steps">
-                {(['build', 'compare', 'run'] as const).map((key, index) => (
-                  <Reveal key={key} delay={index * 70}>
-                    <li className="landing__step">
-                      <span className="landing__step-number">{index + 1}</span>
-                      <div>
-                        <h3>{d.landing.steps[key].title}</h3>
-                        <p>{d.landing.steps[key].body}</p>
-                      </div>
-                    </li>
-                  </Reveal>
-                ))}
-              </ol>
-            </div>
-
-            {/* Decorative: what it says is already in the steps beside it. */}
-            <div className="landing__guide" aria-hidden="true">
-              <RobotGreeting
-                mood="thinking"
-                message={d.landing.robotGuide}
-                size="md"
-                peek="bottom"
-              />
-            </div>
+            <ol className="landing__steps">
+              {STEPS.map(({ key, art }, index) => (
+                <Reveal key={key} delay={index * 70}>
+                  <li className="landing__step">
+                    <span className="landing__step-number">{index + 1}</span>
+                    <div>
+                      <h3>{d.landing.steps[key].title}</h3>
+                      <p>{d.landing.steps[key].body}</p>
+                    </div>
+                    <Illustration name={art} className="landing__step-art" />
+                  </li>
+                </Reveal>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -237,9 +232,7 @@ export function Landing({
               className="landing__audience-card"
               style={{ '--card-hue': 'var(--hue-io)' } as React.CSSProperties}
             >
-              <span className="landing__audience-icon" data-hue="io">
-                <Student weight="duotone" />
-              </span>
+              <Illustration name="landing-for-students" className="landing__audience-art" />
               <h3>{d.landing.forStudents.title}</h3>
               <p>{d.landing.forStudents.body}</p>
             </article>
@@ -248,9 +241,7 @@ export function Landing({
               className="landing__audience-card landing__audience-card--offset"
               style={{ '--card-hue': 'var(--hue-loop)' } as React.CSSProperties}
             >
-              <span className="landing__audience-icon" data-hue="loop">
-                <ChalkboardTeacher weight="duotone" />
-              </span>
+              <Illustration name="landing-for-teachers" className="landing__audience-art" />
               <h3>{d.landing.forTeachers.title}</h3>
               <p>{d.landing.forTeachers.body}</p>
             </article>
@@ -291,9 +282,7 @@ export function Landing({
         <section className="landing__band landing__band--dark landing__closing">
           <Starfield count={110} seed={23} dawn />
           <div className="landing__inner landing__inner--narrow">
-            <div className="landing__closing-robot" aria-hidden="true">
-              <RobotGreeting mood="done" message={d.landing.robotBye} size="sm" />
-            </div>
+            <Illustration name="landing-closing" className="landing__closing-art" />
             <h2 className="landing__headline">{d.landing.closingTitle}</h2>
             <p className="landing__lead">{d.landing.closingBody}</p>
             <button type="button" className="landing__cta landing__cta--large" onClick={onTry}>

@@ -132,11 +132,8 @@ export const en: Dictionary = {
       body: 'Hand out exercises as a link, with nothing to install in the lab. Your students see the diagram and the code of the same thing, side by side.',
     },
 
-
     robotHello: "Hi! I'm Tobot. Watch what I can do.",
     robotDone: "Done! That's an algorithm.",
-    robotGuide: "I'll walk you through every step.",
-    robotBye: 'Shall we?',
 
     sameTitle: 'Learn programming for real',
     journey: {

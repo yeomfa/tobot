@@ -61,6 +61,8 @@ import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
 import { APP_VERSION, MAKER } from '../brand';
 import { BrandMark } from './BrandMark';
+import { Illustration } from './Illustration';
+import type { IllustrationName } from './Illustration';
 import { Spot } from './Spot';
 import { Picker } from './Picker';
 import './Home.css';
@@ -139,73 +141,19 @@ function sectionLabel(d: ReturnType<typeof useTranslation>['d'], id: Section): s
   return d.concepts.title;
 }
 
-/** The product mark, matching the editor header and the app icon. */
-
 /**
- * A watermark per section, drawn in the banner's own colour.
+ * The illustration on each section's banner.
  *
- * Each is a plain shape rather than a scene: at this size and opacity a busy
- * illustration turns to noise, while one clear form still says which part of
- * the app you are in.
+ * Drawn on the banner's own navy, so it melts into it. The classroom borrows
+ * the teacher at the board.
  */
-function SectionArt({ section }: { section: Section }) {
-  if (section === 'algorithms') {
-    return (
-      <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
-        <line x1="60" y1="18" x2="60" y2="26" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="60" cy="14" r="5" className="home__art-dot" />
-        <rect x="22" y="26" width="76" height="58" rx="18" strokeWidth="3" />
-        <rect x="34" y="38" width="52" height="34" rx="13" className="home__art-fill" />
-        <circle cx="49" cy="55" r="5.5" className="home__art-eye" />
-        <circle cx="71" cy="55" r="5.5" className="home__art-eye" />
-        <rect x="12" y="46" width="8" height="18" rx="4" strokeWidth="3" />
-        <rect x="100" y="46" width="8" height="18" rx="4" strokeWidth="3" />
-      </svg>
-    );
-  }
-
-  if (section === 'challenges') {
-    // Interlocking pieces: something to complete.
-    return (
-      <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
-        <path
-          d="M20 26h30v10a8 8 0 0 0 16 0V26h30v30h-10a8 8 0 0 1 0 16h10v30H66V82a8 8 0 0 0-16 0v20H20V26z"
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-        <circle cx="86" cy="42" r="4" className="home__art-dot" />
-      </svg>
-    );
-  }
-
-  if (section === 'examples') {
-    // A lamp: the worked answer.
-    return (
-      <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
-        <path
-          d="M60 16a28 28 0 0 0-16 51v9h32v-9a28 28 0 0 0-16-51z"
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-        <path d="M48 84h24M52 94h16" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="60" cy="46" r="9" className="home__art-dot" />
-      </svg>
-    );
-  }
-
-  // An open book: the reference material.
-  return (
-    <svg className="home__art" viewBox="0 0 120 110" aria-hidden="true">
-      <path
-        d="M60 32c-8-7-20-10-32-9v56c12-1 24 2 32 9 8-7 20-10 32-9V23c-12-1-24 2-32 9z"
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-      <line x1="60" y1="32" x2="60" y2="88" strokeWidth="3" />
-      <circle cx="60" cy="24" r="4" className="home__art-dot" />
-    </svg>
-  );
-}
+const BANNER_ART: Record<Section, IllustrationName> = {
+  algorithms: 'banner-saved',
+  challenges: 'banner-challenges',
+  examples: 'banner-examples',
+  classroom: 'landing-for-teachers',
+  concepts: 'banner-concepts',
+};
 
 /**
  * The landing view: everything a student chooses between before they start
@@ -626,7 +574,7 @@ export const Home = memo(function Home({
               <h1 className="home__title">{bannerTitle}</h1>
               <p className="home__subtitle">{bannerBody}</p>
             </div>
-            <SectionArt section={section} />
+            <Illustration name={BANNER_ART[section]} className="home__art" eager />
           </header>
 
           <div className="home__content">

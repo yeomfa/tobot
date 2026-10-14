@@ -349,7 +349,7 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  min-height: 148px;
+  min-height: 172px;
   margin-bottom: var(--space-6);
   padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-xl);
@@ -377,7 +377,7 @@
 .home__banner-copy {
   position: relative;
   z-index: 1;
-  max-width: 40rem;
+  max-width: min(40rem, 56%);
 }
 
 .home__title {
@@ -394,30 +394,18 @@
   color: rgb(255 255 255 / 0.76);
 }
 
+/* The scene stands on the banner's bottom edge at its right, as tall as the
+   banner, and gives way before it reaches the title. */
 .home__art {
   position: absolute;
-  right: var(--space-6);
-  bottom: -14px;
-  width: 168px;
-  height: auto;
-  fill: none;
-  stroke: rgb(255 255 255 / 0.18);
-  pointer-events: none;
-}
-
-.home__art-dot {
-  fill: color-mix(in srgb, var(--banner-hue) 75%, transparent);
-  stroke: none;
-}
-
-.home__art-fill {
-  fill: rgb(0 0 0 / 0.25);
-  stroke: none;
-}
-
-.home__art-eye {
-  fill: rgb(125 211 252 / 0.5);
-  stroke: none;
+  right: var(--space-5);
+  bottom: 0;
+  height: 100%;
+  width: auto;
+  max-width: 44%;
+  padding-top: var(--space-2);
+  object-fit: contain;
+  object-position: right bottom;
 }
 
 @media (max-width: 820px) {
@@ -446,6 +434,10 @@
 
   .home__art {
     display: none;
+  }
+
+  .home__banner-copy {
+    max-width: none;
   }
 
   .home__main {

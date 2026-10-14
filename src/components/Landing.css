@@ -427,16 +427,6 @@
    3 — How it works
    --------------------------------------------------------------------------- */
 
-/* The guide sits against the steps rather than the top of the section: aligned
-   to the start it floated a hundred pixels above their centre, which read as a
-   mistake rather than as a companion. */
-.landing__how-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 290px;
-  gap: var(--space-6);
-  align-items: center;
-}
-
 .landing__steps {
   position: relative;
   display: flex;
@@ -465,9 +455,22 @@
 
 .landing__step {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) minmax(0, 300px);
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+}
+
+/* The scenes are drawn for navy, so on a light page they sit in a navy panel
+   of their own rather than on the page itself. */
+.landing__step-art,
+.landing__audience-art {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: var(--space-3);
+  object-fit: contain;
+  background: var(--slate-900);
+  border-radius: var(--radius-lg);
 }
 
 .landing__step-number {
@@ -500,43 +503,6 @@
   line-height: 1.6;
   color: var(--text-secondary);
   text-wrap: pretty;
-}
-
-/*
- * The guide leans out past the bottom of its section, and the next section —
- * which has a ground of its own — covers everything below that line. The cut
- * is a real edge in the layout rather than a box drawn around the robot, so
- * the tilt costs it nothing.
- */
-.landing__guide {
-  position: relative;
-  z-index: 0;
-  display: flex;
-  justify-content: center;
-  /* Wide enough for the robot to reach its own maximum: inside a narrower box
-     it was quietly held at 132px however high the cap was raised. */
-  min-width: 280px;
-  align-self: end;
-  /*
-   * Pushed down until the next section covers its lower third.
-   *
-   * `translateY` rather than a negative margin: the row is centred and the
-   * section carries nearly a hundred pixels of bottom padding, so a margin
-   * only moved the robot down *within* that air and never reached the edge —
-   * which is how it came to be standing there in full.
-   *
-   * Cut below the chest rather than at the neck: a head alone on the boundary
-   * is a mask, while a torso reads as somebody leaning in.
-   */
-  transform: translateY(140px);
-  pointer-events: none;
-}
-
-/* Raised above the guide so it hides the robot's lower half. Only needed on
-   the section that follows one containing a peeking robot. */
-.landing__views {
-  position: relative;
-  z-index: 1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -621,7 +587,6 @@
 
 /* Always above the words, never beside them: an icon in the left margin
    competes with the first line for where the eye starts. */
-.landing__audience-icon,
 .landing__card-icon {
   display: inline-flex;
   align-items: center;
@@ -631,20 +596,17 @@
   border-radius: var(--radius-md);
 }
 
-.landing__audience-icon svg,
 .landing__card-icon svg {
   width: 23px;
   height: 23px;
 }
 
-/* One rule per hue, shared by both card kinds. */
-.landing__audience-icon[data-hue='io'],
+/* One rule per hue. */
 .landing__card-icon[data-hue='io'] {
   color: var(--hue-io);
   background: var(--hue-io-soft);
 }
 
-.landing__audience-icon[data-hue='loop'],
 .landing__card-icon[data-hue='loop'] {
   color: var(--hue-loop);
   background: var(--hue-loop-soft);
@@ -668,6 +630,13 @@
 .landing__card-icon[data-hue='success'] {
   color: var(--success);
   background: var(--success-soft);
+}
+
+/* Tobot at the desk or at the board, above the words like the icons on the
+   feature cards, and held to a height so the two cards stay level. */
+.landing__audience-art {
+  aspect-ratio: auto;
+  height: 220px;
 }
 
 .landing__audience-card h3 {
@@ -770,10 +739,9 @@
   margin-inline: auto;
 }
 
-.landing__closing-robot {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--space-4);
+.landing__closing-art {
+  width: min(380px, 80%);
+  margin: 0 auto var(--space-4);
 }
 
 .landing__closing .landing__note {
@@ -888,16 +856,6 @@
     gap: var(--space-6);
   }
 
-  .landing__how-inner {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* Sticky needs somewhere to stick; in one column it would pin the robot over
-     the steps instead of beside them. */
-  .landing__guide {
-    position: static;
-  }
-
   .landing__audience-inner {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -919,6 +877,16 @@
 @media (max-width: 700px) {
   .landing__audience-inner {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The picture drops under its step, still clear of the spine. */
+  .landing__step {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .landing__step-art {
+    grid-column: 2;
+    max-width: 320px;
   }
 
   .landing__audience-card--offset {
