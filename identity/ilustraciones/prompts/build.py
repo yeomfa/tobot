@@ -105,6 +105,11 @@ ROWS = [
            BANNER)),
 
     # ── Landing ─────────────────────────────────────────────────────────────────
+    ("landing", "Portada", "landing-hero-navy", "4:3",
+     "Hero de la landing, a la derecha del titular, en un panel azul grande en lugar de la demo.",
+     scene("Tobot stands proudly on top of a tall stack of snapped-together code blocks in all six colours, one arm raised high in greeting; the stack rises from the bottom edge, its lowest blocks large and cropped by the bottom of the image, with a few sparkles around Tobot.",
+           "Composition: 4:3 image. Tobot near the top, a little right of center, with plain navy above and around it; the stack below it may be cropped by the bottom edge, nowhere else.",
+           "low angle from below looking up, with a slight wide-angle lens")),
     ("landing", "Paso 1 · Arma tu algoritmo", "landing-step-build-navy", "4:3",
      "«Así funciona», primer paso.",
      scene("Tobot carries a violet code block towards a short column of two snapped-together blocks (teal and pink), about to snap it underneath.", CARD)),
