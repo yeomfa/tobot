@@ -394,18 +394,20 @@
   color: rgb(255 255 255 / 0.76);
 }
 
-/* The scene stands on the banner's bottom edge at its right, as tall as the
-   banner, and gives way before it reaches the title. */
+/* The scene is larger than the banner and runs off its bottom and right
+   edges, so it reads as a glimpse of something bigger rather than a sticker:
+   Tobot's head stays in view, the rest is cropped. */
 .home__art {
   position: absolute;
-  right: var(--space-5);
-  bottom: 0;
-  height: 100%;
+  top: var(--space-3);
+  right: -1%;
+  height: 150%;
   width: auto;
-  max-width: 44%;
-  padding-top: var(--space-2);
-  object-fit: contain;
-  object-position: right bottom;
+  /* Never into the title: on a narrow banner the scene loses its right side,
+     which runs off the edge anyway, rather than covering the words. */
+  max-width: 48%;
+  object-fit: cover;
+  object-position: left top;
 }
 
 @media (max-width: 820px) {

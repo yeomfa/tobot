@@ -26,10 +26,10 @@ OUT = os.path.join(ROOT, "src", "assets", "illustrations")
 
 # name: (original, largest width, largest height) — twice the displayed size.
 PIECES = {
-    "banner-saved": ("banner-saved-navy-v1.png", 900, 420),
-    "banner-challenges": ("banner-challenges-navy-v1.png", 900, 420),
-    "banner-examples": ("banner-examples-navy-v1.png", 900, 420),
-    "banner-concepts": ("banner-concepts-navy-v1.png", 900, 420),
+    "banner-saved": ("banner-saved-navy-v1.png", 1100, 700),
+    "banner-challenges": ("banner-challenges-navy-v1.png", 1100, 700),
+    "banner-examples": ("banner-examples-navy-v1.png", 1100, 700),
+    "banner-concepts": ("banner-concepts-navy-v1.png", 1100, 700),
     "landing-step-build": ("landing-step-build-navy-v1.png", 640, 480),
     "landing-step-understand": ("landing-step-understand-navy-v1.png", 640, 480),
     "landing-step-run": ("landing-step-run-navy-v1.png", 640, 480),
