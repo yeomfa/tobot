@@ -5,6 +5,7 @@ import type { NodeId } from '../core/ast/types';
 import type { OutputEntry, VariableSnapshot } from '../core/runtime/types';
 import { displayValue } from '../core/runtime/types';
 import { useTranslation } from '../i18n/context';
+import { Spot } from './Spot';
 import './Console.css';
 
 interface ConsoleProps {
@@ -35,6 +36,7 @@ export const Console = memo(function Console({ output, variables, onSelectNode, 
   if (output.length === 0 && variables.length === 0) {
     return (
       <div className="console console--empty">
+        <Spot name="console" className="console__empty-art" />
         <p>{d.console.empty}</p>
       </div>
     );

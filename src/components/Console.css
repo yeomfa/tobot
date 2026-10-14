@@ -9,10 +9,18 @@
 .console--empty {
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   font-size: var(--text-sm);
   color: var(--text-muted);
   text-align: center;
   padding: var(--space-5);
+}
+
+/* The drawer can be short; the picture gives way before the sentence does. */
+.console__empty-art {
+  width: 140px;
+  min-height: 0;
+  max-height: 55%;
 }
 
 /* Variables sit above the log, so the run's state and its output read

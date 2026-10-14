@@ -5,6 +5,7 @@ import { createFlowLabels } from '../core/flowchart/labels';
 import { layoutProgramStacked } from '../core/flowchart/layout';
 import type { FlowEdge, FlowNode } from '../core/flowchart/layout';
 import { useTranslation } from '../i18n/context';
+import { Spot } from './Spot';
 import './Flowchart.css';
 
 interface FlowchartProps {
@@ -133,6 +134,7 @@ export const Flowchart = memo(function Flowchart({
   if (program.length === 0) {
     return (
       <div className="flowchart flowchart--empty">
+        <Spot name="flowchart" className="flowchart__empty-art" />
         <p>{d.flowchart.empty}</p>
       </div>
     );

@@ -16,8 +16,15 @@
 .flowchart--empty {
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+
+.flowchart__empty-art {
+  width: 180px;
+  min-height: 0;
+  max-height: 55%;
 }
 
 .flowchart__toolbar {

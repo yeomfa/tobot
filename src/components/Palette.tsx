@@ -7,6 +7,7 @@ import { collectVariableKinds } from '../core/emitters/inferKind';
 import { useTranslation } from '../i18n/context';
 import { paletteGroups, statementIcon, typeIcon } from './statementMeta';
 import type { StatementKind } from './statementMeta';
+import { Spot } from './Spot';
 import './Palette.css';
 
 interface PaletteProps {
@@ -157,7 +158,12 @@ export const Palette = memo(function Palette({ onAdd, body }: PaletteProps) {
         </section>
       )}
       <div className="palette__groups">
-        {groups.length === 0 && <p className="palette__empty">{d.palette.empty}</p>}
+        {groups.length === 0 && (
+          <div className="palette__empty">
+            <Spot name="search" className="palette__empty-art" />
+            <p>{d.palette.empty}</p>
+          </div>
+        )}
 
         {groups.map((group) => (
           <section key={group.category} className="palette__group" data-category={group.category}>

@@ -99,6 +99,11 @@
   text-align: center;
 }
 
+.palette__empty-art {
+  width: 128px;
+  margin: 0 auto var(--space-2);
+}
+
 .palette__group {
   --group-hue: var(--slate-400);
 }

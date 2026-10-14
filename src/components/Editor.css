@@ -47,9 +47,14 @@
 
 .editor__empty {
   position: absolute;
-  inset: var(--space-7) var(--space-5) auto;
+  inset: var(--space-5) var(--space-5) auto;
   text-align: center;
   pointer-events: none;
+}
+
+.editor__empty-art {
+  width: 180px;
+  margin: 0 auto var(--space-2);
 }
 
 .editor__empty-title {
@@ -89,7 +94,7 @@
 }
 
 .editor__canvas:has(.editor__empty) .editor__list {
-  padding-top: 110px;
+  padding-top: 220px;
 }
 
 .editor__item {

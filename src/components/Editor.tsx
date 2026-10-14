@@ -11,6 +11,7 @@ import { useMarquee } from '../state/useMarquee';
 import { useMagneticDrop } from '../state/useMagneticDrop';
 import { DropZone, StatementBlock } from './StatementBlock';
 import type { BlockCallbacks } from './StatementBlock';
+import { Spot } from './Spot';
 import './Editor.css';
 
 interface EditorProps {
@@ -120,6 +121,7 @@ export const Editor = memo(function Editor({
         )}
         {count === 0 && (
           <div className="editor__empty">
+            <Spot name="editor" className="editor__empty-art" />
             <p className="editor__empty-title">{d.editor.empty}</p>
             <p className="editor__empty-hint">{d.editor.emptyHint}</p>
           </div>

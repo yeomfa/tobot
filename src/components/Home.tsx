@@ -61,6 +61,7 @@ import { isSupabaseConfigured } from '../state/supabase';
 import { SettingsMenu } from './SettingsMenu';
 import { APP_VERSION, MAKER } from '../brand';
 import { BrandMark } from './BrandMark';
+import { Spot } from './Spot';
 import { Picker } from './Picker';
 import './Home.css';
 
@@ -693,7 +694,10 @@ export const Home = memo(function Home({
                      into place when the real ones arrive. */
                   <Loading className="home__grid" lines={['60%', '84px', '45%']} tall />
                 ) : !loaded ? null : saved.length === 0 ? (
-                  <p className="home__empty">{d.library.empty}</p>
+                  <div className="home__empty">
+                    <Spot name="library" className="home__empty-art" />
+                    <p>{d.library.empty}</p>
+                  </div>
                 ) : (
                   <div className="home__grid">
                     {saved.map((algorithm) => (
@@ -904,18 +908,21 @@ export const Home = memo(function Home({
                   ))}
                 </div>
                 {visibleChallenges.length === 0 && (
-                  <p className="home__filter-empty">
-                    {d.library.filterEmpty}{' '}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLevelFilter('all');
-                        setTopicFilter('all');
-                      }}
-                    >
-                      {d.library.filterClear}
-                    </button>
-                  </p>
+                  <div className="home__filter-empty">
+                    <Spot name="search" className="home__empty-art" />
+                    <p>
+                      {d.library.filterEmpty}{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLevelFilter('all');
+                          setTopicFilter('all');
+                        }}
+                      >
+                        {d.library.filterClear}
+                      </button>
+                    </p>
+                  </div>
                 )}
               </>
             )}
