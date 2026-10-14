@@ -809,11 +809,8 @@
    rather than editing Robot.css and taking the protection away from the
    editor. Specificity does the work; no `!important` is needed.
 
-   Deliberately absent: any per-robot retinting. All three `<Robot>` instances
-   declare SVG gradients with the same fixed ids, so the page paints them all
-   from the first definition — changing `--robot-shell-top` on one would change
-   all three. They are told apart by size, pose and what they say, which is
-   better design anyway: one character, not three.
+   Deliberately absent: any per-robot retinting. The robots on the page are
+   told apart by size, pose and what they say: one character, not three.
    --------------------------------------------------------------------------- */
 
 .landing .robot-greeting[data-size='lg'] .robot__body {
