@@ -349,7 +349,7 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  min-height: 172px;
+  min-height: 200px;
   margin-bottom: var(--space-6);
   padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-xl);
@@ -394,18 +394,18 @@
   color: rgb(255 255 255 / 0.76);
 }
 
-/* The scene is larger than the banner and runs off its bottom and right
-   edges, so it reads as a glimpse of something bigger rather than a sticker:
-   Tobot's head stays in view, the rest is cropped. */
+/* Each scene comes framed for the banner (scripts/brand/illustrations.py),
+   so it only has to fill its height at the right edge: the frame's own cut
+   along the bottom and the right lands on the banner's. */
 .home__art {
   position: absolute;
-  top: var(--space-3);
-  right: -1%;
-  height: 150%;
+  top: 0;
+  right: 0;
+  height: 100%;
   width: auto;
   /* Never into the title: on a narrow banner the scene loses its right side,
-     which runs off the edge anyway, rather than covering the words. */
-  max-width: 48%;
+     which the frame already cuts, rather than covering the words. */
+  max-width: 50%;
   object-fit: cover;
   object-position: left top;
 }

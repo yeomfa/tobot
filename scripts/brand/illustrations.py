@@ -10,7 +10,7 @@ the colour it left in the anti-aliased pixels is taken back out, so nothing
 keeps a rim of navy or white. A navy visor or a white page inside a drawing
 is left alone, since the background never reaches it.
 
-Each result is trimmed to what it shows, scaled to twice the size it is
+Each result is trimmed to what it shows (banners are framed instead), scaled to twice the size it is
 displayed at, and written as WebP to src/assets/illustrations/<name>.webp.
 """
 import os
@@ -24,12 +24,24 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 SOURCE = os.path.join(ROOT, "identity", "ilustraciones", "originales")
 OUT = os.path.join(ROOT, "src", "assets", "illustrations")
 
+# Banners are framed by hand rather than trimmed: each scene puts Tobot in a
+# different place, so each gets its own 2:1 window on the original (left, top,
+# right, bottom, in its pixels) with Tobot's head and gesture whole, a little
+# air above the antenna, and the cut only along the bottom and the right —
+# the two edges the banner itself cuts.
+BANNER_FRAMES = {
+    "banner-saved": (240, 30, 1260, 540),
+    "banner-challenges": (260, 140, 1100, 560),
+    "banner-examples": (220, 20, 1200, 510),
+    "banner-concepts": (300, 40, 1260, 520),
+}
+
 # name: (original, largest width, largest height) — twice the displayed size.
 PIECES = {
-    "banner-saved": ("banner-saved-navy-v1.png", 1100, 700),
-    "banner-challenges": ("banner-challenges-navy-v1.png", 1100, 700),
-    "banner-examples": ("banner-examples-navy-v1.png", 1100, 700),
-    "banner-concepts": ("banner-concepts-navy-v1.png", 1100, 700),
+    "banner-saved": ("banner-saved-navy-v1.png", 840, 420),
+    "banner-challenges": ("banner-challenges-navy-v1.png", 840, 420),
+    "banner-examples": ("banner-examples-navy-v1.png", 840, 420),
+    "banner-concepts": ("banner-concepts-navy-v1.png", 840, 420),
     "landing-step-build": ("landing-step-build-navy-v1.png", 640, 480),
     "landing-step-understand": ("landing-step-understand-navy-v1.png", 640, 480),
     "landing-step-run": ("landing-step-run-navy-v1.png", 640, 480),
@@ -48,8 +60,11 @@ PIECES = {
 SOFT, HARD = 8, 52
 
 
-def lift(path):
-    px = np.asarray(Image.open(path).convert("RGB")).astype(np.float32)
+def lift(path, frame=None):
+    image = Image.open(path).convert("RGB")
+    if frame:
+        image = image.crop(frame)
+    px = np.asarray(image).astype(np.float32)
     edge = np.concatenate([px[0], px[-1], px[:, 0], px[:, -1]])
     bg = np.median(edge, axis=0)
     distance = np.abs(px - bg).max(-1)
@@ -85,8 +100,10 @@ def main(names):
     for name, (source, max_w, max_h) in PIECES.items():
         if names and name not in names:
             continue
-        image, bg = lift(os.path.join(SOURCE, source))
-        image = trim(image)
+        frame = BANNER_FRAMES.get(name)
+        image, bg = lift(os.path.join(SOURCE, source), frame)
+        if not frame:
+            image = trim(image)
         scale = min(max_w / image.width, max_h / image.height, 1)
         image = image.resize((round(image.width * scale), round(image.height * scale)), Image.LANCZOS)
         out = os.path.join(OUT, name + ".webp")
