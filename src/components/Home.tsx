@@ -63,6 +63,7 @@ import { APP_VERSION, MAKER } from '../brand';
 import { BrandMark } from './BrandMark';
 import { Illustration } from './Illustration';
 import type { IllustrationName } from './Illustration';
+import { Sparkles } from './Sparkles';
 import { Spot } from './Spot';
 import { Picker } from './Picker';
 import './Home.css';
@@ -574,6 +575,12 @@ export const Home = memo(function Home({
               <h1 className="home__title">{bannerTitle}</h1>
               <p className="home__subtitle">{bannerBody}</p>
             </div>
+            {/* Seeded by the section's name, so each banner has its own sky. */}
+            <Sparkles
+              className="home__sparkles"
+              count={7}
+              seed={[...section].reduce((sum, char) => sum + char.charCodeAt(0), 0)}
+            />
             <Illustration name={BANNER_ART[section]} className="home__art" eager />
           </header>
 

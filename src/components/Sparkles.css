@@ -1,0 +1,31 @@
+.sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The pale blue the illustrations draw their sparkles in. */
+.sparkles__star {
+  position: absolute;
+  fill: #a5b4d4;
+  opacity: 0.7;
+  animation: sparkle-twinkle 6s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.25;
+    transform: scale(0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkles__star {
+    animation: none;
+  }
+}

@@ -394,6 +394,13 @@
   color: rgb(255 255 255 / 0.76);
 }
 
+/* Sparkles over the right half, behind the scene: the same pale stars the
+   illustrations scatter around Tobot, carried out past the drawing's edge. */
+.home__sparkles {
+  inset: 0 0 0 auto;
+  width: 55%;
+}
+
 /* Each scene comes framed for the banner (scripts/brand/illustrations.py),
    so it only has to fill its height at the right edge: the frame's own cut
    along the bottom and the right lands on the banner's. */
