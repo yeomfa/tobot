@@ -190,12 +190,15 @@
   transition:
     background var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
 
+/* Under the pointer it becomes the block it will make, bottom face and all. */
 .palette__item:hover {
   background: var(--group-soft);
   border-color: var(--group-border);
+  box-shadow: var(--depth-sm) color-mix(in srgb, var(--group-hue) 38%, var(--group-border));
 }
 
 .palette__item:active {

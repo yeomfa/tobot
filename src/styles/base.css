@@ -124,6 +124,34 @@ a:hover {
   border: 3px solid transparent;
 }
 
+/*
+ * Solid buttons, drawn like the blocks in the illustrations: a flat fill on a
+ * darker bottom face. Hovering lifts it a pixel; pressing pushes it down onto
+ * its face, the way a block snaps into place.
+ *
+ * Listed here once rather than repeated in five stylesheets. `:is()` takes
+ * the weight of its heaviest selector, which is what lets this outrank each
+ * button's own shadow and hover rules without `!important`.
+ */
+:is(.landing__cta, .app__run, .home__start-card:not(.home__start-card--quiet), .tour__button--primary, .signin__submit) {
+  --face: var(--accent-shade);
+  box-shadow: var(--depth-md) var(--face);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+:is(.landing__cta, .app__run, .home__start-card:not(.home__start-card--quiet), .tour__button--primary, .signin__submit):hover:not(:disabled) {
+  box-shadow: 0 5px 0 var(--face);
+  transform: translateY(-1px);
+}
+
+:is(.landing__cta, .app__run, .home__start-card:not(.home__start-card--quiet), .tour__button--primary, .signin__submit):active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--face);
+  transform: translateY(3px);
+}
+
 /* Screen-reader-only utility. */
 .sr-only {
   position: absolute;

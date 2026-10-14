@@ -140,7 +140,7 @@
    section look the same before. */
 .landing__headline {
   font-size: var(--text-headline);
-  font-weight: 720;
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.15;
   text-wrap: balance;
@@ -157,7 +157,7 @@
 .landing__title {
   margin-top: var(--space-3);
   font-size: var(--text-display);
-  font-weight: 760;
+  font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.06;
   color: var(--text-primary);
@@ -549,11 +549,10 @@
   overflow: hidden;
   padding: var(--space-5);
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
   /* Mirrored corners, so the two are a pair rather than a repetition. */
   border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-sm);
+  box-shadow: var(--depth-sm) var(--surface-shade);
   transition:
-    border-color var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
 }
@@ -571,7 +570,7 @@
 }
 
 .landing__audience-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--depth-md) var(--card-hue, var(--border-strong));
 }
 
 /* Mirrored corners are enough to make them a pair rather than a repetition;
@@ -581,7 +580,6 @@
 }
 
 .landing__audience-card:hover {
-  border-color: var(--card-hue, var(--border-strong));
   transform: translateY(-2px);
 }
 
@@ -674,15 +672,15 @@
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
+  box-shadow: var(--depth-sm) var(--surface-shade);
   transition:
-    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
 
 .landing__card:hover {
-  border-color: var(--border-strong);
+  box-shadow: var(--depth-md) var(--border-strong);
   transform: translateY(-2px);
 }
 

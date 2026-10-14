@@ -138,6 +138,36 @@
   --code-hue-list: #f9a8d4;
   --code-hue-function: #a3d55e;
 
+  /*
+    Depth the way the illustrations draw it: a solid, darker bottom face with
+    a clean edge — the face under every code block Tobot carries — rather than
+    a blurred shadow. Used as `box-shadow: var(--depth-md) var(--face)`, with
+    each component setting `--face` to its shade. The blurred shadows below
+    stay for what really floats: popovers, dialogs, the tour card.
+
+    The shades are mixed from the tokens they darken, so they follow the dark
+    theme on their own and neither dark block has to repeat them.
+  */
+  --depth-sm: 0 2px 0;
+  --depth-md: 0 4px 0;
+
+  --hue-variable-shade: color-mix(in srgb, var(--hue-variable) 38%, var(--hue-variable-border));
+  --hue-io-shade: color-mix(in srgb, var(--hue-io) 38%, var(--hue-io-border));
+  --hue-conditional-shade: color-mix(in srgb, var(--hue-conditional) 38%, var(--hue-conditional-border));
+  --hue-loop-shade: color-mix(in srgb, var(--hue-loop) 38%, var(--hue-loop-border));
+  --hue-list-shade: color-mix(in srgb, var(--hue-list) 38%, var(--hue-list-border));
+  --hue-function-shade: color-mix(in srgb, var(--hue-function) 38%, var(--hue-function-border));
+  --hue-boolean-shade: color-mix(in srgb, var(--hue-boolean) 38%, var(--hue-boolean-border));
+  /* Under a solid fill: the same colour, deeper. */
+  --accent-shade: color-mix(in srgb, var(--accent) 72%, #2a1405);
+  /* Under a card. */
+  --surface-shade: #dde2ee;
+
+  /* The ground the illustrations are drawn on, shared by the hero, the
+     library banners and the closing band so the three are one surface. */
+  --brand-navy: #171d2e;
+  --brand-navy-2: #232a3f;
+
   --shadow-xs: 0 1px 2px rgb(15 20 35 / 0.06);
   --shadow-sm: 0 1px 3px rgb(15 20 35 / 0.08), 0 1px 2px rgb(15 20 35 / 0.04);
   --shadow-md: 0 4px 12px rgb(15 20 35 / 0.08), 0 2px 4px rgb(15 20 35 / 0.04);
@@ -146,9 +176,10 @@
 
   --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  /* Round, like the shapes in the illustrations. */
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-full: 999px;
 
   --space-1: 4px;
@@ -254,6 +285,7 @@
   --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.24);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.24);
   --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5), 0 4px 8px rgb(0 0 0 / 0.3);
+  --surface-shade: #070a12;
 }
 
 /* System preference, only when the user has not chosen explicitly. */
@@ -329,5 +361,6 @@
     --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.24);
     --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.24);
     --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5), 0 4px 8px rgb(0 0 0 / 0.3);
+    --surface-shade: #070a12;
   }
 }

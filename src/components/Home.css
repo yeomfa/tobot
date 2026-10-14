@@ -382,7 +382,7 @@
 
 .home__title {
   font-size: var(--text-2xl);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.025em;
   color: var(--slate-0);
 }
@@ -479,8 +479,11 @@
 
 .home__start-card--quiet {
   background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  box-shadow: none;
+  box-shadow: var(--depth-sm) var(--surface-shade);
+}
+
+.home__start-card--quiet:hover {
+  box-shadow: var(--depth-md) var(--border-strong);
 }
 
 .home__start-icon {
@@ -568,17 +571,17 @@
   padding: var(--space-5);
   text-align: left;
   background: var(--bg-surface);
-  border: 1px solid var(--border-default);
+  /* On a face of its own rather than inside a grey outline, like the blocks
+     in the illustrations; the face takes the card's colour under the pointer. */
   border-radius: var(--radius-lg);
+  box-shadow: var(--depth-sm) var(--surface-shade);
   transition:
-    border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
 
 .home__card:hover {
-  border-color: var(--card-hue);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--depth-md) var(--card-hue);
   transform: translateY(-2px);
 }
 
