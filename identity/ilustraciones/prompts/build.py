@@ -151,8 +151,9 @@ ROWS = [
 # What each saved version came to, once reviewed: (state, note).
 REVIEW = {}
 
-# The version to use for each piece, where one has been chosen.
-CHOSEN = {}
+# The version to use for each piece, where one has been chosen: all of the
+# second round came out right the first time.
+CHOSEN = {row[2]: row[2] + "-v1.png" for row in ROWS}
 
 
 def versions(file):
